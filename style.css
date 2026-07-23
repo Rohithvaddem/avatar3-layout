@@ -622,19 +622,32 @@ body {
     position: absolute;
     top: 100px; /* Below the top header */
     right: 25px;
-    width: 330px;
+    width: 290px;
     max-width: calc(100% - 50px);
     background-color: rgba(13, 20, 38, 0.92);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
-    padding: 20px;
+    padding: 16px;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
     pointer-events: auto; /* Active cursor for inputs/buttons inside card */
     transform: translateX(100px);
     opacity: 0;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+#plotModal .modal-header {
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+}
+
+#plotModal .detail-card {
+    gap: 12px;
+}
+
+#plotModal .detail-row {
+    padding-bottom: 8px;
 }
 
 #modalBackdrop.show #plotModal {
