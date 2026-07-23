@@ -600,15 +600,58 @@ body {
 }
 
 /* Custom Animated Details Modal */
-.modal-backdrop {
+#modalBackdrop {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(5, 7, 10, 0.7);
+    background-color: transparent; /* Transparent so map is visible and interactive */
+    backdrop-filter: none;
+    z-index: 150;
+    pointer-events: none; /* Let click actions pass through to map overlay */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#modalBackdrop.show {
+    opacity: 1;
+}
+
+#plotModal {
+    position: absolute;
+    top: 100px; /* Below the top header */
+    right: 25px;
+    width: 330px;
+    max-width: calc(100% - 50px);
+    background-color: rgba(13, 20, 38, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    pointer-events: auto; /* Active cursor for inputs/buttons inside card */
+    transform: translateX(100px);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+#modalBackdrop.show #plotModal {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* Staff Login Centered Modal Styling */
+#loginModalBackdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(5, 7, 10, 0.75);
     backdrop-filter: blur(4px);
-    z-index: 200;
+    z-index: 2000;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -617,14 +660,14 @@ body {
     transition: opacity 0.3s ease;
 }
 
-.modal-backdrop.show {
+#loginModalBackdrop.show {
     opacity: 1;
     pointer-events: auto;
 }
 
-.custom-modal {
+#loginModal {
     width: 90%;
-    max-width: 460px;
+    max-width: 380px;
     background-color: var(--bg-glass);
     border: 1px solid var(--border-color);
     border-radius: 16px;
@@ -634,7 +677,7 @@ body {
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.modal-backdrop.show .custom-modal {
+#loginModalBackdrop.show #loginModal {
     transform: scale(1) translateY(0);
 }
 
@@ -749,5 +792,21 @@ body {
     
     .custom-modal {
         padding: 20px;
+    }
+    
+    /* Responsive Bottom Drawer for Plot Modal on Mobile */
+    #plotModal {
+        top: auto;
+        bottom: 20px;
+        right: 15px;
+        left: 15px;
+        width: auto;
+        max-width: none;
+        transform: translateY(120px);
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.6);
+    }
+    
+    #modalBackdrop.show #plotModal {
+        transform: translateY(0);
     }
 }

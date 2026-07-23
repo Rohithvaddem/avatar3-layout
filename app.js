@@ -582,6 +582,11 @@ modalCloseBtn.addEventListener('click', closePlotModal);
 modalBackdrop.addEventListener('click', (e) => {
     if (e.target === modalBackdrop) closePlotModal();
 });
+mapViewport.addEventListener('click', (e) => {
+    if (e.target === mapViewport || e.target === mapContainer || e.target === mapImage) {
+        closePlotModal();
+    }
+});
 window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closePlotModal();
 });
