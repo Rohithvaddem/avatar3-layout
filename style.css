@@ -99,7 +99,8 @@ body {
 }
 
 .brand-logo-full {
-    width: 100%;
+    width: 80%;
+    max-width: 170px;
     height: auto;
     object-fit: contain;
     display: block;
