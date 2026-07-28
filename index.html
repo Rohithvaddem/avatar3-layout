@@ -1,100 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Aspirealty Avatar - Interactive Plot Status Viewer</title>
-    
+
     <!-- Meta tags for SEO -->
-    <meta name="description" content="Explore and search plot availability inside Aspirealty Avatar. Interactive map layout with real-time status updates, sizes, and facing directions.">
+    <meta name="description"
+        content="Explore and search plot availability inside Aspirealty Avatar. Interactive map layout with real-time status updates, sizes, and facing directions.">
     <meta name="keywords" content="Aspirealty, Avatar, Real Estate, Plot Viewer, Plot Map, Interactive Layout">
     <meta name="author" content="Aspirealty">
-    
+
     <!-- Fonts and Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
+    <!-- Leaflet.js Real-World GIS Map Libraries -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="dashboard-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-brand">
                 <div class="logo-container">
-                    <i class="fa-solid fa-hotel logo-icon"></i>
                     <div>
-                        <h1 class="brand-title">AVATAR</h1>
+                        <h1 class="brand-title">AVATAR 3</h1>
                         <p class="brand-subtitle">ASPIREALTY</p>
                     </div>
                 </div>
+                <img src="aspirealty_logo.png" class="brand-logo" alt="Aspirealty Logo">
                 <button class="sidebar-close" id="sidebarCloseBtn"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <!-- Search Section -->
-            <div class="sidebar-section">
-                <h3 class="section-title">Search Plots</h3>
-                <div class="search-box">
-                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                    <input type="text" id="searchInput" placeholder="Enter Plot No. (e.g. 125)" autocomplete="off">
-                    <button id="searchClearBtn" class="clear-btn"><i class="fa-solid fa-circle-xmark"></i></button>
-                </div>
-                <div id="searchSuggestions" class="suggestions-dropdown"></div>
-            </div>
-
-            <!-- Filters Section -->
-            <div class="sidebar-section">
-                <div class="section-header">
-                    <h3 class="section-title">Filter by Facing</h3>
-                    <button class="filter-reset-btn" id="facingResetBtn">Clear</button>
-                </div>
-                <div class="filter-grid" id="facingFilterGrid">
-                    <button class="filter-pill" data-facing="East">East</button>
-                    <button class="filter-pill" data-facing="West">West</button>
-                    <button class="filter-pill" data-facing="North">North</button>
-                    <button class="filter-pill" data-facing="South">South</button>
-                    <button class="filter-pill" data-facing="North-East">North-East</button>
-                    <button class="filter-pill" data-facing="North-West">North-West</button>
-                    <button class="filter-pill" data-facing="South-East">South-East</button>
-                    <button class="filter-pill" data-facing="South-West">South-West</button>
-                </div>
-            </div>
-
-            <!-- Legend & Statistics Section -->
-            <div class="sidebar-section">
-                <h3 class="section-title">Plot Statuses</h3>
-                <div class="status-legend-list" id="statusLegendList">
-                    <!-- Dynamic rendering by app.js -->
-                </div>
-            </div>
-            
-            <!-- Mapper Mode Section -->
-            <div class="sidebar-section" id="mapperSection" style="border-top: 1px solid var(--border-color); display: none;">
-                <div class="section-header">
-                    <h3 class="section-title" style="color: var(--accent); margin-bottom: 0;"><i class="fa-solid fa-map-pin"></i> Coordinate Mapper</h3>
-                    <button class="filter-reset-btn" id="toggleMapperBtn">Start</button>
-                </div>
-                <div id="mapperPanel" style="display: none; margin-top: 12px;">
-                    <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.4; text-align: left;">
-                        Select a plot number below, then click on the map to place its marker. The active plot will auto-advance.
-                    </p>
-                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
-                        <span style="font-size: 12px; font-weight: 600; color: var(--text-primary);">Active: Plot #</span>
-                        <input type="number" id="mapperActivePlot" style="width: 70px; background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 4px 8px; border-radius: 6px;" value="1" min="1" max="206">
+            <!-- Scrollable Sidebar Menu Content -->
+            <div class="sidebar-menu">
+                <!-- Search Section -->
+                <div class="sidebar-section">
+                    <h3 class="section-title">Search Plots</h3>
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="searchInput" placeholder="Enter Plot No. (e.g. 125)" autocomplete="off">
+                        <button id="searchClearBtn" class="clear-btn"><i class="fa-solid fa-circle-xmark"></i></button>
                     </div>
-                    <div style="max-height: 150px; overflow-y: auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 6px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 12px;" id="mapperPlotList">
-                        <!-- 1 to 206 buttons -->
-                    </div>
-                    <button id="mapperExportBtn" class="admin-login-btn" style="background-color: var(--accent); color: #fff; border: none; font-weight: 700; width: 100%;">
-                        <i class="fa-solid fa-download"></i> Export Coords Config
-                    </button>
+                    <div id="searchSuggestions" class="suggestions-dropdown"></div>
                 </div>
-            </div>
-            
+
+                <!-- Filters Section -->
+                <div class="sidebar-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Filter by Facing</h3>
+                        <button class="filter-reset-btn" id="facingResetBtn">Clear</button>
+                    </div>
+                    <div class="filter-grid" id="facingFilterGrid">
+                        <button class="filter-pill" data-facing="East">East</button>
+                        <button class="filter-pill" data-facing="West">West</button>
+                        <button class="filter-pill" data-facing="North">North</button>
+                        <button class="filter-pill" data-facing="South">South</button>
+                        <button class="filter-pill" data-facing="North-East">North-East</button>
+                        <button class="filter-pill" data-facing="North-West">North-West</button>
+                        <button class="filter-pill" data-facing="South-East">South-East</button>
+                        <button class="filter-pill" data-facing="South-West">South-West</button>
+                    </div>
+                </div>
+
+                <!-- Legend & Statistics Section -->
+                <div class="sidebar-section">
+                    <h3 class="section-title">Plot Status\Legend</h3>
+                    <div class="status-legend-list" id="statusLegendList">
+                        <!-- Dynamic rendering by app.js -->
+                    </div>
+                </div>
+
+                <!-- Mapper Mode Section -->
+                <div class="sidebar-section" id="mapperSection"
+                    style="border-top: 1px solid var(--border-color); display: none;">
+                    <div class="section-header">
+                        <h3 class="section-title" style="color: var(--accent); margin-bottom: 0;"><i
+                                class="fa-solid fa-map-pin"></i> Coordinate Mapper</h3>
+                        <button class="filter-reset-btn" id="toggleMapperBtn">Start</button>
+                    </div>
+                    <div id="mapperPanel" style="display: none; margin-top: 12px;">
+                        <p
+                            style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.4; text-align: left;">
+                            Select a plot number below, then click on the map to place its marker. The active plot will
+                            auto-advance.
+                        </p>
+                        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
+                            <span style="font-size: 12px; font-weight: 600; color: var(--text-primary);">Active: Plot
+                                #</span>
+                            <input type="number" id="mapperActivePlot"
+                                style="width: 70px; background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 4px 8px; border-radius: 6px;"
+                                value="1" min="1" max="206">
+                        </div>
+                        <div style="max-height: 150px; overflow-y: auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 6px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 12px;"
+                            id="mapperPlotList">
+                            <!-- 1 to 206 buttons -->
+                        </div>
+                        <button id="mapperExportBtn" class="admin-login-btn"
+                            style="background-color: var(--accent); color: #fff; border: none; font-weight: 700; width: 100%;">
+                            <i class="fa-solid fa-download"></i> Export Coords Config
+                        </button>
+                    </div>
+                </div>
+            </div> <!-- End of .sidebar-menu -->
+
             <div class="sidebar-footer" id="sidebarFooter">
-                <button class="admin-login-btn" id="staffLoginBtn" style="border: none; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <button class="admin-login-btn" id="staffLoginBtn"
+                    style="border: none; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     <i class="fa-solid fa-lock"></i> Staff Login
                 </button>
             </div>
@@ -111,6 +135,12 @@
                         <i class="fa-solid fa-circle-check"></i> DTCP Approved (LP No. 224/2023/H)
                     </span>
                 </div>
+
+                <!-- Real-World Satellite GIS View Toggle -->
+                <button class="satellite-toggle-btn" id="toggleSatelliteBtn" title="Switch to Satellite Map View">
+                    <i class="fa-solid fa-earth-americas"></i> <span>Satellite View</span>
+                </button>
+
                 <div class="header-stats">
                     <div class="stat-card">
                         <span class="stat-num" id="statTotalPlots">-</span>
@@ -129,13 +159,17 @@
 
             <!-- Map Viewport -->
             <div class="map-viewport" id="mapViewport">
+                <!-- Leaflet Real-World GIS Map Container -->
+                <div id="leafletMapContainer"></div>
+
                 <!-- Float Controls -->
                 <div class="map-controls">
                     <button class="map-btn" id="zoomInBtn" title="Zoom In"><i class="fa-solid fa-plus"></i></button>
                     <button class="map-btn" id="zoomOutBtn" title="Zoom Out"><i class="fa-solid fa-minus"></i></button>
-                    <button class="map-btn" id="zoomResetBtn" title="Fit Layout"><i class="fa-solid fa-compress"></i></button>
+                    <button class="map-btn" id="zoomResetBtn" title="Fit Layout"><i
+                            class="fa-solid fa-compress"></i></button>
                 </div>
-                
+
                 <!-- Zoom Instructions (fades out after drag/zoom) -->
                 <div class="map-tip" id="mapTip">
                     <i class="fa-solid fa-hand-pointer"></i> Drag to Pan &bull; Scroll or Pinch to Zoom
@@ -143,7 +177,7 @@
 
                 <!-- Drag/Zoom Container -->
                 <div class="map-container" id="mapContainer">
-                    <img src="map_layout.jpg" alt="Aspirealty Avatar Project Layout" class="map-image" id="mapImage">
+                    <img src="map_layout.png" alt="Aspirealty Avatar Project Layout" class="map-image" id="mapImage">
                     <!-- Dynamic overlay nodes go here -->
                     <div class="plots-overlay" id="plotsOverlay"></div>
                 </div>
@@ -175,16 +209,22 @@
                 <form id="loginForm" style="display: flex; flex-direction: column; gap: 16px;">
                     <div style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
                         <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Username</label>
-                        <input type="text" id="loginUsername" required style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s;" placeholder="Enter username">
+                        <input type="text" id="loginUsername" required
+                            style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s;"
+                            placeholder="Enter username">
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
                         <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Password</label>
-                        <input type="password" id="loginPassword" required style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s;" placeholder="Enter password">
+                        <input type="password" id="loginPassword" required
+                            style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s;"
+                            placeholder="Enter password">
                     </div>
-                    <div id="loginError" style="color: var(--status-registered); font-size: 12px; text-align: left; display: none; font-weight: 600;">
+                    <div id="loginError"
+                        style="color: var(--status-registered); font-size: 12px; text-align: left; display: none; font-weight: 600;">
                         <i class="fa-solid fa-circle-exclamation"></i> Invalid credentials!
                     </div>
-                    <button type="submit" class="admin-login-btn" style="background-color: var(--accent); color: #fff; border: none; font-weight: 700; padding: 12px; font-size: 14px; margin-top: 8px; cursor: pointer; border-radius: 8px;">
+                    <button type="submit" class="admin-login-btn"
+                        style="background-color: var(--accent); color: #fff; border: none; font-weight: 700; padding: 12px; font-size: 14px; margin-top: 8px; cursor: pointer; border-radius: 8px;">
                         Login
                     </button>
                 </form>
@@ -197,4 +237,5 @@
     <script src="data.js"></script>
     <script src="app.js"></script>
 </body>
+
 </html>

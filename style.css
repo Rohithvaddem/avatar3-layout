@@ -18,10 +18,10 @@
     /* Plot Status Colors */
     --status-available: #10b981;    /* Green */
     --status-sold: #1d4ed8;         /* Deep Blue */
-    --status-hold: #8b5cf6;         /* Purple */
+    --status-hold: #92400e;         /* Brown */
     --status-mortgage: #f97316;     /* Orange */
     --status-registered: #ef4444;   /* Red */
-    --status-resale: #86efac;       /* Light Green */
+    --status-resale: #06b6d4;       /* Cyan */
     --status-investor: #06b6d4;     /* Cyan */
     --status-unknown: #4b5563;      /* Grey */
 }
@@ -78,6 +78,13 @@ body {
     transition: transform 0.3s ease;
 }
 
+.sidebar-menu {
+    flex-grow: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
 .sidebar-brand {
     padding: 24px;
     border-bottom: 1px solid var(--border-color);
@@ -86,10 +93,30 @@ body {
     align-items: center;
 }
 
+.brand-logo {
+    height: 52px;
+    width: 110px;
+    object-fit: contain;
+    background-color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
 .logo-container {
     display: flex;
     align-items: center;
     gap: 12px;
+    background-color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+.logo-container .brand-title {
+    color: #0a0d14 !important;
+}
+
+.logo-container .brand-subtitle {
+    color: #64748b !important;
 }
 
 .logo-icon {
@@ -530,6 +557,9 @@ body {
     position: absolute;
     transform-origin: 0 0;
     user-select: none;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .map-image {
@@ -802,6 +832,10 @@ body {
         display: block;
     }
     
+    .brand-logo {
+        margin-right: 12px;
+    }
+    
     .sidebar-toggle {
         display: block;
     }
@@ -840,3 +874,121 @@ body {
         transform: translateY(0);
     }
 }
+
+/* ====================================================
+   Leaflet GIS Map & Satellite Overlay Styles
+   ==================================================== */
+#leafletMapContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    display: none;
+    background-color: #05070a;
+}
+
+/* Ensure Leaflet controls and overlays respect our layout bounds */
+.leaflet-control-container .leaflet-routing-container-map,
+.leaflet-control-zoom {
+    margin-bottom: 90px !important; /* Move above floating controls */
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.leaflet-bar a {
+    background-color: var(--bg-glass) !important;
+    backdrop-filter: blur(12px) !important;
+    color: var(--text-primary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    transition: all 0.2s !important;
+}
+
+.leaflet-bar a:hover {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--accent) !important;
+}
+
+/* Satellite Toggle Button */
+.satellite-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    color: var(--text-secondary);
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.satellite-toggle-btn:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+    box-shadow: 0 0 12px var(--accent-glow);
+    transform: translateY(-1px);
+}
+
+.satellite-toggle-btn:active {
+    transform: translateY(0);
+}
+
+.satellite-toggle-btn.active {
+    background-color: var(--accent-glow);
+    border-color: var(--accent);
+    color: #ffffff;
+    box-shadow: 0 0 14px var(--accent-glow);
+}
+
+@media (max-width: 768px) {
+    .satellite-toggle-btn span {
+        display: none; /* Icon-only on mobile screens */
+    }
+    .satellite-toggle-btn {
+        padding: 10px 12px;
+    }
+}
+
+/* Custom Leaflet Marker Icons for Plot Numbers */
+.leaflet-plot-marker {
+    background-color: var(--plot-color);
+    border: 1.5px solid #ffffff;
+    border-radius: 50%;
+    color: #ffffff;
+    font-family: var(--font-heading);
+    font-size: 8px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6), 0 0 8px var(--plot-color);
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s, border-color 0.2s;
+}
+
+.leaflet-plot-marker:hover {
+    transform: scale(1.35) !important;
+    z-index: 1000 !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8), 0 0 16px var(--plot-color);
+    border-color: #ffffff;
+}
+
+.leaflet-plot-marker.filtered-out {
+    opacity: 0.12 !important;
+    pointer-events: none !important;
+}
+
+.leaflet-plot-marker.highlighted {
+    transform: scale(1.4) !important;
+    z-index: 1010 !important;
+    border-color: #ffffff;
+    box-shadow: 0 0 24px var(--plot-color), 0 0 0 6px rgba(255, 255, 255, 0.4);
+    animation: pulse-glow 1.2s infinite alternate;
+}
+

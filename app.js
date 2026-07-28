@@ -5,6 +5,17 @@ let activeFilters = {
     status: null
 };
 
+// Leaflet GIS Map state
+let leafletMap = null;
+let isSatelliteActive = false;
+let leafletMarkers = {};
+const siteBounds = {
+    west: 78.53563,
+    south: 16.92999,
+    east: 78.54038,
+    north: 16.93272
+};
+
 // Map Pan/Zoom state
 let zoomScale = 1.0;
 let panX = 0;
@@ -61,6 +72,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setupMobileSidebar();
     setupMapper();
     setupAdmin();
+    setupSatelliteToggle();
 });
 
 // Main App Initialization
@@ -170,6 +182,11 @@ function renderPlotDots() {
         
         plotsOverlay.appendChild(dot);
     });
+
+    // Synchronize updates with Leaflet markers if Leaflet is initialized
+    if (leafletMap) {
+        refreshLeafletMarkers();
+    }
 }
 
 // ----------------------------------------------------
@@ -268,14 +285,17 @@ function setupMapControls() {
 
     // Buttons actions
     document.getElementById('zoomInBtn').addEventListener('click', () => {
+        if (isSatelliteActive) return;
         adjustZoom(1.25);
     });
 
     document.getElementById('zoomOutBtn').addEventListener('click', () => {
+        if (isSatelliteActive) return;
         adjustZoom(0.8);
     });
 
     document.getElementById('zoomResetBtn').addEventListener('click', () => {
+        if (isSatelliteActive) return;
         fitMapToViewport();
     });
 }
@@ -399,13 +419,30 @@ function focusOnPlot(plotNo) {
     const coords = plotCoordinates[plotNo];
     if (!coords) return;
     
-    // Highlight Target Dot
+    // Highlight Target Dot (2D)
     document.querySelectorAll('.plot-dot.highlighted').forEach(dot => {
         dot.classList.remove('highlighted');
     });
     
     const dot = document.getElementById(`plot-dot-${plotNo}`);
     if (dot) dot.classList.add('highlighted');
+
+    // Leaflet Satellite Focus & Highlight
+    if (leafletMap) {
+        document.querySelectorAll('.leaflet-plot-marker.highlighted').forEach(m => {
+            m.classList.remove('highlighted');
+        });
+        const markerEl = document.getElementById(`leaflet-plot-marker-${plotNo}`);
+        if (markerEl) markerEl.classList.add('highlighted');
+        
+        // Calculate Lat/Lng
+        const width2D = 2500;
+        const height2D = 1579;
+        const lng = siteBounds.west + (coords.left / width2D) * (siteBounds.east - siteBounds.west);
+        const lat = siteBounds.north - (coords.top / height2D) * (siteBounds.north - siteBounds.south);
+        
+        leafletMap.setView([lat, lng], 19);
+    }
     
     // Scale factors: original coords are mapped to 2500x1579 background
     const scaleX = 1024 / 2500;
@@ -481,6 +518,17 @@ function applyFilters() {
             dot.classList.add('filtered-out');
         }
     });
+
+    // Synchronize filters on Leaflet markers
+    if (leafletMap) {
+        Object.keys(leafletMarkers).forEach(plotNo => {
+            const marker = leafletMarkers[plotNo];
+            const el = marker.getElement();
+            if (el) {
+                applyLeafletMarkerFilters(marker, el);
+            }
+        });
+    }
 }
 
 // ----------------------------------------------------
@@ -639,7 +687,9 @@ function updateStatistics() {
     const displayStatuses = [
         { label: 'AVAILABLE', status: 'AVAILABLE' },
         { label: 'SOLD / BOOKED', status: 'SOLD' },
-        { label: 'MORTGAGE', status: 'MORTGAGE' }
+        { label: 'MORTGAGE', status: 'MORTGAGE' },
+        { label: 'HOLD', status: 'HOLD' },
+        { label: 'RESALE', status: 'RESALE' }
     ];
 
     displayStatuses.forEach(item => {
@@ -1107,3 +1157,126 @@ function savePlotEdits(plotNo) {
     updateStatistics();
     openPlotModal(plotNo);
 }
+
+// ----------------------------------------------------
+// Real-world Satellite GIS Map Overlay Functions (Leaflet.js)
+// ----------------------------------------------------
+
+function setupSatelliteToggle() {
+    const toggleBtn = document.getElementById('toggleSatelliteBtn');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            isSatelliteActive = !isSatelliteActive;
+            toggleSatelliteView();
+        });
+    }
+}
+
+function toggleSatelliteView() {
+    const toggleBtn = document.getElementById('toggleSatelliteBtn');
+    const leafletContainer = document.getElementById('leafletMapContainer');
+    
+    if (isSatelliteActive) {
+        toggleBtn.classList.add('active');
+        toggleBtn.innerHTML = '<i class="fa-solid fa-map"></i> <span>Schematic View</span>';
+        toggleBtn.title = "Switch to 2D Schematic View";
+        
+        // Hide 2D map
+        mapContainer.style.display = 'none';
+        leafletContainer.style.display = 'block';
+        
+        if (mapTip) {
+            mapTip.innerHTML = '<i class="fa-solid fa-earth-americas"></i> Click Plot to View Details &bull; Drag to Navigate &bull; Scroll to Zoom';
+        }
+        
+        if (!leafletMap) {
+            initLeafletMap();
+        } else {
+            leafletMap.invalidateSize();
+            refreshLeafletMarkers();
+        }
+    } else {
+        toggleBtn.classList.remove('active');
+        toggleBtn.innerHTML = '<i class="fa-solid fa-earth-americas"></i> <span>Satellite View</span>';
+        toggleBtn.title = "Switch to Satellite Map View";
+        
+        // Show 2D map
+        mapContainer.style.display = 'block';
+        leafletContainer.style.display = 'none';
+        
+        if (mapTip) {
+            mapTip.innerHTML = '<i class="fa-solid fa-hand-pointer"></i> Drag to Pan &bull; Scroll or Pinch to Zoom';
+        }
+        
+        // Highlight active filters or highlights in 2D View
+        applyFilters();
+        fitMapToViewport();
+    }
+}
+
+function initLeafletMap() {
+    const centerLat = (siteBounds.south + siteBounds.north) / 2;
+    const centerLng = (siteBounds.west + siteBounds.east) / 2;
+    
+    leafletMap = L.map('leafletMapContainer', {
+        zoomControl: false, // Hiding default zoom to use our custom floating controls
+        center: [centerLat, centerLng],
+        zoom: 17,
+        maxZoom: 21,
+        minZoom: 15
+    });
+    
+    // Bind our custom map controls to Leaflet
+    document.getElementById('zoomInBtn').addEventListener('click', (e) => {
+        if (isSatelliteActive && leafletMap) {
+            e.stopPropagation();
+            leafletMap.zoomIn();
+        }
+    });
+    
+    document.getElementById('zoomOutBtn').addEventListener('click', (e) => {
+        if (isSatelliteActive && leafletMap) {
+            e.stopPropagation();
+            leafletMap.zoomOut();
+        }
+    });
+    
+    document.getElementById('zoomResetBtn').addEventListener('click', (e) => {
+        if (isSatelliteActive && leafletMap) {
+            e.stopPropagation();
+            leafletMap.setView([centerLat, centerLng], 17);
+        }
+    });
+    
+    // Satellite Layer (Esri World Imagery)
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    }).addTo(leafletMap);
+    
+    // Ground Overlay Layout Image
+    const bounds = [
+        [siteBounds.south, siteBounds.west],
+        [siteBounds.north, siteBounds.east]
+    ];
+    
+    L.imageOverlay('map_layout_satellite.png', bounds, {
+        opacity: 0.85,
+        interactive: false
+    }).addTo(leafletMap);
+
+    
+    // Generate Plot Markers
+    refreshLeafletMarkers();
+}
+
+function refreshLeafletMarkers() {
+    // Disabled plot markers rendering in Satellite GIS View as per user request.
+    // The user will coordinate map them themselves.
+    return;
+}
+
+function applyLeafletMarkerFilters(marker, el) {
+    // No-op since markers rendering is disabled in Satellite View.
+    return;
+}
+
