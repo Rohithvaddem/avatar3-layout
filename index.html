@@ -162,6 +162,35 @@
                 <!-- Leaflet Real-World GIS Map Container -->
                 <div id="leafletMapContainer"></div>
 
+                <!-- GIS Custom Layer Control Panel (glowing glassmorphism) -->
+                <div class="gis-layer-control" id="gisLayerControl" style="display: none;">
+                    <div class="layer-control-header">
+                        <i class="fa-solid fa-layer-group"></i> <span>Map Layers</span>
+                    </div>
+                    <div class="layer-control-body">
+                        <label class="layer-toggle-item">
+                            <input type="checkbox" id="toggleLayouts" checked>
+                            <span class="custom-checkbox"></span>
+                            <span class="layer-label">Layout Overlays</span>
+                        </label>
+                        <label class="layer-toggle-item">
+                            <input type="checkbox" id="toggleRegionalRoads" checked>
+                            <span class="custom-checkbox"></span>
+                            <span class="layer-label">Regional Roads</span>
+                        </label>
+                        <label class="layer-toggle-item">
+                            <input type="checkbox" id="toggleLocalRoads">
+                            <span class="custom-checkbox"></span>
+                            <span class="layer-label">Road Connections</span>
+                        </label>
+                        <label class="layer-toggle-item">
+                            <input type="checkbox" id="toggleProjectMarkers" checked>
+                            <span class="custom-checkbox"></span>
+                            <span class="layer-label">Project Markers</span>
+                        </label>
+                    </div>
+                </div>
+
                 <!-- Float Controls -->
                 <div class="map-controls">
                     <button class="map-btn" id="zoomInBtn" title="Zoom In"><i class="fa-solid fa-plus"></i></button>

@@ -1094,6 +1094,8 @@ function openPlotEditForm(plotNo) {
                     <option value="AVAILABLE" ${item.plot_status === 'AVAILABLE' ? 'selected' : ''}>AVAILABLE</option>
                     <option value="SOLD" ${item.plot_status === 'SOLD' ? 'selected' : ''}>SOLD</option>
                     <option value="MORTGAGE" ${item.plot_status === 'MORTGAGE' ? 'selected' : ''}>MORTGAGE</option>
+                    <option value="HOLD" ${item.plot_status === 'HOLD' ? 'selected' : ''}>HOLD</option>
+                    <option value="RESALE" ${item.plot_status === 'RESALE' ? 'selected' : ''}>RESALE</option>
                 </select>
             </div>
             
@@ -1216,39 +1218,53 @@ function setupSatelliteToggle() {
     }
 }
 
+let layoutsGroup = null;
+let regionalRoadsGroup = null;
+let localRoadsGroup = null;
+let projectMarkersGroup = null;
+
 function toggleSatelliteView() {
     const toggleBtn = document.getElementById('toggleSatelliteBtn');
     const leafletContainer = document.getElementById('leafletMapContainer');
+    const layerControl = document.getElementById('gisLayerControl');
+    const mapControls = document.querySelector('.map-controls');
     
     if (isSatelliteActive) {
         toggleBtn.classList.add('active');
         toggleBtn.innerHTML = '<i class="fa-solid fa-map"></i> <span>Schematic View</span>';
         toggleBtn.title = "Switch to 2D Schematic View";
         
-        // Hide 2D map
+        // Hide 2D map & show Leaflet container
         mapContainer.style.display = 'none';
         leafletContainer.style.display = 'block';
+        if (layerControl) layerControl.style.display = 'block';
         
         if (mapTip) {
-            mapTip.innerHTML = '<i class="fa-solid fa-earth-americas"></i> Click Plot to View Details &bull; Drag to Navigate &bull; Scroll to Zoom';
+            mapTip.style.display = 'none';
         }
         
+        // Initialize Leaflet Map if not done already
         if (!leafletMap) {
             initLeafletMap();
         } else {
             leafletMap.invalidateSize();
-            refreshLeafletMarkers();
+            // Recenter map on active project center
+            const centerLat = (siteBounds.south + siteBounds.north) / 2;
+            const centerLng = (siteBounds.west + siteBounds.east) / 2;
+            leafletMap.setView([centerLat, centerLng], 17);
         }
     } else {
         toggleBtn.classList.remove('active');
         toggleBtn.innerHTML = '<i class="fa-solid fa-earth-americas"></i> <span>Satellite View</span>';
         toggleBtn.title = "Switch to Satellite Map View";
         
-        // Show 2D map
+        // Show 2D map & hide Leaflet container
         mapContainer.style.display = 'block';
         leafletContainer.style.display = 'none';
+        if (layerControl) layerControl.style.display = 'none';
         
         if (mapTip) {
+            mapTip.style.display = 'flex';
             mapTip.innerHTML = '<i class="fa-solid fa-hand-pointer"></i> Drag to Pan &bull; Scroll or Pinch to Zoom';
         }
         
@@ -1267,8 +1283,14 @@ function initLeafletMap() {
         center: [centerLat, centerLng],
         zoom: 17,
         maxZoom: 21,
-        minZoom: 15
+        minZoom: 13
     });
+    
+    // Initialize LayerGroups and add them to map
+    layoutsGroup = L.layerGroup().addTo(leafletMap);
+    regionalRoadsGroup = L.layerGroup().addTo(leafletMap);
+    localRoadsGroup = L.layerGroup().addTo(leafletMap);
+    projectMarkersGroup = L.layerGroup().addTo(leafletMap);
     
     // Bind our custom map controls to Leaflet
     document.getElementById('zoomInBtn').addEventListener('click', (e) => {
@@ -1294,23 +1316,325 @@ function initLeafletMap() {
     
     // Satellite Layer (Esri World Imagery)
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-    }).addTo(leafletMap);
-    
-    // Ground Overlay Layout Image
-    const bounds = [
-        [siteBounds.south, siteBounds.west],
-        [siteBounds.north, siteBounds.east]
-    ];
-    
-    L.imageOverlay('map_layout_satellite.png', bounds, {
-        opacity: 0.85,
-        interactive: false
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS, AeroGRID, IGN, and the GIS User Community',
+        maxZoom: 21
     }).addTo(leafletMap);
 
+    // Setup L.ImageOverlay.Rotated extension
+    if (!L.ImageOverlay.Rotated) {
+        L.ImageOverlay.Rotated = L.ImageOverlay.extend({
+            options: {
+                rotation: 0
+            },
+            _reset: function() {
+                L.ImageOverlay.prototype._reset.call(this);
+                if (this.options.rotation && this._image) {
+                    this._image.style.transformOrigin = 'center center';
+                    this._image.style.transform += ` rotate(${-this.options.rotation}deg)`;
+                }
+            },
+            _animateZoom: function(e) {
+                L.ImageOverlay.prototype._animateZoom.call(this, e);
+                if (this.options.rotation && this._image) {
+                    this._image.style.transformOrigin = 'center center';
+                    this._image.style.transform += ` rotate(${-this.options.rotation}deg)`;
+                }
+            }
+        });
+
+        L.imageOverlay.rotated = function(url, bounds, options) {
+            return new L.ImageOverlay.Rotated(url, bounds, options);
+        };
+    }
     
-    // Generate Plot Markers
-    refreshLeafletMarkers();
+    // Parse doc.kml file
+    fetch('doc.kml')
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load KML file');
+            return response.text();
+        })
+        .then(kmlText => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(kmlText, 'text/xml');
+            
+            // Helper to parse aabbggrr color string to Leaflet color and opacity
+            function parseKmlColor(kmlColorStr) {
+                if (!kmlColorStr || kmlColorStr.length !== 8) return { color: '#3b82f6', opacity: 0.85 };
+                const aHex = kmlColorStr.substring(0, 2);
+                const bHex = kmlColorStr.substring(2, 4);
+                const gHex = kmlColorStr.substring(4, 6);
+                const rHex = kmlColorStr.substring(6, 8);
+                
+                const r = parseInt(rHex, 16);
+                const g = parseInt(gHex, 16);
+                const b = parseInt(bHex, 16);
+                const a = parseInt(aHex, 16) / 255;
+                
+                const hexColor = "#" + 
+                    r.toString(16).padStart(2, '0') + 
+                    g.toString(16).padStart(2, '0') + 
+                    b.toString(16).padStart(2, '0');
+                
+                return { color: hexColor, opacity: a };
+            }
+
+            // Parse KML Styles
+            const styles = {};
+            const styleMaps = {};
+            
+            // Extract Style elements
+            const styleNodes = xmlDoc.getElementsByTagName('Style');
+            for (let i = 0; i < styleNodes.length; i++) {
+                const styleNode = styleNodes[i];
+                const id = styleNode.getAttribute('id') || styleNode.getAttribute('kml:id');
+                if (!id) continue;
+                
+                const lineStyle = styleNode.getElementsByTagName('LineStyle')[0];
+                let colorInfo = null;
+                let width = null;
+                if (lineStyle) {
+                    const colorNode = lineStyle.getElementsByTagName('color')[0];
+                    if (colorNode) colorInfo = parseKmlColor(colorNode.textContent);
+                    
+                    const widthNode = lineStyle.getElementsByTagName('width')[0];
+                    if (widthNode) width = parseFloat(widthNode.textContent);
+                }
+                styles[id] = {
+                    color: colorInfo?.color || '#3b82f6',
+                    opacity: colorInfo !== null ? colorInfo.opacity : 0.85,
+                    width: width !== null ? width : 3
+                };
+            }
+            
+            // Extract gx:CascadingStyle elements
+            const cascadingStyleNodes = xmlDoc.getElementsByTagName('gx:CascadingStyle');
+            for (let i = 0; i < cascadingStyleNodes.length; i++) {
+                const csNode = cascadingStyleNodes[i];
+                const id = csNode.getAttribute('kml:id') || csNode.getAttribute('id');
+                if (!id) continue;
+                
+                const styleNode = csNode.getElementsByTagName('Style')[0];
+                if (styleNode) {
+                    const lineStyle = styleNode.getElementsByTagName('LineStyle')[0];
+                    let colorInfo = null;
+                    let width = null;
+                    if (lineStyle) {
+                        const colorNode = lineStyle.getElementsByTagName('color')[0];
+                        if (colorNode) colorInfo = parseKmlColor(colorNode.textContent);
+                        
+                        const widthNode = lineStyle.getElementsByTagName('width')[0];
+                        if (widthNode) width = parseFloat(widthNode.textContent);
+                    }
+                    styles[id] = {
+                        color: colorInfo?.color || '#3b82f6',
+                        opacity: colorInfo !== null ? colorInfo.opacity : 0.85,
+                        width: width !== null ? width : 3
+                    };
+                }
+            }
+            
+            // Extract StyleMap elements
+            const styleMapNodes = xmlDoc.getElementsByTagName('StyleMap');
+            for (let i = 0; i < styleMapNodes.length; i++) {
+                const styleMapNode = styleMapNodes[i];
+                const id = styleMapNode.getAttribute('id') || styleMapNode.getAttribute('kml:id');
+                if (!id) continue;
+                
+                const pairs = styleMapNode.getElementsByTagName('Pair');
+                for (let j = 0; j < pairs.length; j++) {
+                    const key = pairs[j].getElementsByTagName('key')[0]?.textContent;
+                    if (key === 'normal') {
+                        let styleUrl = pairs[j].getElementsByTagName('styleUrl')[0]?.textContent || '';
+                        if (styleUrl.startsWith('#')) styleUrl = styleUrl.substring(1);
+                        styleMaps[id] = styleUrl;
+                    }
+                }
+            }
+
+            function getPlacemarkStyle(pmNode) {
+                let styleUrl = pmNode.getElementsByTagName('styleUrl')[0]?.textContent || '';
+                if (styleUrl.startsWith('#')) styleUrl = styleUrl.substring(1);
+                
+                // Resolve StyleMap to Style ID
+                if (styleMaps[styleUrl]) {
+                    styleUrl = styleMaps[styleUrl];
+                }
+                
+                const resolved = styles[styleUrl];
+                return {
+                    color: resolved?.color || '#3b82f6',
+                    opacity: resolved !== undefined ? resolved.opacity : 0.85,
+                    width: resolved?.width || 3
+                };
+            }
+            
+            // Parse GroundOverlays
+            const groundOverlays = xmlDoc.getElementsByTagName('GroundOverlay');
+            for (let i = 0; i < groundOverlays.length; i++) {
+                const overlayNode = groundOverlays[i];
+                const name = overlayNode.getElementsByTagName('name')[0]?.textContent || 'Layout Overlay';
+                const href = overlayNode.getElementsByTagName('href')[0]?.textContent || '';
+                const latLonBox = overlayNode.getElementsByTagName('LatLonBox')[0];
+                const visibilityNode = overlayNode.getElementsByTagName('visibility')[0];
+                const isVisible = visibilityNode ? visibilityNode.textContent !== '0' : true;
+                
+                // Only add GroundOverlays that are visible by default
+                if (latLonBox && href && isVisible) {
+                    const north = parseFloat(latLonBox.getElementsByTagName('north')[0]?.textContent || '0');
+                    const south = parseFloat(latLonBox.getElementsByTagName('south')[0]?.textContent || '0');
+                    const east = parseFloat(latLonBox.getElementsByTagName('east')[0]?.textContent || '0');
+                    const west = parseFloat(latLonBox.getElementsByTagName('west')[0]?.textContent || '0');
+                    const rotationNode = latLonBox.getElementsByTagName('rotation')[0];
+                    const rotation = rotationNode ? parseFloat(rotationNode.textContent) : 0;
+                    
+                    const bounds = [[south, west], [north, east]];
+                    
+                    // Parse custom overlay color/opacity tint
+                    const colorNode = overlayNode.getElementsByTagName('color')[0];
+                    let overlayOpacity = 0.85;
+                    if (colorNode) {
+                        const parsedColor = parseKmlColor(colorNode.textContent);
+                        overlayOpacity = parsedColor.opacity;
+                    }
+
+                    const leafletOverlay = L.imageOverlay.rotated(href, bounds, {
+                        rotation: rotation,
+                        opacity: overlayOpacity
+                    });
+                    layoutsGroup.addLayer(leafletOverlay);
+                }
+            }
+            
+            // Helper to determine parent folder
+            function getParentFolderName(node) {
+                let parent = node.parentNode;
+                while (parent && parent.nodeName !== 'Folder' && parent.nodeName !== 'Document' && parent.nodeName !== 'kml') {
+                    parent = parent.parentNode;
+                }
+                return parent && parent.nodeName === 'Folder' ? parent.getElementsByTagName('name')[0]?.textContent : '';
+            }
+            
+            // Parse coordinates string
+            function parseCoordinates(coordsText) {
+                const points = [];
+                const coordsArray = coordsText.trim().split(/\s+/);
+                for (const coordStr of coordsArray) {
+                    if (!coordStr) continue;
+                    const parts = coordStr.split(',');
+                    if (parts.length >= 2) {
+                        const lng = parseFloat(parts[0]);
+                        const lat = parseFloat(parts[1]);
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            points.push([lat, lng]);
+                        }
+                    }
+                }
+                return points;
+            }
+            
+            // Customize marker icons
+            function createProjectMarkerIcon(name) {
+                return L.divIcon({
+                    className: 'custom-gis-marker',
+                    html: `
+                        <div class="gis-marker-pulse"></div>
+                        <div class="gis-marker-dot"></div>
+                        <div class="gis-marker-label">${name}</div>
+                    `,
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                });
+            }
+            
+            // Parse Placemarks
+            const placemarks = xmlDoc.getElementsByTagName('Placemark');
+            for (let i = 0; i < placemarks.length; i++) {
+                const pmNode = placemarks[i];
+                const name = pmNode.getElementsByTagName('name')[0]?.textContent || 'Feature';
+                const folderName = getParentFolderName(pmNode) || '';
+                
+                // LineString (Roads)
+                const lineString = pmNode.getElementsByTagName('LineString')[0];
+                if (lineString) {
+                    const coordsText = lineString.getElementsByTagName('coordinates')[0]?.textContent || '';
+                    const coords = parseCoordinates(coordsText);
+                    if (coords.length > 0) {
+                        const isRegional = folderName.includes('RRR') || folderName.includes('ORR') || name.toLowerCase().includes('orr') || name.toLowerCase().includes('rrr') || name.toLowerCase().includes('highway');
+                        const styleInfo = getPlacemarkStyle(pmNode);
+                        
+                        const polyline = L.polyline(coords, {
+                            color: styleInfo.color,
+                            weight: styleInfo.width,
+                            opacity: styleInfo.opacity
+                        });
+                        
+                        if (isRegional) {
+                            polyline.bindTooltip(name, {
+                                permanent: true,
+                                direction: 'center',
+                                className: 'road-label'
+                            });
+                            regionalRoadsGroup.addLayer(polyline);
+                        } else {
+                            polyline.bindTooltip(name, {
+                                sticky: true,
+                                className: 'road-label-local'
+                            });
+                            localRoadsGroup.addLayer(polyline);
+                        }
+                    }
+                }
+                
+                // Point (Markers)
+                const point = pmNode.getElementsByTagName('Point')[0];
+                if (point) {
+                    const coordsText = point.getElementsByTagName('coordinates')[0]?.textContent || '';
+                    const coords = parseCoordinates(coordsText);
+                    if (coords.length > 0) {
+                        const marker = L.marker(coords[0], {
+                            icon: createProjectMarkerIcon(name)
+                        }).bindPopup(`<b>${name}</b>`);
+                        
+                        projectMarkersGroup.addLayer(marker);
+                    }
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Error loading or parsing KML:', err);
+        });
+        
+    // Setup Layer Checkbox Handlers
+    setupLayerToggles();
+}
+
+function setupLayerToggles() {
+    const toggles = [
+        { id: 'toggleLayouts', group: layoutsGroup },
+        { id: 'toggleRegionalRoads', group: regionalRoadsGroup },
+        { id: 'toggleLocalRoads', group: localRoadsGroup },
+        { id: 'toggleProjectMarkers', group: projectMarkersGroup }
+    ];
+    
+    toggles.forEach(t => {
+        const checkbox = document.getElementById(t.id);
+        if (checkbox) {
+            // Synchronize initial state
+            if (checkbox.checked) {
+                t.group.addTo(leafletMap);
+            } else {
+                leafletMap.removeLayer(t.group);
+            }
+            
+            checkbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    t.group.addTo(leafletMap);
+                } else {
+                    leafletMap.removeLayer(t.group);
+                }
+            });
+        }
+    });
 }
 
 function refreshLeafletMarkers() {
