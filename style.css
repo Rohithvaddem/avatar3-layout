@@ -108,11 +108,10 @@ body {
 .logo-container {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     width: 100%;
-    background-color: #ffffff;
-    padding: 8px 14px;
-    border-radius: 8px;
+    background-color: transparent;
+    padding: 0;
 }
 
 .logo-container .brand-title {
