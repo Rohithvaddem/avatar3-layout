@@ -82,7 +82,7 @@ function initApp() {
     const localData = localStorage.getItem('aspire_avatar3_data');
     if (localData) {
         try {
-            plotData = JSON.parse(localData);
+            plotData = JSON.parse(localData).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
             renderPlotDots();
             updateStatistics();
             setTimeout(fitMapToViewport, 100);
@@ -100,7 +100,7 @@ function initApp() {
             return response.json();
         })
         .then(data => {
-            plotData = data;
+            plotData = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
             
             // 2. Render plot markers
             renderPlotDots();
@@ -115,7 +115,7 @@ function initApp() {
         .catch(err => {
             console.warn('CORS or network error. Falling back to offline dataset (data.js):', err);
             if (typeof plotDataRaw !== 'undefined') {
-                plotData = plotDataRaw;
+                plotData = plotDataRaw.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
             } else {
                 console.error('Offline dataset not found.');
             }
