@@ -608,6 +608,10 @@ body {
     pointer-events: none;
 }
 
+.plot-dot.search-filtered {
+    display: none !important;
+}
+
 /* Highlighting searched plot */
 .plot-dot.highlighted {
     transform: scale(1.4);

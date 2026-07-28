@@ -9,6 +9,7 @@ let activeFilters = {
 let leafletMap = null;
 let isSatelliteActive = false;
 let leafletMarkers = {};
+let activeSearchPlot = null;
 const siteBounds = {
     west: 78.53563,
     south: 16.92999,
@@ -362,6 +363,14 @@ function setupSearch() {
         } else {
             searchClearBtn.style.display = 'none';
             searchSuggestions.style.display = 'none';
+            
+            // Remove active highlighters
+            document.querySelectorAll('.plot-dot.highlighted').forEach(dot => {
+                dot.classList.remove('highlighted');
+            });
+            
+            activeSearchPlot = null;
+            applyFilters();
         }
     });
 
@@ -374,6 +383,9 @@ function setupSearch() {
         document.querySelectorAll('.plot-dot.highlighted').forEach(dot => {
             dot.classList.remove('highlighted');
         });
+        
+        activeSearchPlot = null;
+        applyFilters();
     });
 
     // Close suggestions dropdown when clicking outside
@@ -419,6 +431,10 @@ function focusOnPlot(plotNo) {
     const coords = plotCoordinates[plotNo];
     if (!coords) return;
     
+    // Set active search plot and filter out all other plot dots
+    activeSearchPlot = plotNo;
+    applyFilters();
+    
     // Highlight Target Dot (2D)
     document.querySelectorAll('.plot-dot.highlighted').forEach(dot => {
         dot.classList.remove('highlighted');
@@ -457,6 +473,9 @@ function focusOnPlot(plotNo) {
     panY = vHeight / 2 - (coords.top * scaleY) * zoomScale;
     
     applyTransform();
+    
+    // Open plot details modal
+    openPlotModal(plotNo);
 }
 
 // ----------------------------------------------------
@@ -495,27 +514,40 @@ function applyFilters() {
     const dots = document.querySelectorAll('.plot-dot');
     
     dots.forEach(dot => {
+        const plotNo = dot.dataset.plotNo;
         const facing = dot.dataset.facing;
         const status = dot.dataset.status;
         
         let matchesFacing = true;
         let matchesStatus = true;
+        let matchesSearch = true;
         
-        // 1. Check Facing Filter
+        // 1. Check Search Filter
+        if (activeSearchPlot) {
+            matchesSearch = String(plotNo) === String(activeSearchPlot);
+        }
+        
+        // 2. Check Facing Filter
         if (activeFilters.facing) {
             matchesFacing = String(facing).toLowerCase().trim() === activeFilters.facing.toLowerCase().trim();
         }
         
-        // 2. Check Status Filter
+        // 3. Check Status Filter
         if (activeFilters.status) {
             matchesStatus = String(status).toLowerCase().trim() === activeFilters.status.toLowerCase().trim();
         }
         
         // Apply filtered visibility
-        if (matchesFacing && matchesStatus) {
+        if (matchesFacing && matchesStatus && matchesSearch) {
             dot.classList.remove('filtered-out');
+            dot.classList.remove('search-filtered');
         } else {
-            dot.classList.add('filtered-out');
+            if (activeSearchPlot && !matchesSearch) {
+                dot.classList.add('search-filtered');
+            } else {
+                dot.classList.remove('search-filtered');
+                dot.classList.add('filtered-out');
+            }
         }
     });
 
@@ -641,6 +673,18 @@ window.addEventListener('keydown', (e) => {
 
 function closePlotModal() {
     modalBackdrop.classList.remove('show');
+    
+    // Reset active search query & filters when modal is closed
+    if (activeSearchPlot) {
+        searchInput.value = '';
+        searchClearBtn.style.display = 'none';
+        searchSuggestions.style.display = 'none';
+        document.querySelectorAll('.plot-dot.highlighted').forEach(dot => {
+            dot.classList.remove('highlighted');
+        });
+        activeSearchPlot = null;
+        applyFilters();
+    }
 }
 
 // ----------------------------------------------------
