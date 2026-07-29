@@ -1252,7 +1252,7 @@ input[type="radio"]:checked + .custom-radio::after {
 .project-details-card {
     position: absolute;
     top: 24px;
-    right: 24px;
+    left: 24px;
     width: 320px;
     background-color: var(--bg-glass);
     backdrop-filter: blur(16px);
@@ -1260,13 +1260,13 @@ input[type="radio"]:checked + .custom-radio::after {
     border-radius: 16px;
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
     z-index: 95;
-    animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     overflow: hidden;
 }
 
-@keyframes slideInRight {
+@keyframes slideInLeft {
     from {
-        transform: translateX(50px);
+        transform: translateX(-50px);
         opacity: 0;
     }
     to {
