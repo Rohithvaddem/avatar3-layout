@@ -15,48 +15,48 @@ let miniMapRect = null;
 
 const projectMetadata = {
     avatar1: {
-        title: "Aspirealty Avatar 1",
-        location: "Shadnagar, near Srisailam Highway",
-        area: "25 Acres",
+        title: "Aspirealty Avatar - Phase 1",
+        location: "Kadthal, Srisailam Highway, Hyderabad",
+        area: "24.49 Acres",
         plots: "310 Plots",
-        lpNumber: "LP No. 102/2021/H (HMDA Approved)",
-        status: "Completed & Ready to Construct",
+        lpNumber: "TLP No. 224/2023/H (DTCP Approved)",
+        status: "Completed & Ready for Construction",
         highlights: [
-            "Located near Regional Ring Road (RRR)",
-            "20 mins drive from Outer Ring Road (ORR)",
-            "Premium gated community with 100% security",
-            "40-ft and 33-ft internal black-top roads",
-            "Underground electricity and water pipeline"
+            "Located in FCDA / Future City zone",
+            "RERA Registered project: P02400007808",
+            "Mega 70-acre proposed gated community layout",
+            "Immediate spot registration & development",
+            "Underground drainage, water lines & electricity ready"
         ]
     },
     avatar2: {
-        title: "Aspirealty Avatar 2",
-        location: "Srisailam Highway, Maheshwaram",
-        area: "30 Acres",
+        title: "Aspirealty Avatar - Phase 2 (Sri Gokul City)",
+        location: "Karkalpahad, Srisailam Highway, Hyderabad",
+        area: "17 Acres (8 acres Phase 2)",
         plots: "380 Plots",
-        lpNumber: "LP No. 154/2022/H (DTCP Approved)",
-        status: "Gated Construction Stage",
+        lpNumber: "RERA Reg: P02400009896 (DTCP Approved)",
+        status: "Infrastructure Construction Stage",
         highlights: [
-            "Adjacent to Maheshwaram Electronic City",
-            "15 mins drive from ORR Exit 14",
-            "Water storage sump & electricity network ready",
-            "Lush green avenue plantations and parks",
-            "Underground drainage infrastructure completed"
+            "Strategic position in FCDA / Future City Development zone",
+            "550 meters from the Srisailam Highway",
+            "Connected to the 300-ft Tata Greenfield Road",
+            "Lush green avenue plantations and overhead water storage",
+            "Positioned within the Regional Ring Road (RRR) corridor"
         ]
     },
     avatar3: {
-        title: "Aspirealty Avatar 3",
-        location: "Srisailam Highway, near RRR",
+        title: "Aspirealty Avatar - Phase 3",
+        location: "Kadthal, Srisailam Highway, near RRR",
         area: "18.3 Acres",
         plots: "206 Plots",
         lpNumber: "LP No. 224/2023/H (DTCP Approved)",
         status: "Active Bookings Open",
         highlights: [
-            "Immediate registration & spot construction",
-            "100% Vaastu compliant layouts & sizes",
-            "Grand entrance archway with security portal",
+            "Immediate registration & spot construction ready",
+            "100% Vaastu compliant layouts & sizing",
+            "Grand entry archway with gated security portals",
             "Children's play park & fully landscaped gardens",
-            "Surrounded by upcoming premium villa projects"
+            "Surrounded by upcoming premium villa developments"
         ]
     }
 };
