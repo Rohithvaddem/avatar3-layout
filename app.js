@@ -517,7 +517,7 @@ function focusOnPlot(plotNo) {
     const scaleY = 576 / 1579;
     
     // Zoom close and Center on coordinates
-    zoomScale = 1.0; // close up zoom
+    zoomScale = 2.0; // close up zoom
     const vWidth = mapViewport.clientWidth;
     const vHeight = mapViewport.clientHeight;
     
