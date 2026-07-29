@@ -10,9 +10,6 @@ let leafletMap = null;
 let isSatelliteActive = false;
 let leafletMarkers = {};
 let activeSearchPlot = null;
-let activeTileLayer = null;
-let labelOverlayLayer = null;
-let mapTiles = {};
 let miniMap = null;
 let miniMapRect = null;
 
@@ -1388,57 +1385,11 @@ function initLeafletMap() {
         }
     });
     
-    // Setup Custom labelsPane for overlaying road text on top of ground images
-    const labelsPane = leafletMap.createPane('labelsPane');
-    labelsPane.style.zIndex = 450; // Between overlays (400) and markers (600)
-    labelsPane.style.pointerEvents = 'none';
-
-    // Map style tiling choices
-    mapTiles = {
-        satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS, AeroGRID, IGN, and the GIS User Community',
-            maxZoom: 21
-        }),
-        labels: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; CartoDB',
-            maxZoom: 21,
-            pane: 'labelsPane'
-        }),
-        dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap contributors &copy; CartoDB',
-            maxZoom: 21
-        })
-    };
-
-    // Load Satellite tiles by default
-    mapTiles.satellite.addTo(leafletMap);
-    activeTileLayer = mapTiles.satellite;
-
-    // Handle Map Theme radio selector switches
-    document.querySelectorAll('input[name="mapTheme"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            const theme = e.target.value;
-            
-            if (activeTileLayer) leafletMap.removeLayer(activeTileLayer);
-            if (labelOverlayLayer) leafletMap.removeLayer(labelOverlayLayer);
-            
-            activeTileLayer = null;
-            labelOverlayLayer = null;
-            
-            if (theme === 'satellite') {
-                mapTiles.satellite.addTo(leafletMap);
-                activeTileLayer = mapTiles.satellite;
-            } else if (theme === 'hybrid') {
-                mapTiles.satellite.addTo(leafletMap);
-                mapTiles.labels.addTo(leafletMap);
-                activeTileLayer = mapTiles.satellite;
-                labelOverlayLayer = mapTiles.labels;
-            } else if (theme === 'dark') {
-                mapTiles.dark.addTo(leafletMap);
-                activeTileLayer = mapTiles.dark;
-            }
-        });
-    });
+    // Satellite Layer (Esri World Imagery)
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS, AeroGRID, IGN, and the GIS User Community',
+        maxZoom: 21
+    }).addTo(leafletMap);
 
     // Initialize custom Mini-map Inset
     setupMiniMap();
