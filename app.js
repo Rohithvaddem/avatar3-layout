@@ -10,6 +10,60 @@ let leafletMap = null;
 let isSatelliteActive = false;
 let leafletMarkers = {};
 let activeSearchPlot = null;
+let activeTileLayer = null;
+let labelOverlayLayer = null;
+let mapTiles = {};
+let miniMap = null;
+let miniMapRect = null;
+
+const projectMetadata = {
+    avatar1: {
+        title: "Aspirealty Avatar 1",
+        location: "Shadnagar, near Srisailam Highway",
+        area: "25 Acres",
+        plots: "310 Plots",
+        lpNumber: "LP No. 102/2021/H (HMDA Approved)",
+        status: "Completed & Ready to Construct",
+        highlights: [
+            "Located near Regional Ring Road (RRR)",
+            "20 mins drive from Outer Ring Road (ORR)",
+            "Premium gated community with 100% security",
+            "40-ft and 33-ft internal black-top roads",
+            "Underground electricity and water pipeline"
+        ]
+    },
+    avatar2: {
+        title: "Aspirealty Avatar 2",
+        location: "Srisailam Highway, Maheshwaram",
+        area: "30 Acres",
+        plots: "380 Plots",
+        lpNumber: "LP No. 154/2022/H (DTCP Approved)",
+        status: "Gated Construction Stage",
+        highlights: [
+            "Adjacent to Maheshwaram Electronic City",
+            "15 mins drive from ORR Exit 14",
+            "Water storage sump & electricity network ready",
+            "Lush green avenue plantations and parks",
+            "Underground drainage infrastructure completed"
+        ]
+    },
+    avatar3: {
+        title: "Aspirealty Avatar 3",
+        location: "Srisailam Highway, near RRR",
+        area: "18.3 Acres",
+        plots: "206 Plots",
+        lpNumber: "LP No. 224/2023/H (DTCP Approved)",
+        status: "Active Bookings Open",
+        highlights: [
+            "Immediate registration & spot construction",
+            "100% Vaastu compliant layouts & sizes",
+            "Grand entrance archway with security portal",
+            "Children's play park & fully landscaped gardens",
+            "Surrounded by upcoming premium villa projects"
+        ]
+    }
+};
+
 const siteBounds = {
     west: 78.53563,
     south: 16.92999,
@@ -1251,6 +1305,9 @@ function toggleSatelliteView() {
             initLeafletMap();
         } else {
             leafletMap.invalidateSize();
+            if (miniMap) {
+                miniMap.invalidateSize();
+            }
             // Recenter map on active project center
             const centerLat = (siteBounds.south + siteBounds.north) / 2;
             const centerLng = (siteBounds.west + siteBounds.east) / 2;
@@ -1266,6 +1323,10 @@ function toggleSatelliteView() {
         leafletContainer.style.display = 'none';
         if (layerControl) layerControl.style.display = 'none';
         if (projectNav) projectNav.style.display = 'none';
+        
+        // Hide Project Details Card when leaving Satellite View
+        const detailsCard = document.getElementById('projectDetailsCard');
+        if (detailsCard) detailsCard.style.display = 'none';
         
         if (mapTip) {
             mapTip.style.display = 'flex';
@@ -1327,11 +1388,60 @@ function initLeafletMap() {
         }
     });
     
-    // Satellite Layer (Esri World Imagery)
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS, AeroGRID, IGN, and the GIS User Community',
-        maxZoom: 21
-    }).addTo(leafletMap);
+    // Setup Custom labelsPane for overlaying road text on top of ground images
+    const labelsPane = leafletMap.createPane('labelsPane');
+    labelsPane.style.zIndex = 450; // Between overlays (400) and markers (600)
+    labelsPane.style.pointerEvents = 'none';
+
+    // Map style tiling choices
+    mapTiles = {
+        satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS, AeroGRID, IGN, and the GIS User Community',
+            maxZoom: 21
+        }),
+        labels: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; CartoDB',
+            maxZoom: 21,
+            pane: 'labelsPane'
+        }),
+        dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CartoDB',
+            maxZoom: 21
+        })
+    };
+
+    // Load Satellite tiles by default
+    mapTiles.satellite.addTo(leafletMap);
+    activeTileLayer = mapTiles.satellite;
+
+    // Handle Map Theme radio selector switches
+    document.querySelectorAll('input[name="mapTheme"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const theme = e.target.value;
+            
+            if (activeTileLayer) leafletMap.removeLayer(activeTileLayer);
+            if (labelOverlayLayer) leafletMap.removeLayer(labelOverlayLayer);
+            
+            activeTileLayer = null;
+            labelOverlayLayer = null;
+            
+            if (theme === 'satellite') {
+                mapTiles.satellite.addTo(leafletMap);
+                activeTileLayer = mapTiles.satellite;
+            } else if (theme === 'hybrid') {
+                mapTiles.satellite.addTo(leafletMap);
+                mapTiles.labels.addTo(leafletMap);
+                activeTileLayer = mapTiles.satellite;
+                labelOverlayLayer = mapTiles.labels;
+            } else if (theme === 'dark') {
+                mapTiles.dark.addTo(leafletMap);
+                activeTileLayer = mapTiles.dark;
+            }
+        });
+    });
+
+    // Initialize custom Mini-map Inset
+    setupMiniMap();
 
     // Setup L.ImageOverlay.Rotated extension
     if (!L.ImageOverlay.Rotated) {
@@ -1717,6 +1827,9 @@ function setupProjectNavigation() {
 
             // Update sidebar & header views based on project
             updateSidebarAndHeaderForProject(project);
+            
+            // Display Project Details Card on Map view
+            showProjectDetailsCard(project);
 
             if (project === 'avatar1' || project === 'avatar2') {
                 // If in Schematic View, switch to Satellite View first
@@ -1741,5 +1854,121 @@ function setupProjectNavigation() {
             }
         });
     });
+
+    // Close details card button listener
+    const closeBtn = document.getElementById('projDetailsCloseBtn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            const card = document.getElementById('projectDetailsCard');
+            if (card) card.style.display = 'none';
+        });
+    }
+}
+
+function showProjectDetailsCard(project) {
+    const card = document.getElementById('projectDetailsCard');
+    const titleEl = document.getElementById('projDetailsTitle');
+    const locationEl = document.getElementById('projDetailsLocation');
+    const areaEl = document.getElementById('projDetailsArea');
+    const plotsEl = document.getElementById('projDetailsPlots');
+    const lpEl = document.getElementById('projDetailsLP');
+    const statusEl = document.getElementById('projDetailsStatus');
+    const highlightsEl = document.getElementById('projDetailsHighlights');
+    
+    if (!card) return;
+    
+    // Hide details card for Avatar 3 when not in Satellite view or if not navigated
+    if (!isSatelliteActive) {
+        card.style.display = 'none';
+        return;
+    }
+    
+    const info = projectMetadata[project];
+    if (!info) {
+        card.style.display = 'none';
+        return;
+    }
+    
+    titleEl.textContent = info.title;
+    locationEl.textContent = info.location;
+    areaEl.textContent = info.area;
+    plotsEl.textContent = info.plots;
+    lpEl.textContent = info.lpNumber;
+    statusEl.textContent = info.status;
+    
+    // Build highlights list
+    highlightsEl.innerHTML = '';
+    info.highlights.forEach(highlight => {
+        const li = document.createElement('li');
+        li.textContent = highlight;
+        highlightsEl.appendChild(li);
+    });
+    
+    card.style.display = 'block';
+}
+
+function setupMiniMap() {
+    const MiniMapControl = L.Control.extend({
+        options: {
+            position: 'bottomleft'
+        },
+        onAdd: function (map) {
+            const container = L.DomUtil.create('div', 'leaflet-control-minimap');
+            container.id = 'miniMapContainer';
+            container.style.width = '140px';
+            container.style.height = '100px';
+            
+            // Prevent map dragging/zooming propagation
+            L.DomEvent.disableClickPropagation(container);
+            
+            return container;
+        }
+    });
+
+    leafletMap.addControl(new MiniMapControl());
+
+    // Create the Leaflet map inside the container
+    miniMap = L.map('miniMapContainer', {
+        attributionControl: false,
+        zoomControl: false,
+        dragging: false,
+        touchZoom: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false
+    });
+
+    // Add Esri Satellite tiles to the mini-map
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 21
+    }).addTo(miniMap);
+
+    // Bounding viewport rectangle
+    miniMapRect = L.rectangle(leafletMap.getBounds(), {
+        color: '#ef4444',
+        weight: 1.5,
+        fillColor: '#ef4444',
+        fillOpacity: 0.15,
+        interactive: false,
+        className: 'minimap-viewport-rect'
+    }).addTo(miniMap);
+
+    // Sync function
+    function syncMiniMap() {
+        if (!miniMap || !miniMapRect || !leafletMap) return;
+        const center = leafletMap.getCenter();
+        const mainZoom = leafletMap.getZoom();
+        const miniZoom = Math.max(9, Math.min(14, mainZoom - 5));
+        
+        miniMap.setView(center, miniZoom);
+        miniMapRect.setBounds(leafletMap.getBounds());
+    }
+
+    // Bind event listeners
+    leafletMap.on('move', syncMiniMap);
+    leafletMap.on('zoomend', syncMiniMap);
+
+    // Initial sync
+    syncMiniMap();
 }
 

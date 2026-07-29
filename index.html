@@ -195,6 +195,64 @@
                             <span class="layer-label">Project Markers</span>
                         </label>
                     </div>
+                    
+                    <div class="layer-control-divider" style="margin: 10px 0; border-top: 1px solid var(--border-color);"></div>
+                    <div class="layer-control-header" style="padding-top: 0; padding-bottom: 6px;">
+                        <i class="fa-solid fa-map"></i> <span>Map Style</span>
+                    </div>
+                    <div class="layer-control-body theme-selector-body">
+                        <label class="layer-toggle-item">
+                            <input type="radio" name="mapTheme" value="satellite" checked>
+                            <span class="custom-radio"></span>
+                            <span class="layer-label">Satellite Imagery</span>
+                        </label>
+                        <label class="layer-toggle-item">
+                            <input type="radio" name="mapTheme" value="hybrid">
+                            <span class="custom-radio"></span>
+                            <span class="layer-label">Satellite Hybrid</span>
+                        </label>
+                        <label class="layer-toggle-item">
+                            <input type="radio" name="mapTheme" value="dark">
+                            <span class="custom-radio"></span>
+                            <span class="layer-label">Dark Vector GIS</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Project Details Card (slides in from right in Satellite View) -->
+                <div class="project-details-card" id="projectDetailsCard" style="display: none;">
+                    <div class="details-card-header">
+                        <h4 id="projDetailsTitle">Avatar 3</h4>
+                        <button class="details-card-close" id="projDetailsCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="details-card-body">
+                        <div class="details-row">
+                            <span class="details-label"><i class="fa-solid fa-location-dot"></i> Location</span>
+                            <span class="details-value" id="projDetailsLocation">-</span>
+                        </div>
+                        <div class="details-row">
+                            <span class="details-label"><i class="fa-solid fa-maximize"></i> Total Area</span>
+                            <span class="details-value" id="projDetailsArea">-</span>
+                        </div>
+                        <div class="details-row">
+                            <span class="details-label"><i class="fa-solid fa-thumbtack"></i> Total Plots</span>
+                            <span class="details-value" id="projDetailsPlots">-</span>
+                        </div>
+                        <div class="details-row">
+                            <span class="details-label"><i class="fa-solid fa-certificate"></i> LP Status</span>
+                            <span class="details-value" id="projDetailsLP">-</span>
+                        </div>
+                        <div class="details-row">
+                            <span class="details-label"><i class="fa-solid fa-circle-info"></i> Project Status</span>
+                            <span class="details-value" id="projDetailsStatus">-</span>
+                        </div>
+                        <div class="details-highlights">
+                            <span class="highlights-title">Location Highlights</span>
+                            <ul class="highlights-list" id="projDetailsHighlights">
+                                <!-- Location Highlights list goes here -->
+                            </ul>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Float Controls -->
