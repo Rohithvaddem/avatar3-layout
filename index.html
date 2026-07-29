@@ -42,8 +42,18 @@
 
             <!-- Scrollable Sidebar Menu Content -->
             <div class="sidebar-menu">
+                <!-- Project Selection Navigation -->
+                <div class="sidebar-section" id="projectNavSection">
+                    <h3 class="section-title">Project Selector</h3>
+                    <div class="project-nav-grid">
+                        <button class="project-nav-btn" id="navAvatar1" data-project="avatar1">Avatar 1</button>
+                        <button class="project-nav-btn" id="navAvatar2" data-project="avatar2">Avatar 2</button>
+                        <button class="project-nav-btn active" id="navAvatar3" data-project="avatar3">Avatar 3</button>
+                    </div>
+                </div>
+
                 <!-- Search Section -->
-                <div class="sidebar-section">
+                <div class="sidebar-section" id="searchSection">
                     <h3 class="section-title">Search Plots</h3>
                     <div class="search-box">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
@@ -54,7 +64,7 @@
                 </div>
 
                 <!-- Filters Section -->
-                <div class="sidebar-section">
+                <div class="sidebar-section" id="filtersSection">
                     <div class="section-header">
                         <h3 class="section-title">Filter by Facing</h3>
                         <button class="filter-reset-btn" id="facingResetBtn">Clear</button>
@@ -72,7 +82,7 @@
                 </div>
 
                 <!-- Legend & Statistics Section -->
-                <div class="sidebar-section">
+                <div class="sidebar-section" id="legendSection">
                     <h3 class="section-title">Plot Status\Legend</h3>
                     <div class="status-legend-list" id="statusLegendList">
                         <!-- Dynamic rendering by app.js -->

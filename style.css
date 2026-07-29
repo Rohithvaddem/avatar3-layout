@@ -1180,3 +1180,36 @@ body {
     border-right-color: rgba(30, 41, 59, 0.95) !important;
 }
 
+/* Project Selector Navigation Styling */
+.project-nav-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.project-nav-btn {
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 4px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    outline: none;
+}
+
+.project-nav-btn:hover {
+    border-color: var(--text-muted);
+    color: var(--text-primary);
+}
+
+.project-nav-btn.active {
+    background-color: var(--accent-glow);
+    border-color: var(--accent);
+    color: var(--text-primary);
+    box-shadow: 0 0 10px rgba(14, 165, 233, 0.3);
+}
+

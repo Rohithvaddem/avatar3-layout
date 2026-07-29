@@ -74,6 +74,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setupMapper();
     setupAdmin();
     setupSatelliteToggle();
+    setupProjectNavigation();
 });
 
 // Main App Initialization
@@ -1268,6 +1269,15 @@ function toggleSatelliteView() {
             mapTip.innerHTML = '<i class="fa-solid fa-hand-pointer"></i> Drag to Pan &bull; Scroll or Pinch to Zoom';
         }
         
+        // Reset Project Selector to Avatar 3 when entering Schematic View
+        const navButtons = document.querySelectorAll('.project-nav-btn');
+        if (navButtons) {
+            navButtons.forEach(b => b.classList.remove('active'));
+            const avatar3Btn = document.getElementById('navAvatar3');
+            if (avatar3Btn) avatar3Btn.classList.add('active');
+        }
+        updateSidebarAndHeaderForProject('avatar3');
+
         // Highlight active filters or highlights in 2D View
         applyFilters();
         fitMapToViewport();
@@ -1655,5 +1665,78 @@ function refreshLeafletMarkers() {
 function applyLeafletMarkerFilters(marker, el) {
     // No-op since markers rendering is disabled in Satellite View.
     return;
+}
+
+function updateSidebarAndHeaderForProject(project) {
+    const searchSection = document.getElementById('searchSection');
+    const filtersSection = document.getElementById('filtersSection');
+    const legendSection = document.getElementById('legendSection');
+    const headerStats = document.querySelector('.header-stats');
+    const approvedBadge = document.querySelector('.approved-badge');
+    const projectNameEl = document.querySelector('.project-name');
+    
+    if (project === 'avatar3') {
+        if (searchSection) searchSection.style.display = 'block';
+        if (filtersSection) filtersSection.style.display = 'block';
+        if (legendSection) legendSection.style.display = 'block';
+        if (headerStats) headerStats.style.display = 'flex';
+        if (approvedBadge) approvedBadge.style.display = 'inline-flex';
+        if (projectNameEl) projectNameEl.textContent = 'Layout View';
+    } else {
+        if (searchSection) searchSection.style.display = 'none';
+        if (filtersSection) filtersSection.style.display = 'none';
+        if (legendSection) legendSection.style.display = 'none';
+        if (headerStats) headerStats.style.display = 'none';
+        if (approvedBadge) approvedBadge.style.display = 'none';
+        if (projectNameEl) {
+            projectNameEl.textContent = project === 'avatar1' ? 'Avatar 1' : 'Avatar 2';
+        }
+    }
+}
+
+function setupProjectNavigation() {
+    const projectLocations = {
+        avatar1: [16.9498389, 78.4960974],
+        avatar2: [16.9233266, 78.5325395],
+        avatar3: [16.9307952, 78.5382904]
+    };
+
+    const navButtons = document.querySelectorAll('.project-nav-btn');
+
+    navButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const project = btn.dataset.project;
+
+            // Update active states for the nav buttons
+            navButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Update sidebar & header views based on project
+            updateSidebarAndHeaderForProject(project);
+
+            if (project === 'avatar1' || project === 'avatar2') {
+                // If in Schematic View, switch to Satellite View first
+                if (!isSatelliteActive) {
+                    isSatelliteActive = true;
+                    toggleSatelliteView();
+                }
+
+                // Smoothly fly to coordinates
+                if (leafletMap) {
+                    leafletMap.flyTo(projectLocations[project], 17, { duration: 1.5 });
+                }
+            } else if (project === 'avatar3') {
+                if (isSatelliteActive) {
+                    if (leafletMap) {
+                        leafletMap.flyTo(projectLocations[project], 17, { duration: 1.5 });
+                    }
+                } else {
+                    // Reset schematic view pan & zoom
+                    fitMapToViewport();
+                }
+            }
+        });
+    });
 }
 
