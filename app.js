@@ -1229,6 +1229,7 @@ function toggleSatelliteView() {
     const leafletContainer = document.getElementById('leafletMapContainer');
     const layerControl = document.getElementById('gisLayerControl');
     const mapControls = document.querySelector('.map-controls');
+    const projectNav = document.getElementById('projectNavSection');
     
     if (isSatelliteActive) {
         toggleBtn.classList.add('active');
@@ -1239,6 +1240,7 @@ function toggleSatelliteView() {
         mapContainer.style.display = 'none';
         leafletContainer.style.display = 'block';
         if (layerControl) layerControl.style.display = 'block';
+        if (projectNav) projectNav.style.display = 'block';
         
         if (mapTip) {
             mapTip.style.display = 'none';
@@ -1263,6 +1265,7 @@ function toggleSatelliteView() {
         mapContainer.style.display = 'block';
         leafletContainer.style.display = 'none';
         if (layerControl) layerControl.style.display = 'none';
+        if (projectNav) projectNav.style.display = 'none';
         
         if (mapTip) {
             mapTip.style.display = 'flex';
