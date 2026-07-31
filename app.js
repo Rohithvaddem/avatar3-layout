@@ -58,9 +58,9 @@ const projectMetadata = {
         ]
     },
     avatar3: {
-        title: "Aspirealty Avatar - Phase 3",
-        location: "Kadthal, Srisailam Highway, near RRR",
-        area: "18.3 Acres",
+        title: "Aspirealty Avatar 3",
+        location: "Karkalapahd Srisailam Highway",
+        area: "13 Acres",
         plots: "206 Plots",
         lpNumber: "LP No. 224/2023/H (DTCP Approved)",
         status: "Active Bookings Open",
