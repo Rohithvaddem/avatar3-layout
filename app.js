@@ -336,7 +336,7 @@ function renderPlotDots() {
             
             plotsOverlay.appendChild(dot);
         });
-    } else if (currentProject === 'avatar2') {
+    } else if (currentProject === 'avatar2' || currentProject === 'avatar1') {
         Object.keys(coordsSource).forEach(plotNo => {
             const coords = coordsSource[plotNo];
             const detail = dataSource.find(p => String(p.plot_no) === String(plotNo));
@@ -1993,6 +1993,16 @@ function setupProjectNavigation() {
             btn.classList.add('active');
 
             currentProject = project;
+
+            // Reset active mapper plot to 1 when project changes
+            activeMapperPlot = 1;
+            if (typeof mapperActivePlot !== 'undefined' && mapperActivePlot) {
+                mapperActivePlot.value = 1;
+            }
+            if (isMapperMode) {
+                renderMapperPlotList();
+                highlightActiveMapperButton();
+            }
 
             // Update sidebar & header views based on project
             updateSidebarAndHeaderForProject(project);
