@@ -818,15 +818,6 @@ function openPlotModal(plotNo) {
                     <div>South: ${item.dim_south || 'N/A'}</div>
                     <div>East: ${item.dim_east || 'N/A'}</div>
                     <div>West: ${item.dim_west || 'N/A'}</div>
-                </div>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Customer Name</span>
-                <span class="detail-val">${item.customer_name ? (isAdminLoggedIn ? item.customer_name : maskName(item.customer_name)) : 'N/A'}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Reference / Share</span>
-                <span class="detail-val">${item.reference_name || 'N/A'}</span>
             </div>
         </div>
         ${editButtonHtml}
@@ -1293,9 +1284,7 @@ function openPlotEditForm(plotNo) {
         dim_north: '-',
         dim_south: '-',
         dim_east: '-',
-        dim_west: '-',
-        customer_name: '',
-        reference_name: ''
+        dim_west: '-'
     };
 
     modalBody.innerHTML = `
@@ -1359,16 +1348,6 @@ function openPlotEditForm(plotNo) {
                 </div>
             </div>
             
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Customer Name</label>
-                <input type="text" id="editCustomer" value="${item.customer_name || ''}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none;" placeholder="Full name">
-            </div>
-            
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Reference / Share</label>
-                <input type="text" id="editReference" value="${item.reference_name || ''}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none;" placeholder="Developer / Land Owner">
-            </div>
-            
             <button id="savePlotEditBtn" class="admin-login-btn" style="background: var(--status-available); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 10px; padding: 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                 <i class="fa-solid fa-save"></i> Save Changes
             </button>
@@ -1392,8 +1371,6 @@ function savePlotEdits(plotNo) {
     const editSouth = document.getElementById('editSouth').value.trim();
     const editEast = document.getElementById('editEast').value.trim();
     const editWest = document.getElementById('editWest').value.trim();
-    const editCustomer = document.getElementById('editCustomer').value.trim();
-    const editReference = document.getElementById('editReference').value.trim();
 
     let idx = plotData.findIndex(p => String(p.plot_no) === String(plotNo));
 
@@ -1405,9 +1382,7 @@ function savePlotEdits(plotNo) {
         dim_north: editNorth,
         dim_south: editSouth,
         dim_east: editEast,
-        dim_west: editWest,
-        customer_name: editCustomer,
-        reference_name: editReference
+        dim_west: editWest
     };
 
     if (idx !== -1) {
