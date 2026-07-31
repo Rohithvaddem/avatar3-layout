@@ -344,14 +344,21 @@ function renderPlotDots() {
             
             const dot = document.createElement('button');
             dot.className = 'plot-dot';
+            
+            let offset = 7.5;
+            if (currentProject === 'avatar2') {
+                dot.classList.add('avatar2-dot');
+                offset = 12;
+            }
+            
             dot.id = `plot-dot-${plotNo}`;
             dot.dataset.plotNo = plotNo;
             dot.dataset.facing = detail && detail.facing ? detail.facing : 'Unknown';
             dot.dataset.status = status;
             
             dot.style.setProperty('--plot-color', getStatusColor(status));
-            dot.style.left = `${coords.left - 7.5}px`;
-            dot.style.top = `${coords.top - 7.5}px`;
+            dot.style.left = `${coords.left - offset}px`;
+            dot.style.top = `${coords.top - offset}px`;
             dot.textContent = plotNo;
             
             dot.addEventListener('click', (e) => {

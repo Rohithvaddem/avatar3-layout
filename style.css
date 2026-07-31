@@ -656,6 +656,12 @@ body {
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s, opacity 0.3s;
 }
 
+.plot-dot.avatar2-dot {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+}
+
 .plot-dot:hover {
     transform: scale(1.35);
     z-index: 20;
