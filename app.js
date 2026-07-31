@@ -5,6 +5,19 @@ let activeFilters = {
     status: null
 };
 
+// Layout management pools
+let currentProject = 'avatar3';
+let avatarDataPool = {
+    avatar1: [],
+    avatar2: [],
+    avatar3: []
+};
+let avatarCoordsPool = {
+    avatar1: {},
+    avatar2: {},
+    avatar3: {}
+};
+
 // Leaflet GIS Map state
 let leafletMap = null;
 let isSatelliteActive = false;
@@ -126,58 +139,107 @@ window.addEventListener('DOMContentLoaded', () => {
     setupAdmin();
     setupSatelliteToggle();
     setupProjectNavigation();
+
+    // Check URL parameters to initialize project and view
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialProject = urlParams.get('project');
+    if (initialProject) {
+        const btn = document.querySelector(`.project-nav-btn[data-project="${initialProject}"]`);
+        if (btn) {
+            btn.click();
+        }
+    }
 });
 
 // Main App Initialization
 function initApp() {
-    // Check local storage first for admin edits
-    const localData = localStorage.getItem('aspire_avatar3_data');
-    if (localData) {
+    // Populate Avatar 3 coordinates from global variable loaded by plot_coords.js
+    if (typeof plotCoordinates !== 'undefined') {
+        avatarCoordsPool.avatar3 = plotCoordinates;
+    }
+
+    // Populate Avatar 2 coordinates from global variable loaded by avatar2_plot_coords.js
+    if (typeof plotCoordinatesAvatar2 !== 'undefined') {
+        avatarCoordsPool.avatar2 = plotCoordinatesAvatar2;
+    }
+
+    // Load Avatar 3 data from local storage if exists
+    const localDataAvatar3 = localStorage.getItem('aspire_avatar3_data');
+    if (localDataAvatar3) {
         try {
-            plotData = JSON.parse(localData).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-            renderPlotDots();
-            updateStatistics();
-            setTimeout(fitMapToViewport, 100);
-            setupAdminState();
-            return;
+            avatarDataPool.avatar3 = JSON.parse(localDataAvatar3).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
         } catch (e) {
-            console.error('Error parsing local storage data', e);
+            console.error('Error parsing local storage Avatar 3 data', e);
+        }
+    }
+    
+    // Load Avatar 2 data from local storage if exists
+    const localDataAvatar2 = localStorage.getItem('aspire_avatar2_data');
+    if (localDataAvatar2) {
+        try {
+            avatarDataPool.avatar2 = JSON.parse(localDataAvatar2).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+        } catch (e) {
+            console.error('Error parsing local storage Avatar 2 data', e);
         }
     }
 
-    // 1. Fetch plot data database
-    fetch('data.json')
+    // Fetch Avatar 3 JSON
+    const fetch3 = fetch('data.json')
         .then(response => {
             if (!response.ok) throw new Error('Data fetch failed');
             return response.json();
         })
         .then(data => {
-            plotData = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-            
-            // 2. Render plot markers
-            renderPlotDots();
-            
-            // 3. Calculate statistics
-            updateStatistics();
-            
-            // 4. Set initial view scale (fit to screen)
-            setTimeout(fitMapToViewport, 100);
-            setupAdminState();
+            if (!avatarDataPool.avatar3.length) {
+                avatarDataPool.avatar3 = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+            }
         })
         .catch(err => {
-            console.warn('CORS or network error. Falling back to offline dataset (data.js):', err);
-            if (typeof plotDataRaw !== 'undefined') {
-                plotData = plotDataRaw.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-            } else {
-                console.error('Offline dataset not found.');
+            console.warn('CORS or network error. Falling back to offline dataset (data.js) for Avatar 3:', err);
+            if (typeof plotDataRaw !== 'undefined' && !avatarDataPool.avatar3.length) {
+                avatarDataPool.avatar3 = plotDataRaw.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
             }
-            
-            // Render dots, stats and fit using fallback data
-            renderPlotDots();
-            updateStatistics();
-            setTimeout(fitMapToViewport, 100);
-            setupAdminState();
         });
+
+    // Fetch Avatar 2 JSON
+    const fetch2 = fetch('avatar2_digi/data.json')
+        .then(response => {
+            if (!response.ok) throw new Error('Data fetch failed');
+            return response.json();
+        })
+        .then(data => {
+            if (!avatarDataPool.avatar2.length) {
+                avatarDataPool.avatar2 = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+            }
+        })
+        .catch(err => {
+            console.warn('CORS or network error. Falling back to offline dataset (avatar2_data.js) for Avatar 2:', err);
+            if (typeof plotDataRawAvatar2 !== 'undefined' && !avatarDataPool.avatar2.length) {
+                avatarDataPool.avatar2 = plotDataRawAvatar2.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+            }
+        });
+
+    // Fallback coordinates fetch in case script load failed but json works
+    let fetchCoordsPromise = Promise.resolve();
+    if (!avatarCoordsPool.avatar2 || !Object.keys(avatarCoordsPool.avatar2).length) {
+        fetchCoordsPromise = fetch('avatar2_plot_coords.json')
+            .then(res => res.json())
+            .then(coords => {
+                avatarCoordsPool.avatar2 = coords;
+            })
+            .catch(err => console.error('Failed to load Avatar 2 coordinates from JSON fallback:', err));
+    }
+
+    Promise.all([fetchCoordsPromise, fetch3, fetch2]).finally(() => {
+        // Set the active project plotData reference
+        plotData = avatarDataPool[currentProject] || [];
+        
+        // Render dots, stats and fit using fallback data
+        renderPlotDots();
+        updateStatistics();
+        setTimeout(fitMapToViewport, 100);
+        setupAdminState();
+    });
 }
 
 // ----------------------------------------------------
@@ -199,44 +261,66 @@ function getStatusColor(status) {
 function renderPlotDots() {
     plotsOverlay.innerHTML = '';
     
-    // Scale factors: original coords are mapped to 2500x1579 background
-    const scaleX = 1024 / 2500;
-    const scaleY = 576 / 1579;
+    const coordsSource = avatarCoordsPool[currentProject] || {};
+    const dataSource = avatarDataPool[currentProject] || [];
     
-    // plotCoordinates is a global defined in plot_coords.js
-    Object.keys(plotCoordinates).forEach(plotNo => {
-        const coords = plotCoordinates[plotNo];
-        const detail = plotData.find(p => String(p.plot_no) === String(plotNo));
-        const status = detail ? detail.plot_status : 'AVAILABLE';
+    if (currentProject === 'avatar3') {
+        const scaleX = 1024 / 2500;
+        const scaleY = 576 / 1579;
         
-        const dot = document.createElement('button');
-        dot.className = 'plot-dot';
-        dot.id = `plot-dot-${plotNo}`;
-        dot.dataset.plotNo = plotNo;
-        dot.dataset.facing = detail && detail.facing ? detail.facing : 'Unknown';
-        dot.dataset.status = status;
-        
-        // CSS custom property to style the background color dynamically
-        dot.style.setProperty('--plot-color', getStatusColor(status));
-        
-        // Center the dot by offseting by half size (15px wide -> 7.5px offset)
-        // Scaled coordinates mapping
-        dot.style.left = `${(coords.left * scaleX) - 7.5}px`;
-        dot.style.top = `${(coords.top * scaleY) - 7.5}px`;
-        
-        dot.textContent = plotNo;
-        
-        // Modal Trigger
-        dot.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (isMapperMode) return; // Don't trigger details in mapper mode
-            openPlotModal(plotNo);
+        Object.keys(coordsSource).forEach(plotNo => {
+            const coords = coordsSource[plotNo];
+            const detail = dataSource.find(p => String(p.plot_no) === String(plotNo));
+            const status = detail ? detail.plot_status : 'AVAILABLE';
+            
+            const dot = document.createElement('button');
+            dot.className = 'plot-dot';
+            dot.id = `plot-dot-${plotNo}`;
+            dot.dataset.plotNo = plotNo;
+            dot.dataset.facing = detail && detail.facing ? detail.facing : 'Unknown';
+            dot.dataset.status = status;
+            
+            dot.style.setProperty('--plot-color', getStatusColor(status));
+            dot.style.left = `${(coords.left * scaleX) - 7.5}px`;
+            dot.style.top = `${(coords.top * scaleY) - 7.5}px`;
+            dot.textContent = plotNo;
+            
+            dot.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (isMapperMode) return;
+                openPlotModal(plotNo);
+            });
+            
+            plotsOverlay.appendChild(dot);
         });
-        
-        plotsOverlay.appendChild(dot);
-    });
+    } else if (currentProject === 'avatar2') {
+        Object.keys(coordsSource).forEach(plotNo => {
+            const coords = coordsSource[plotNo];
+            const detail = dataSource.find(p => String(p.plot_no) === String(plotNo));
+            const status = detail ? detail.plot_status : 'AVAILABLE';
+            
+            const dot = document.createElement('button');
+            dot.className = 'plot-dot';
+            dot.id = `plot-dot-${plotNo}`;
+            dot.dataset.plotNo = plotNo;
+            dot.dataset.facing = detail && detail.facing ? detail.facing : 'Unknown';
+            dot.dataset.status = status;
+            
+            dot.style.setProperty('--plot-color', getStatusColor(status));
+            dot.style.left = `${coords.left - 7.5}px`;
+            dot.style.top = `${coords.top - 7.5}px`;
+            dot.textContent = plotNo;
+            
+            dot.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (isMapperMode) return;
+                openPlotModal(plotNo);
+            });
+            
+            plotsOverlay.appendChild(dot);
+        });
+    }
 
-    // Synchronize updates with Leaflet markers if Leaflet is initialized
     if (leafletMap) {
         refreshLeafletMarkers();
     }
@@ -374,13 +458,15 @@ function fitMapToViewport() {
     const vWidth = mapViewport.clientWidth;
     const vHeight = mapViewport.clientHeight;
     
-    // Background original dims: width: 1024, height: 576
-    const fitScale = Math.min(vWidth / 1024, vHeight / 576) * 0.95; // 5% margins
+    const height = currentProject === 'avatar2' ? 646 : 576;
+    
+    // Background original dims: width: 1024, height: dynamic
+    const fitScale = Math.min(vWidth / 1024, vHeight / height) * 0.95; // 5% margins
     zoomScale = Math.max(fitScale, 0.1);
     
     // Centering calculations
     panX = (vWidth - 1024 * zoomScale) / 2;
-    panY = (vHeight - 576 * zoomScale) / 2;
+    panY = (vHeight - height * zoomScale) / 2;
     
     applyTransform();
 }
@@ -449,14 +535,16 @@ function setupSearch() {
 }
 
 function renderSearchSuggestions(query) {
-    const matches = Object.keys(plotCoordinates)
+    const coordsSource = avatarCoordsPool[currentProject] || {};
+    const matches = Object.keys(coordsSource)
         .filter(no => no.toLowerCase().startsWith(query))
         .slice(0, 5); // Max 5 suggestions
         
     if (matches.length > 0) {
         searchSuggestions.innerHTML = '';
         matches.forEach(plotNo => {
-            const detail = plotData.find(p => String(p.plot_no) === String(plotNo));
+            const dataSource = avatarDataPool[currentProject] || [];
+            const detail = dataSource.find(p => String(p.plot_no) === String(plotNo));
             const status = detail ? detail.plot_status : 'AVAILABLE';
             
             const div = document.createElement('div');
@@ -480,7 +568,8 @@ function renderSearchSuggestions(query) {
 }
 
 function focusOnPlot(plotNo) {
-    const coords = plotCoordinates[plotNo];
+    const coordsSource = avatarCoordsPool[currentProject] || {};
+    const coords = coordsSource[plotNo];
     if (!coords) return;
     
     // Set active search plot and filter out all other plot dots
@@ -504,25 +593,30 @@ function focusOnPlot(plotNo) {
         if (markerEl) markerEl.classList.add('highlighted');
         
         // Calculate Lat/Lng
-        const width2D = 2500;
-        const height2D = 1579;
+        const width2D = currentProject === 'avatar2' ? 1024 : 2500;
+        const height2D = currentProject === 'avatar2' ? 646 : 1579;
         const lng = siteBounds.west + (coords.left / width2D) * (siteBounds.east - siteBounds.west);
         const lat = siteBounds.north - (coords.top / height2D) * (siteBounds.north - siteBounds.south);
         
         leafletMap.setView([lat, lng], 19);
     }
     
-    // Scale factors: original coords are mapped to 2500x1579 background
-    const scaleX = 1024 / 2500;
-    const scaleY = 576 / 1579;
+    let x2d = coords.left;
+    let y2d = coords.top;
+    if (currentProject === 'avatar3') {
+        const scaleX = 1024 / 2500;
+        const scaleY = 576 / 1579;
+        x2d = coords.left * scaleX;
+        y2d = coords.top * scaleY;
+    }
     
     // Zoom close and Center on coordinates
     zoomScale = 2.0; // close up zoom
     const vWidth = mapViewport.clientWidth;
     const vHeight = mapViewport.clientHeight;
     
-    panX = vWidth / 2 - (coords.left * scaleX) * zoomScale;
-    panY = vHeight / 2 - (coords.top * scaleY) * zoomScale;
+    panX = vWidth / 2 - x2d * zoomScale;
+    panY = vHeight / 2 - y2d * zoomScale;
     
     applyTransform();
     
@@ -773,7 +867,8 @@ function updateStatistics() {
 
     // Update Header Counts (Available vs Booked/Sold)
     // Placed dots counts
-    const totalPlaced = Object.keys(plotCoordinates).length;
+    const coordsSource = avatarCoordsPool[currentProject] || {};
+    const totalPlaced = Object.keys(coordsSource).length;
     
     statAvailablePlots.textContent = statusCounts['AVAILABLE'] + statusCounts['RESALE'];
     statBookedPlots.textContent = statusCounts['SOLD'] + statusCounts['REGISTERED'] + statusCounts['HOLD'] + statusCounts['MORTGAGE'] + statusCounts['INVESTOR'];
@@ -848,7 +943,8 @@ function setupMapper() {
     });
 
     mapperExportBtn.addEventListener('click', () => {
-        const configCode = `const plotCoordinates = ${JSON.stringify(plotCoordinates, null, 4)};`;
+        const coordsSource = avatarCoordsPool[currentProject] || {};
+        const configCode = `const plotCoordinates = ${JSON.stringify(coordsSource, null, 4)};`;
         
         modalBody.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 12px; text-align: left;">
@@ -874,8 +970,9 @@ function setupMapper() {
 
 function renderMapperPlotList() {
     mapperPlotList.innerHTML = '';
-    // Plots numbers 1 to 206
-    for (let i = 1; i <= 206; i++) {
+    const maxPlots = currentProject === 'avatar2' ? 96 : 206;
+    const coordsSource = avatarCoordsPool[currentProject] || {};
+    for (let i = 1; i <= maxPlots; i++) {
         const btn = document.createElement('button');
         btn.id = `mapper-btn-${i}`;
         btn.style.padding = '4px';
@@ -886,7 +983,7 @@ function renderMapperPlotList() {
         btn.style.cursor = 'pointer';
         
         // Style based on placement state
-        const isPlaced = plotCoordinates[i] !== undefined;
+        const isPlaced = coordsSource[i] !== undefined;
         btn.style.backgroundColor = isPlaced ? 'rgba(16, 185, 129, 0.2)' : 'var(--bg-tertiary)';
         btn.style.color = isPlaced ? 'var(--status-available)' : 'var(--text-secondary)';
         btn.style.borderColor = isPlaced ? 'var(--status-available)' : 'var(--border-color)';
@@ -921,16 +1018,20 @@ function handleMapClick(e) {
     const clickX = (e.clientX - rect.left) / zoomScale;
     const clickY = (e.clientY - rect.top) / zoomScale;
     
-    // Scale factors: original coords map to 2500x1579 dimensions
-    const scaleX = 1024 / 2500;
-    const scaleY = 576 / 1579;
-    
-    // Convert current click coordinate back to original reference size
-    const origLeft = Math.round(clickX / scaleX);
-    const origTop = Math.round(clickY / scaleY);
+    let origLeft, origTop;
+    if (currentProject === 'avatar3') {
+        const scaleX = 1024 / 2500;
+        const scaleY = 576 / 1579;
+        origLeft = Math.round(clickX / scaleX);
+        origTop = Math.round(clickY / scaleY);
+    } else {
+        origLeft = Math.round(clickX);
+        origTop = Math.round(clickY);
+    }
     
     // Save coordinate point
-    plotCoordinates[activeMapperPlot] = {
+    const coordsSource = avatarCoordsPool[currentProject] || {};
+    coordsSource[activeMapperPlot] = {
         left: origLeft,
         top: origTop
     };
@@ -947,7 +1048,8 @@ function handleMapClick(e) {
     }
     
     // Advance mapper active selection to the next plot number
-    if (activeMapperPlot < 206) {
+    const maxPlots = currentProject === 'avatar2' ? 96 : 206;
+    if (activeMapperPlot < maxPlots) {
         activeMapperPlot++;
         mapperActivePlot.value = activeMapperPlot;
         highlightActiveMapperButton();
@@ -1249,7 +1351,8 @@ function savePlotEdits(plotNo) {
         plotData.push(updatedPlot);
     }
 
-    localStorage.setItem('aspire_avatar3_data', JSON.stringify(plotData));
+    const storageKey = `aspire_${currentProject}_data`;
+    localStorage.setItem(storageKey, JSON.stringify(plotData));
 
     renderPlotDots();
     updateStatistics();
@@ -1282,6 +1385,8 @@ function toggleSatelliteView() {
     const mapControls = document.querySelector('.map-controls');
     const projectNav = document.getElementById('projectNavSection');
     
+    if (projectNav) projectNav.style.display = 'block'; // Always show project nav
+    
     if (isSatelliteActive) {
         toggleBtn.classList.add('active');
         toggleBtn.innerHTML = '<i class="fa-solid fa-map"></i> <span>Schematic View</span>';
@@ -1291,7 +1396,6 @@ function toggleSatelliteView() {
         mapContainer.style.display = 'none';
         leafletContainer.style.display = 'block';
         if (layerControl) layerControl.style.display = 'block';
-        if (projectNav) projectNav.style.display = 'block';
         
         if (mapTip) {
             mapTip.style.display = 'none';
@@ -1306,9 +1410,8 @@ function toggleSatelliteView() {
                 miniMap.invalidateSize();
             }
             // Recenter map on active project center
-            const centerLat = (siteBounds.south + siteBounds.north) / 2;
-            const centerLng = (siteBounds.west + siteBounds.east) / 2;
-            leafletMap.setView([centerLat, centerLng], 17);
+            const loc = getActiveProjectCenter();
+            leafletMap.setView(loc, 17);
         }
     } else {
         toggleBtn.classList.remove('active');
@@ -1319,7 +1422,6 @@ function toggleSatelliteView() {
         mapContainer.style.display = 'block';
         leafletContainer.style.display = 'none';
         if (layerControl) layerControl.style.display = 'none';
-        if (projectNav) projectNav.style.display = 'none';
         
         // Hide Project Details Card when leaving Satellite View
         const detailsCard = document.getElementById('projectDetailsCard');
@@ -1330,28 +1432,65 @@ function toggleSatelliteView() {
             mapTip.innerHTML = '<i class="fa-solid fa-hand-pointer"></i> Drag to Pan &bull; Scroll or Pinch to Zoom';
         }
         
-        // Reset Project Selector to Avatar 3 when entering Schematic View
-        const navButtons = document.querySelectorAll('.project-nav-btn');
-        if (navButtons) {
-            navButtons.forEach(b => b.classList.remove('active'));
-            const avatar3Btn = document.getElementById('navAvatar3');
-            if (avatar3Btn) avatar3Btn.classList.add('active');
+        // Check active project selector
+        const activeProjectBtn = document.querySelector('.project-nav-btn.active');
+        let project = activeProjectBtn ? activeProjectBtn.dataset.project : 'avatar3';
+        if (project === 'avatar1') {
+            // Avatar 1 has no schematic layout, default to avatar3
+            project = 'avatar3';
+            const navButtons = document.querySelectorAll('.project-nav-btn');
+            if (navButtons) {
+                navButtons.forEach(b => b.classList.remove('active'));
+                const avatar3Btn = document.getElementById('navAvatar3');
+                if (avatar3Btn) avatar3Btn.classList.add('active');
+            }
         }
-        updateSidebarAndHeaderForProject('avatar3');
+        currentProject = project;
+        
+        // Update 2D layout layout image and sizes depending on active project
+        if (currentProject === 'avatar2') {
+            mapImage.src = 'avatar2_digi/map_layout.jpg';
+            mapContainer.style.width = '1024px';
+            mapContainer.style.height = '646px';
+            mapImage.style.width = '1024px';
+            mapImage.style.height = '646px';
+        } else {
+            // Default to Avatar 3
+            mapImage.src = 'map_layout.png';
+            mapContainer.style.width = '1024px';
+            mapContainer.style.height = '576px';
+            mapImage.style.width = '1024px';
+            mapImage.style.height = '576px';
+        }
+        
+        updateSidebarAndHeaderForProject(currentProject);
 
         // Highlight active filters or highlights in 2D View
+        plotData = avatarDataPool[currentProject] || [];
         applyFilters();
+        renderPlotDots();
+        updateStatistics();
         fitMapToViewport();
     }
 }
 
+function getActiveProjectCenter() {
+    const projectLocations = {
+        avatar1: [16.9498389, 78.4960974],
+        avatar2: [16.9233266, 78.5325395],
+        avatar3: [16.9307952, 78.5382904]
+    };
+    const activeProjectBtn = document.querySelector('.project-nav-btn.active');
+    const project = activeProjectBtn ? activeProjectBtn.dataset.project : 'avatar3';
+    return projectLocations[project] || projectLocations.avatar3;
+}
+
 function initLeafletMap() {
-    const centerLat = (siteBounds.south + siteBounds.north) / 2;
-    const centerLng = (siteBounds.west + siteBounds.east) / 2;
+    const loc = getActiveProjectCenter();
     
     leafletMap = L.map('leafletMapContainer', {
         zoomControl: false, // Hiding default zoom to use our custom floating controls
-        center: [centerLat, centerLng],
+        center: loc,
         zoom: 17,
         maxZoom: 21,
         minZoom: 13
@@ -1381,7 +1520,8 @@ function initLeafletMap() {
     document.getElementById('zoomResetBtn').addEventListener('click', (e) => {
         if (isSatelliteActive && leafletMap) {
             e.stopPropagation();
-            leafletMap.setView([centerLat, centerLng], 17);
+            const activeLoc = getActiveProjectCenter();
+            leafletMap.setView(activeLoc, 17);
         }
     });
     
@@ -1739,13 +1879,22 @@ function updateSidebarAndHeaderForProject(project) {
     const approvedBadge = document.querySelector('.approved-badge');
     const projectNameEl = document.querySelector('.project-name');
     
-    if (project === 'avatar3') {
+    if (!isSatelliteActive && (project === 'avatar3' || project === 'avatar2')) {
         if (searchSection) searchSection.style.display = 'block';
         if (filtersSection) filtersSection.style.display = 'block';
         if (legendSection) legendSection.style.display = 'block';
         if (headerStats) headerStats.style.display = 'flex';
         if (approvedBadge) approvedBadge.style.display = 'inline-flex';
-        if (projectNameEl) projectNameEl.textContent = 'Layout View';
+        if (projectNameEl) {
+            projectNameEl.textContent = project === 'avatar3' ? 'Layout View (Avatar 3)' : 'Layout View (Avatar 2)';
+        }
+        if (approvedBadge) {
+            if (project === 'avatar3') {
+                approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved (LP No. 224/2023/H)';
+            } else {
+                approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved';
+            }
+        }
     } else {
         if (searchSection) searchSection.style.display = 'none';
         if (filtersSection) filtersSection.style.display = 'none';
@@ -1753,7 +1902,9 @@ function updateSidebarAndHeaderForProject(project) {
         if (headerStats) headerStats.style.display = 'none';
         if (approvedBadge) approvedBadge.style.display = 'none';
         if (projectNameEl) {
-            projectNameEl.textContent = project === 'avatar1' ? 'Avatar 1' : 'Avatar 2';
+            if (project === 'avatar1') projectNameEl.textContent = 'Avatar 1';
+            else if (project === 'avatar2') projectNameEl.textContent = 'Avatar 2';
+            else projectNameEl.textContent = 'Avatar 3';
         }
     }
 }
@@ -1776,13 +1927,15 @@ function setupProjectNavigation() {
             navButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
+            currentProject = project;
+
             // Update sidebar & header views based on project
             updateSidebarAndHeaderForProject(project);
             
             // Display Project Details Card on Map view
             showProjectDetailsCard(project);
 
-            if (project === 'avatar1' || project === 'avatar2') {
+            if (project === 'avatar1') {
                 // If in Schematic View, switch to Satellite View first
                 if (!isSatelliteActive) {
                     isSatelliteActive = true;
@@ -1793,13 +1946,58 @@ function setupProjectNavigation() {
                 if (leafletMap) {
                     leafletMap.flyTo(projectLocations[project], 17, { duration: 1.5 });
                 }
+            } else if (project === 'avatar2') {
+                if (isSatelliteActive) {
+                    if (leafletMap) {
+                        leafletMap.flyTo(projectLocations[project], 17, { duration: 1.5 });
+                    }
+                } else {
+                    // Update background layout image & size
+                    mapImage.src = 'avatar2_digi/map_layout.jpg';
+                    mapContainer.style.width = '1024px';
+                    mapContainer.style.height = '646px';
+                    mapImage.style.width = '1024px';
+                    mapImage.style.height = '646px';
+                    
+                    // Set active plotData
+                    plotData = avatarDataPool.avatar2 || [];
+                    
+                    // Reset active filters & search query
+                    activeSearchPlot = null;
+                    if (searchInput) searchInput.value = '';
+                    if (searchClearBtn) searchClearBtn.style.display = 'none';
+                    if (searchSuggestions) searchSuggestions.style.display = 'none';
+                    
+                    applyFilters();
+                    renderPlotDots();
+                    updateStatistics();
+                    fitMapToViewport();
+                }
             } else if (project === 'avatar3') {
                 if (isSatelliteActive) {
                     if (leafletMap) {
                         leafletMap.flyTo(projectLocations[project], 17, { duration: 1.5 });
                     }
                 } else {
-                    // Reset schematic view pan & zoom
+                    // Update background layout image & size
+                    mapImage.src = 'map_layout.png';
+                    mapContainer.style.width = '1024px';
+                    mapContainer.style.height = '576px';
+                    mapImage.style.width = '1024px';
+                    mapImage.style.height = '576px';
+                    
+                    // Set active plotData
+                    plotData = avatarDataPool.avatar3 || [];
+                    
+                    // Reset active filters & search query
+                    activeSearchPlot = null;
+                    if (searchInput) searchInput.value = '';
+                    if (searchClearBtn) searchClearBtn.style.display = 'none';
+                    if (searchSuggestions) searchSuggestions.style.display = 'none';
+                    
+                    applyFilters();
+                    renderPlotDots();
+                    updateStatistics();
                     fitMapToViewport();
                 }
             }

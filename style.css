@@ -397,6 +397,7 @@ body {
 
 /* Header */
 .dashboard-header {
+    position: relative;
     height: 80px;
     background-color: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
@@ -930,17 +931,20 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .satellite-toggle-btn:hover {
     border-color: var(--accent);
     color: var(--text-primary);
     box-shadow: 0 0 12px var(--accent-glow);
-    transform: translateY(-1px);
+    transform: translate(-50%, -1px);
 }
 
 .satellite-toggle-btn:active {
-    transform: translateY(0);
+    transform: translate(-50%, 0);
 }
 
 .satellite-toggle-btn.active {
