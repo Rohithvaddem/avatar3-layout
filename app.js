@@ -31,7 +31,7 @@ const projectMetadata = {
         title: "Aspirealty Avatar - Phase 1",
         location: "Kadthal, Srisailam Highway, Hyderabad",
         area: "24.49 Acres",
-        plots: "310 Plots",
+        plots: "328 Plots",
         lpNumber: "TLP No. 224/2023/H (DTCP Approved)",
         status: "Completed & Ready for Construction",
         highlights: [
