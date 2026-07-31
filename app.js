@@ -163,6 +163,11 @@ function initApp() {
         avatarCoordsPool.avatar2 = plotCoordinatesAvatar2;
     }
 
+    // Populate Avatar 1 coordinates from global variable loaded by avatar1_plot_coords.js
+    if (typeof plotCoordinatesAvatar1 !== 'undefined') {
+        avatarCoordsPool.avatar1 = plotCoordinatesAvatar1;
+    }
+
     // Load Avatar 3 data from local storage if exists
     const localDataAvatar3 = localStorage.getItem('aspire_avatar3_data');
     if (localDataAvatar3) {
@@ -180,6 +185,16 @@ function initApp() {
             avatarDataPool.avatar2 = JSON.parse(localDataAvatar2).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
         } catch (e) {
             console.error('Error parsing local storage Avatar 2 data', e);
+        }
+    }
+
+    // Load Avatar 1 data from local storage if exists
+    const localDataAvatar1 = localStorage.getItem('aspire_avatar1_data');
+    if (localDataAvatar1) {
+        try {
+            avatarDataPool.avatar1 = JSON.parse(localDataAvatar1).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+        } catch (e) {
+            console.error('Error parsing local storage Avatar 1 data', e);
         }
     }
 
@@ -219,6 +234,24 @@ function initApp() {
             }
         });
 
+    // Fetch Avatar 1 JSON
+    const fetch1 = fetch('avatar1_data.json')
+        .then(response => {
+            if (!response.ok) throw new Error('Data fetch failed');
+            return response.json();
+        })
+        .then(data => {
+            if (!avatarDataPool.avatar1.length) {
+                avatarDataPool.avatar1 = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+            }
+        })
+        .catch(err => {
+            console.warn('CORS or network error. Falling back to offline dataset (avatar1_data.js) for Avatar 1:', err);
+            if (typeof plotDataRawAvatar1 !== 'undefined' && !avatarDataPool.avatar1.length) {
+                avatarDataPool.avatar1 = plotDataRawAvatar1.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+            }
+        });
+
     // Fallback coordinates fetch in case script load failed but json works
     let fetchCoordsPromise = Promise.resolve();
     if (!avatarCoordsPool.avatar2 || !Object.keys(avatarCoordsPool.avatar2).length) {
@@ -230,7 +263,17 @@ function initApp() {
             .catch(err => console.error('Failed to load Avatar 2 coordinates from JSON fallback:', err));
     }
 
-    Promise.all([fetchCoordsPromise, fetch3, fetch2]).finally(() => {
+    let fetchCoordsPromise1 = Promise.resolve();
+    if (!avatarCoordsPool.avatar1 || !Object.keys(avatarCoordsPool.avatar1).length) {
+        fetchCoordsPromise1 = fetch('avatar1_plot_coords.json')
+            .then(res => res.json())
+            .then(coords => {
+                avatarCoordsPool.avatar1 = coords;
+            })
+            .catch(err => console.error('Failed to load Avatar 1 coordinates from JSON fallback:', err));
+    }
+
+    Promise.all([fetchCoordsPromise, fetchCoordsPromise1, fetch3, fetch2, fetch1]).finally(() => {
         // Set the active project plotData reference
         plotData = avatarDataPool[currentProject] || [];
         
@@ -458,7 +501,12 @@ function fitMapToViewport() {
     const vWidth = mapViewport.clientWidth;
     const vHeight = mapViewport.clientHeight;
     
-    const height = currentProject === 'avatar2' ? 646 : 576;
+    let height = 576;
+    if (currentProject === 'avatar2') {
+        height = 646;
+    } else if (currentProject === 'avatar1') {
+        height = 647;
+    }
     
     // Background original dims: width: 1024, height: dynamic
     const fitScale = Math.min(vWidth / 1024, vHeight / height) * 0.95; // 5% margins
@@ -593,8 +641,15 @@ function focusOnPlot(plotNo) {
         if (markerEl) markerEl.classList.add('highlighted');
         
         // Calculate Lat/Lng
-        const width2D = currentProject === 'avatar2' ? 1024 : 2500;
-        const height2D = currentProject === 'avatar2' ? 646 : 1579;
+        let width2D = 2500;
+        let height2D = 1579;
+        if (currentProject === 'avatar2') {
+            width2D = 1024;
+            height2D = 646;
+        } else if (currentProject === 'avatar1') {
+            width2D = 1024;
+            height2D = 647;
+        }
         const lng = siteBounds.west + (coords.left / width2D) * (siteBounds.east - siteBounds.west);
         const lat = siteBounds.north - (coords.top / height2D) * (siteBounds.north - siteBounds.south);
         
@@ -970,7 +1025,12 @@ function setupMapper() {
 
 function renderMapperPlotList() {
     mapperPlotList.innerHTML = '';
-    const maxPlots = currentProject === 'avatar2' ? 96 : 206;
+    let maxPlots = 206;
+    if (currentProject === 'avatar2') {
+        maxPlots = 96;
+    } else if (currentProject === 'avatar1') {
+        maxPlots = 328;
+    }
     const coordsSource = avatarCoordsPool[currentProject] || {};
     for (let i = 1; i <= maxPlots; i++) {
         const btn = document.createElement('button');
@@ -1048,7 +1108,12 @@ function handleMapClick(e) {
     }
     
     // Advance mapper active selection to the next plot number
-    const maxPlots = currentProject === 'avatar2' ? 96 : 206;
+    let maxPlots = 206;
+    if (currentProject === 'avatar2') {
+        maxPlots = 96;
+    } else if (currentProject === 'avatar1') {
+        maxPlots = 328;
+    }
     if (activeMapperPlot < maxPlots) {
         activeMapperPlot++;
         mapperActivePlot.value = activeMapperPlot;
@@ -1435,16 +1500,6 @@ function toggleSatelliteView() {
         // Check active project selector
         const activeProjectBtn = document.querySelector('.project-nav-btn.active');
         let project = activeProjectBtn ? activeProjectBtn.dataset.project : 'avatar3';
-        if (project === 'avatar1') {
-            // Avatar 1 has no schematic layout, default to avatar3
-            project = 'avatar3';
-            const navButtons = document.querySelectorAll('.project-nav-btn');
-            if (navButtons) {
-                navButtons.forEach(b => b.classList.remove('active'));
-                const avatar3Btn = document.getElementById('navAvatar3');
-                if (avatar3Btn) avatar3Btn.classList.add('active');
-            }
-        }
         currentProject = project;
         
         // Update 2D layout layout image and sizes depending on active project
@@ -1454,6 +1509,12 @@ function toggleSatelliteView() {
             mapContainer.style.height = '646px';
             mapImage.style.width = '1024px';
             mapImage.style.height = '646px';
+        } else if (currentProject === 'avatar1') {
+            mapImage.src = 'avatar1_map_layout.jpg';
+            mapContainer.style.width = '1024px';
+            mapContainer.style.height = '647px';
+            mapImage.style.width = '1024px';
+            mapImage.style.height = '647px';
         } else {
             // Default to Avatar 3
             mapImage.src = 'map_layout.png';
@@ -1879,20 +1940,24 @@ function updateSidebarAndHeaderForProject(project) {
     const approvedBadge = document.querySelector('.approved-badge');
     const projectNameEl = document.querySelector('.project-name');
     
-    if (!isSatelliteActive && (project === 'avatar3' || project === 'avatar2')) {
+    if (!isSatelliteActive && (project === 'avatar3' || project === 'avatar2' || project === 'avatar1')) {
         if (searchSection) searchSection.style.display = 'block';
         if (filtersSection) filtersSection.style.display = 'block';
         if (legendSection) legendSection.style.display = 'block';
         if (headerStats) headerStats.style.display = 'flex';
         if (approvedBadge) approvedBadge.style.display = 'inline-flex';
         if (projectNameEl) {
-            projectNameEl.textContent = project === 'avatar3' ? 'Layout View (Avatar 3)' : 'Layout View (Avatar 2)';
+            if (project === 'avatar3') projectNameEl.textContent = 'Layout View (Avatar 3)';
+            else if (project === 'avatar2') projectNameEl.textContent = 'Layout View (Avatar 2)';
+            else projectNameEl.textContent = 'Layout View (Avatar 1)';
         }
         if (approvedBadge) {
             if (project === 'avatar3') {
                 approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved (LP No. 224/2023/H)';
-            } else {
+            } else if (project === 'avatar2') {
                 approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved';
+            } else {
+                approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Layout Approved';
             }
         }
     } else {
@@ -1936,15 +2001,31 @@ function setupProjectNavigation() {
             showProjectDetailsCard(project);
 
             if (project === 'avatar1') {
-                // If in Schematic View, switch to Satellite View first
-                if (!isSatelliteActive) {
-                    isSatelliteActive = true;
-                    toggleSatelliteView();
-                }
-
-                // Smoothly fly to coordinates
-                if (leafletMap) {
-                    leafletMap.flyTo(projectLocations[project], 17, { duration: 1.5 });
+                if (isSatelliteActive) {
+                    if (leafletMap) {
+                        leafletMap.flyTo(projectLocations[project], 17, { duration: 1.5 });
+                    }
+                } else {
+                    // Update background layout image & size
+                    mapImage.src = 'avatar1_map_layout.jpg';
+                    mapContainer.style.width = '1024px';
+                    mapContainer.style.height = '647px';
+                    mapImage.style.width = '1024px';
+                    mapImage.style.height = '647px';
+                    
+                    // Set active plotData
+                    plotData = avatarDataPool.avatar1 || [];
+                    
+                    // Reset active filters & search query
+                    activeSearchPlot = null;
+                    if (searchInput) searchInput.value = '';
+                    if (searchClearBtn) searchClearBtn.style.display = 'none';
+                    if (searchSuggestions) searchSuggestions.style.display = 'none';
+                    
+                    applyFilters();
+                    renderPlotDots();
+                    updateStatistics();
+                    fitMapToViewport();
                 }
             } else if (project === 'avatar2') {
                 if (isSatelliteActive) {
