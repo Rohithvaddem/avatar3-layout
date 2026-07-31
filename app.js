@@ -43,10 +43,10 @@ const projectMetadata = {
         ]
     },
     avatar2: {
-        title: "Aspirealty Avatar - Phase 2 (Sri Gokul City)",
+        title: "Aspirealty Avatar 2",
         location: "Karkalpahad, Srisailam Highway, Hyderabad",
-        area: "17 Acres (8 acres Phase 2)",
-        plots: "380 Plots",
+        area: "17 Acres (1st phase)",
+        plots: "96 Plots",
         lpNumber: "RERA Reg: P02400009896 (DTCP Approved)",
         status: "Infrastructure Construction Stage",
         highlights: [
