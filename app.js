@@ -1477,36 +1477,27 @@ function toggleSatelliteView() {
         let project = activeProjectBtn ? activeProjectBtn.dataset.project : 'avatar3';
         currentProject = project;
         
-        // Update 2D layout layout image and sizes depending on active project
-        if (currentProject === 'avatar2') {
-            mapImage.src = 'avatar2_digi/map_layout.jpg';
-            mapContainer.style.width = '1024px';
-            mapContainer.style.height = '646px';
-            mapImage.style.width = '1024px';
-            mapImage.style.height = '646px';
-        } else if (currentProject === 'avatar1') {
-            mapImage.src = 'avatar1_map_layout.jpg';
-            mapContainer.style.width = '1024px';
-            mapContainer.style.height = '647px';
-            mapImage.style.width = '1024px';
-            mapImage.style.height = '647px';
-        } else {
-            // Default to Avatar 3
-            mapImage.src = 'map_layout.png';
-            mapContainer.style.width = '1024px';
-            mapContainer.style.height = '576px';
-            mapImage.style.width = '1024px';
-            mapImage.style.height = '576px';
-        }
-        
         updateSidebarAndHeaderForProject(currentProject);
 
-        // Highlight active filters or highlights in 2D View
-        plotData = avatarDataPool[currentProject] || [];
-        applyFilters();
-        renderPlotDots();
-        updateStatistics();
-        fitMapToViewport();
+        if (currentProject === 'avatar2') {
+            changeLayoutImage('avatar2_digi/map_layout.jpg', '1024px', '646px', '1024px', '646px', () => {
+                plotData = avatarDataPool.avatar2 || [];
+                applyFilters();
+                updateStatistics();
+            });
+        } else if (currentProject === 'avatar1') {
+            changeLayoutImage('avatar1_map_layout.jpg', '1024px', '647px', '1024px', '647px', () => {
+                plotData = avatarDataPool.avatar1 || [];
+                applyFilters();
+                updateStatistics();
+            });
+        } else {
+            changeLayoutImage('map_layout.png', '1024px', '576px', '1024px', '576px', () => {
+                plotData = avatarDataPool.avatar3 || [];
+                applyFilters();
+                updateStatistics();
+            });
+        }
     }
 }
 
@@ -1949,6 +1940,68 @@ function updateSidebarAndHeaderForProject(project) {
     }
 }
 
+function changeLayoutImage(newSrc, containerWidth, containerHeight, imageWidth, imageHeight, onBeforeLoad) {
+    const loader = document.getElementById('layoutLoader');
+    
+    // Show loader and fade out old content
+    if (loader) loader.classList.add('active');
+    mapImage.classList.add('loading-layout');
+    plotsOverlay.classList.add('loading-layout');
+    
+    // Check if the image source is actually changing.
+    const cleanSrc = newSrc.split('?')[0];
+    const currentCleanSrc = mapImage.src.substring(mapImage.src.length - cleanSrc.length);
+    
+    let isTransitioned = false;
+    const transitionDone = () => {
+        if (isTransitioned) return;
+        isTransitioned = true;
+        
+        // Update dimensions before rendering dots so they place correctly
+        mapContainer.style.width = containerWidth;
+        mapContainer.style.height = containerHeight;
+        mapImage.style.width = imageWidth;
+        mapImage.style.height = imageHeight;
+        
+        if (onBeforeLoad) onBeforeLoad();
+        
+        // Render and fit
+        renderPlotDots();
+        fitMapToViewport();
+        
+        // Fade in
+        mapImage.classList.remove('loading-layout');
+        plotsOverlay.classList.remove('loading-layout');
+        if (loader) loader.classList.remove('active');
+    };
+    
+    if (currentCleanSrc === cleanSrc && mapImage.complete) {
+        // Already loaded the same image
+        transitionDone();
+        return;
+    }
+    
+    // Hook load event
+    const handleLoad = () => {
+        mapImage.removeEventListener('load', handleLoad);
+        mapImage.removeEventListener('error', handleError);
+        transitionDone();
+    };
+    
+    const handleError = () => {
+        mapImage.removeEventListener('load', handleLoad);
+        mapImage.removeEventListener('error', handleError);
+        console.warn('Failed to load image:', newSrc);
+        transitionDone(); // Proceed anyway to not block UI forever
+    };
+    
+    mapImage.addEventListener('load', handleLoad);
+    mapImage.addEventListener('error', handleError);
+    
+    // Change source
+    mapImage.src = newSrc;
+}
+
 function setupProjectNavigation() {
     const projectLocations = {
         avatar1: [16.9498389, 78.4960974],
@@ -1991,26 +2044,15 @@ function setupProjectNavigation() {
                         leafletMap.flyTo(projectLocations[project], 17, { duration: 1.5 });
                     }
                 } else {
-                    // Update background layout image & size
-                    mapImage.src = 'avatar1_map_layout.jpg';
-                    mapContainer.style.width = '1024px';
-                    mapContainer.style.height = '647px';
-                    mapImage.style.width = '1024px';
-                    mapImage.style.height = '647px';
-                    
-                    // Set active plotData
-                    plotData = avatarDataPool.avatar1 || [];
-                    
-                    // Reset active filters & search query
-                    activeSearchPlot = null;
-                    if (searchInput) searchInput.value = '';
-                    if (searchClearBtn) searchClearBtn.style.display = 'none';
-                    if (searchSuggestions) searchSuggestions.style.display = 'none';
-                    
-                    applyFilters();
-                    renderPlotDots();
-                    updateStatistics();
-                    fitMapToViewport();
+                    changeLayoutImage('avatar1_map_layout.jpg', '1024px', '647px', '1024px', '647px', () => {
+                        plotData = avatarDataPool.avatar1 || [];
+                        activeSearchPlot = null;
+                        if (searchInput) searchInput.value = '';
+                        if (searchClearBtn) searchClearBtn.style.display = 'none';
+                        if (searchSuggestions) searchSuggestions.style.display = 'none';
+                        applyFilters();
+                        updateStatistics();
+                    });
                 }
             } else if (project === 'avatar2') {
                 if (isSatelliteActive) {
@@ -2018,26 +2060,15 @@ function setupProjectNavigation() {
                         leafletMap.flyTo(projectLocations[project], 17, { duration: 1.5 });
                     }
                 } else {
-                    // Update background layout image & size
-                    mapImage.src = 'avatar2_digi/map_layout.jpg';
-                    mapContainer.style.width = '1024px';
-                    mapContainer.style.height = '646px';
-                    mapImage.style.width = '1024px';
-                    mapImage.style.height = '646px';
-                    
-                    // Set active plotData
-                    plotData = avatarDataPool.avatar2 || [];
-                    
-                    // Reset active filters & search query
-                    activeSearchPlot = null;
-                    if (searchInput) searchInput.value = '';
-                    if (searchClearBtn) searchClearBtn.style.display = 'none';
-                    if (searchSuggestions) searchSuggestions.style.display = 'none';
-                    
-                    applyFilters();
-                    renderPlotDots();
-                    updateStatistics();
-                    fitMapToViewport();
+                    changeLayoutImage('avatar2_digi/map_layout.jpg', '1024px', '646px', '1024px', '646px', () => {
+                        plotData = avatarDataPool.avatar2 || [];
+                        activeSearchPlot = null;
+                        if (searchInput) searchInput.value = '';
+                        if (searchClearBtn) searchClearBtn.style.display = 'none';
+                        if (searchSuggestions) searchSuggestions.style.display = 'none';
+                        applyFilters();
+                        updateStatistics();
+                    });
                 }
             } else if (project === 'avatar3') {
                 if (isSatelliteActive) {
@@ -2045,26 +2076,15 @@ function setupProjectNavigation() {
                         leafletMap.flyTo(projectLocations[project], 17, { duration: 1.5 });
                     }
                 } else {
-                    // Update background layout image & size
-                    mapImage.src = 'map_layout.png';
-                    mapContainer.style.width = '1024px';
-                    mapContainer.style.height = '576px';
-                    mapImage.style.width = '1024px';
-                    mapImage.style.height = '576px';
-                    
-                    // Set active plotData
-                    plotData = avatarDataPool.avatar3 || [];
-                    
-                    // Reset active filters & search query
-                    activeSearchPlot = null;
-                    if (searchInput) searchInput.value = '';
-                    if (searchClearBtn) searchClearBtn.style.display = 'none';
-                    if (searchSuggestions) searchSuggestions.style.display = 'none';
-                    
-                    applyFilters();
-                    renderPlotDots();
-                    updateStatistics();
-                    fitMapToViewport();
+                    changeLayoutImage('map_layout.png', '1024px', '576px', '1024px', '576px', () => {
+                        plotData = avatarDataPool.avatar3 || [];
+                        activeSearchPlot = null;
+                        if (searchInput) searchInput.value = '';
+                        if (searchClearBtn) searchClearBtn.style.display = 'none';
+                        if (searchSuggestions) searchSuggestions.style.display = 'none';
+                        applyFilters();
+                        updateStatistics();
+                    });
                 }
             }
         });
