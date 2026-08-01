@@ -934,23 +934,24 @@ function exportPlotSpecSheet(plotNo) {
                     font-weight: 700;
                     color: #0f172a;
                 }
-                .dim-table {
+                .invoice-table {
                     width: 100%;
                     border-collapse: collapse;
-                    margin-top: 10px;
+                    margin-top: 15px;
+                    margin-bottom: 25px;
                 }
-                .dim-table th, .dim-table td {
-                    border: 1px solid #e2e8f0;
-                    padding: 12px;
+                .invoice-table th, .invoice-table td {
+                    padding: 12px 8px;
                     text-align: left;
-                    font-size: 13px;
+                    font-size: 14px;
+                    border-bottom: 1px solid #e2e8f0;
                 }
-                .dim-table th {
+                .invoice-table th {
                     background: #f8fafc;
-                    font-size: 11px;
                     font-weight: 700;
-                    color: #64748b;
+                    color: #475569;
                     text-transform: uppercase;
+                    font-size: 11px;
                 }
                 .footer {
                     margin-top: 50px;
@@ -1075,56 +1076,61 @@ function exportPlotSpecSheet(plotNo) {
                     <button class="btn-calc" onclick="calculatePriceAndPrint()"><i class="fa-solid fa-file-invoice-dollar"></i> Calculate &amp; Save as PDF</button>
                 </div>
                 ` : ''}
-                <!-- Plot Specifications Table (Invoice Style) -->
+                <!-- Invoice-Style Details Table -->
                 <div style="margin-bottom: 30px;">
-                    <div class="spec-title" style="margin-bottom: 12px; color: #3b82f6;">Plot Specifications</div>
-                    <table class="dim-table">
+                    <div class="spec-title" style="margin-bottom: 12px; color: #3b82f6;">Plot &amp; Venture Details</div>
+                    <table class="invoice-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40%;">Description / Item</th>
+                                <th style="width: 60%;">Specification Details</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             <tr>
                                 <td><strong>Plot Number</strong></td>
-                                <td style="color: #2563eb; font-weight: 700;"># ${item.plot_no}</td>
+                                <td style="color: #2563eb; font-weight: 700;">Plot #${item.plot_no}</td>
+                            </tr>
+                            <tr>
                                 <td><strong>Plot Area</strong></td>
                                 <td>${item.plot_size ? item.plot_size + ' Sq. Yards' : 'N/A'}</td>
                             </tr>
                             <tr>
                                 <td><strong>Facing Direction</strong></td>
                                 <td>${item.facing || 'N/A'}</td>
+                            </tr>
+                            <tr>
                                 <td><strong>Current Status</strong></td>
                                 <td style="font-weight: 700; text-transform: uppercase;">${item.plot_status}</td>
                             </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Venture Layout Details Table -->
-                <div style="margin-bottom: 30px;">
-                    <div class="spec-title" style="margin-bottom: 12px; color: #3b82f6;">Venture Layout Details</div>
-                    <table class="dim-table">
-                        <tbody>
                             <tr>
                                 <td><strong>Venture Name</strong></td>
                                 <td>${projectMeta.title}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Venture Location</strong></td>
+                                <td>${projectMeta.location}</td>
+                            </tr>
+                            <tr>
                                 <td><strong>Total Venture Area</strong></td>
                                 <td>${projectMeta.area || 'N/A'}</td>
                             </tr>
                             <tr>
-                                <td><strong>Location</strong></td>
-                                <td>${projectMeta.location}</td>
                                 <td><strong>Total Venture Plots</strong></td>
                                 <td>${projectMeta.plots || 'N/A'}</td>
                             </tr>
                             <tr>
                                 <td><strong>Venture Approvals</strong></td>
-                                <td colspan="3">
-                                    ${currentProject === 'avatar1' ? 'DTCP Approved 224/2023/h &bull; RERA Approved po2400007808' : 
-                                      currentProject === 'avatar2' ? 'DTCP Approved 28/2025/h &bull; RERA Approved Po2400009896' : 
+                                <td>
+                                    ${currentProject === 'avatar1' ? 'DTCP Approved 224/2023/h | RERA Approved po2400007808' : 
+                                      currentProject === 'avatar2' ? 'DTCP Approved 28/2025/h | RERA Approved Po2400009896' : 
                                       'DTCP Approved 9/2024/h'}
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-                
+
                 <!-- Venture Layout Map -->
                 <div style="margin-bottom: 30px;">
                     <div class="spec-title" style="margin-bottom: 12px; color: #3b82f6;">Venture Layout Map</div>
@@ -1136,43 +1142,21 @@ function exportPlotSpecSheet(plotNo) {
                              style="max-width: 100%; max-height: 280px; object-fit: contain; border-radius: 4px;">
                     </div>
                 </div>
-                
-                <div style="margin-bottom: 30px;">
-                    <div class="spec-title" style="margin-bottom: 12px;">Boundary Dimensions</div>
-                    <table class="dim-table">
-                        <thead>
-                            <tr>
-                                <th>North Boundary</th>
-                                <th>South Boundary</th>
-                                <th>East Boundary</th>
-                                <th>West Boundary</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>${item.dim_north || 'N/A'}</td>
-                                <td>${item.dim_south || 'N/A'}</td>
-                                <td>${item.dim_east || 'N/A'}</td>
-                                <td>${item.dim_west || 'N/A'}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
 
                 <!-- Price Structure Container (Visible on Calculation) -->
                 <div id="priceStructureContainer" style="margin-bottom: 30px; display: none;">
                     <div class="spec-title" style="margin-bottom: 12px; color: #2563eb;">Estimated Price Structure &amp; Quotation</div>
-                    <table class="dim-table">
+                    <table class="invoice-table">
                         <tbody>
                             <tr>
-                                <td><strong>Base Price / Total Plot Price</strong> (Area &times; Rate per Sq. Yard)</td>
-                                <td id="valBasePrice" style="text-align: right; font-weight: 600;">₹0.00</td>
+                                <td style="width: 60%;"><strong>Base Price / Total Plot Price</strong> (Area &times; Rate per Sq. Yard)</td>
+                                <td id="valBasePrice" style="width: 40%; text-align: right; font-weight: 600;">₹0.00</td>
                             </tr>
                             <tr>
                                 <td><strong>Estimated Registration &amp; GST</strong> (approx. 5%)</td>
                                 <td id="valTaxCharges" style="text-align: right; font-weight: 600;">₹0.00</td>
                             </tr>
-                            <tr style="background: #eff6ff; font-weight: 800; font-size: 16px; border-top: 2px solid #2563eb; color: #1e3a8a;">
+                            <tr style="background: #eff6ff; font-weight: 800; font-size: 16px; color: #1e3a8a; border-top: 2px solid #2563eb;">
                                 <td>Grand Total (Estimated Quoted Price)</td>
                                 <td id="valGrandTotal" style="text-align: right;">₹0.00</td>
                             </tr>
