@@ -25,6 +25,7 @@ let leafletMarkers = {};
 let activeSearchPlot = null;
 let miniMap = null;
 let miniMapRect = null;
+let simulatedLocks = {};
 
 const projectMetadata = {
     avatar1: {
@@ -324,6 +325,17 @@ function renderPlotDots() {
             dot.dataset.status = status;
             
             dot.style.setProperty('--plot-color', getStatusColor(status));
+            if (isAdminLoggedIn && detail && (detail.customer_name || detail.pipeline_stage)) {
+                dot.style.boxShadow = '0 0 0 2px #3b82f6, 0 0 8px var(--plot-color)';
+            }
+            if (isAdminLoggedIn && simulatedLocks[plotNo]) {
+                dot.classList.add('agent-locked');
+                dot.title = `Locked by ${simulatedLocks[plotNo].agent} (${simulatedLocks[plotNo].timeAgo}m ago)`;
+                const lockBadge = document.createElement('span');
+                lockBadge.style.cssText = 'position: absolute; top: -5px; right: -5px; background: #7f1d1d; border: 1px solid #f87171; border-radius: 50%; width: 12px; height: 12px; display: flex; align-items: center; justify-content: center; z-index: 10;';
+                lockBadge.innerHTML = '<i class="fa-solid fa-lock" style="font-size: 8px; color: #f87171; margin: 0; padding: 0; line-height: 1;"></i>';
+                dot.appendChild(lockBadge);
+            }
             dot.style.left = `${(coords.left * scaleX) - 7.5}px`;
             dot.style.top = `${(coords.top * scaleY) - 7.5}px`;
             dot.textContent = plotNo;
@@ -364,6 +376,17 @@ function renderPlotDots() {
             dot.dataset.status = status;
             
             dot.style.setProperty('--plot-color', getStatusColor(status));
+            if (isAdminLoggedIn && detail && (detail.customer_name || detail.pipeline_stage)) {
+                dot.style.boxShadow = '0 0 0 2px #3b82f6, 0 0 8px var(--plot-color)';
+            }
+            if (isAdminLoggedIn && simulatedLocks[plotNo]) {
+                dot.classList.add('agent-locked');
+                dot.title = `Locked by ${simulatedLocks[plotNo].agent} (${simulatedLocks[plotNo].timeAgo}m ago)`;
+                const lockBadge = document.createElement('span');
+                lockBadge.style.cssText = 'position: absolute; top: -5px; right: -5px; background: #7f1d1d; border: 1px solid #f87171; border-radius: 50%; width: 12px; height: 12px; display: flex; align-items: center; justify-content: center; z-index: 10;';
+                lockBadge.innerHTML = '<i class="fa-solid fa-lock" style="font-size: 8px; color: #f87171; margin: 0; padding: 0; line-height: 1;"></i>';
+                dot.appendChild(lockBadge);
+            }
             dot.style.left = `${coords.left - offset}px`;
             dot.style.top = `${coords.top - offset}px`;
             dot.textContent = plotNo;
@@ -788,6 +811,270 @@ function applyFilters() {
 // Details Modal Functions
 // ----------------------------------------------------
 
+function formatNotesList(notes) {
+    if (!Array.isArray(notes) || notes.length === 0) return '<div style="color: var(--text-muted); font-style: italic;">No notes recorded.</div>';
+    return notes.map(note => `<div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; margin-bottom: 4px; font-size: 11px; word-break: break-word;">${note}</div>`).join('');
+}
+
+function exportPlotSpecSheet(plotNo) {
+    const item = plotData.find(p => String(p.plot_no) === String(plotNo)) || {
+        plot_no: plotNo,
+        plot_size: 'N/A',
+        facing: 'N/A',
+        plot_status: 'AVAILABLE',
+        dim_north: 'N/A',
+        dim_south: 'N/A',
+        dim_east: 'N/A',
+        dim_west: 'N/A',
+        customer_name: '',
+        customer_phone: '',
+        customer_email: '',
+        lead_source: '',
+        pipeline_stage: '',
+        crm_notes: []
+    };
+
+    const color = getStatusColor(item.plot_status);
+    const projectMeta = projectMetadata[currentProject] || { title: "Aspirealty Project", location: "Hyderabad" };
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert("Pop-up blocked! Please allow pop-ups to export the Spec-Sheet.");
+        return;
+    }
+    
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Spec Sheet - Plot #${item.plot_no}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <style>
+                body {
+                    font-family: 'Outfit', sans-serif;
+                    background: #ffffff;
+                    color: #1e293b;
+                    margin: 0;
+                    padding: 40px;
+                    line-height: 1.5;
+                }
+                .spec-container {
+                    max-width: 800px;
+                    margin: 0 auto;
+                    border: 2px solid #e2e8f0;
+                    border-radius: 12px;
+                    padding: 40px;
+                    position: relative;
+                }
+                .header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    border-bottom: 2px solid #f1f5f9;
+                    padding-bottom: 20px;
+                    margin-bottom: 30px;
+                }
+                .brand-title {
+                    font-size: 24px;
+                    font-weight: 800;
+                    color: #0f172a;
+                    letter-spacing: -0.5px;
+                }
+                .brand-subtitle {
+                    font-size: 14px;
+                    color: #64748b;
+                }
+                .status-badge {
+                    background-color: ${color}15;
+                    color: ${color};
+                    border: 1px solid ${color};
+                    padding: 6px 14px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                }
+                .title-section {
+                    margin-bottom: 30px;
+                }
+                .plot-header {
+                    font-size: 32px;
+                    font-weight: 800;
+                    color: #0f172a;
+                    margin: 0 0 8px 0;
+                }
+                .project-name {
+                    font-size: 15px;
+                    color: #64748b;
+                    font-weight: 600;
+                }
+                .grid-specs {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 20px;
+                    margin-bottom: 35px;
+                }
+                .spec-box {
+                    background: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    padding: 18px;
+                    border-radius: 8px;
+                }
+                .spec-title {
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    margin-bottom: 6px;
+                    letter-spacing: 0.5px;
+                }
+                .spec-value {
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: #0f172a;
+                }
+                .dim-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 10px;
+                }
+                .dim-table th, .dim-table td {
+                    border: 1px solid #e2e8f0;
+                    padding: 12px;
+                    text-align: left;
+                    font-size: 13px;
+                }
+                .dim-table th {
+                    background: #f8fafc;
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: #64748b;
+                    text-transform: uppercase;
+                }
+                .footer {
+                    margin-top: 50px;
+                    border-top: 2px solid #f1f5f9;
+                    padding-top: 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-size: 12px;
+                    color: #64748b;
+                }
+                .btn-print {
+                    background: #0f172a;
+                    color: #ffffff;
+                    border: none;
+                    padding: 12px 24px;
+                    font-size: 14px;
+                    font-weight: 700;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-bottom: 20px;
+                    transition: all 0.2s ease;
+                }
+                .btn-print:hover {
+                    background: #1e293b;
+                }
+                @media print {
+                    .btn-print {
+                        display: none !important;
+                    }
+                    body {
+                        padding: 0;
+                    }
+                    .spec-container {
+                        border: none;
+                        padding: 0;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div style="max-width: 800px; margin: 0 auto; display: flex; justify-content: flex-end;">
+                <button class="btn-print" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / Save as PDF</button>
+            </div>
+            <div class="spec-container">
+                <div class="header">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <img src="aspirealty_label.png" alt="Aspirealty Logo" style="height: 38px; width: auto; object-fit: contain;">
+                    </div>
+                    <span class="status-badge">${item.plot_status}</span>
+                </div>
+                
+                <div class="title-section">
+                    <div class="plot-header">Plot Specification Sheet</div>
+                    <div class="project-name"><i class="fa-solid fa-location-dot"></i> ${projectMeta.title} &bull; ${projectMeta.location}</div>
+                </div>
+                
+                <div class="grid-specs">
+                    <div class="spec-box">
+                        <div class="spec-title">Plot Number</div>
+                        <div class="spec-value" style="color: #3b82f6;"># ${item.plot_no}</div>
+                    </div>
+                    <div class="spec-box">
+                        <div class="spec-title">Plot Area</div>
+                        <div class="spec-value">${item.plot_size ? item.plot_size + ' Sq. Yards' : 'N/A'}</div>
+                    </div>
+                    <div class="spec-box">
+                        <div class="spec-title">Facing Direction</div>
+                        <div class="spec-value">${item.facing || 'N/A'}</div>
+                    </div>
+                    <div class="spec-box">
+                        <div class="spec-title">Status</div>
+                        <div class="spec-value" style="text-transform: uppercase;">${item.plot_status}</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <div class="spec-title" style="margin-bottom: 12px;">Boundary Dimensions</div>
+                    <table class="dim-table">
+                        <thead>
+                            <tr>
+                                <th>North Boundary</th>
+                                <th>South Boundary</th>
+                                <th>East Boundary</th>
+                                <th>West Boundary</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${item.dim_north || 'N/A'}</td>
+                                <td>${item.dim_south || 'N/A'}</td>
+                                <td>${item.dim_east || 'N/A'}</td>
+                                <td>${item.dim_west || 'N/A'}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                ${item.customer_name ? `
+                <div style="margin-top: 30px; border-top: 1px dashed #cbd5e1; padding-top: 20px;">
+                    <div class="spec-title" style="margin-bottom: 12px; color: #3b82f6;">CRM Lead Information (Confidential)</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px;">
+                        <div><strong>Client Name:</strong> ${item.customer_name}</div>
+                        <div><strong>Phone:</strong> ${item.customer_phone || 'N/A'}</div>
+                        <div><strong>Email:</strong> ${item.customer_email || 'N/A'}</div>
+                        <div><strong>Pipeline Stage:</strong> ${item.pipeline_stage || 'N/A'}</div>
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div class="footer">
+                    <div>Generated on ${new Date().toLocaleDateString()}</div>
+                    <div>&copy; ${new Date().getFullYear()} Aspirealty Projects Private Limited. All rights reserved.</div>
+                </div>
+            </div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+}
+
 function openPlotModal(plotNo) {
     const item = plotData.find(p => String(p.plot_no) === String(plotNo)) || {
         plot_no: plotNo,
@@ -798,23 +1085,85 @@ function openPlotModal(plotNo) {
         dim_south: 'N/A',
         dim_east: 'N/A',
         dim_west: 'N/A',
-        customer_name: 'N/A',
-        reference_name: 'N/A'
+        customer_name: '',
+        customer_phone: '',
+        customer_email: '',
+        lead_source: '',
+        pipeline_stage: '',
+        crm_notes: []
     };
     
     const color = getStatusColor(item.plot_status);
     
+    let conflictWarningHtml = '';
     let editButtonHtml = '';
-    if (isAdminLoggedIn) {
-        editButtonHtml = `
-            <button class="admin-login-btn" id="editPlotBtn" style="background: var(--accent); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 15px; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px;">
-                <i class="fa-solid fa-pen-to-square"></i> Edit Plot Details
-            </button>
+    const isLockedByOther = isAdminLoggedIn && simulatedLocks[plotNo];
+    
+    if (isLockedByOther) {
+        conflictWarningHtml = `
+            <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 8px; padding: 10px; margin-bottom: 12px; font-size: 11px; color: #fca5a5; display: flex; align-items: flex-start; gap: 8px; line-height: 1.4;">
+                <i class="fa-solid fa-triangle-exclamation" style="margin-top: 2px; font-size: 14px; color: #f87171;"></i>
+                <div>
+                    <span style="font-weight: 700; color: #f87171;">Agent Lock Active!</span><br>
+                    Agent <strong>${simulatedLocks[plotNo].agent}</strong> is currently editing this plot details (session active ${simulatedLocks[plotNo].timeAgo}m ago). Editing is disabled to prevent data overwriting.
+                </div>
+            </div>
         `;
     }
     
+    let adminCrmHtml = '';
+    if (isAdminLoggedIn) {
+        adminCrmHtml = `
+            <div class="crm-details-section" style="margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 12px; text-align: left; display: flex; flex-direction: column; gap: 8px;">
+                <div style="font-weight: 700; color: var(--accent); font-size: 13px; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                    <i class="fa-solid fa-address-card"></i> CRM & Lead Details
+                </div>
+                <div class="detail-row" style="padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                    <span class="detail-label" style="font-size: 11px;">Client Name</span>
+                    <span class="detail-val" style="font-size: 12px; font-weight: 600;">${item.customer_name || 'N/A'}</span>
+                </div>
+                <div class="detail-row" style="padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                    <span class="detail-label" style="font-size: 11px;">Phone</span>
+                    <span class="detail-val" style="font-size: 12px; font-weight: 600;">${item.customer_phone || 'N/A'}</span>
+                </div>
+                <div class="detail-row" style="padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                    <span class="detail-label" style="font-size: 11px;">Email</span>
+                    <span class="detail-val" style="font-size: 12px; font-weight: 600;">${item.customer_email || 'N/A'}</span>
+                </div>
+                <div class="detail-row" style="padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                    <span class="detail-label" style="font-size: 11px;">Lead Source</span>
+                    <span class="detail-val" style="font-size: 12px; font-weight: 600;">${item.lead_source || 'N/A'}</span>
+                </div>
+                <div class="detail-row" style="padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                    <span class="detail-label" style="font-size: 11px;">Pipeline Stage</span>
+                    <span class="status-badge" style="--badge-color: #3b82f6; --badge-glow: rgba(59, 130, 246, 0.4); font-size: 10px; padding: 2px 8px; border-radius: 4px;">${(item.pipeline_stage || 'Inquiry').toUpperCase()}</span>
+                </div>
+                <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 4px;">
+                    <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Recent Notes Log:</div>
+                    <div style="background: rgba(0,0,0,0.25); padding: 8px; border-radius: 8px; font-size: 11px; max-height: 120px; overflow-y: auto; color: var(--text-secondary); line-height: 1.4; border: 1px solid var(--border-color);">
+                        ${formatNotesList(item.crm_notes)}
+                    </div>
+                </div>
+            </div>
+        `;
+        if (isLockedByOther) {
+            editButtonHtml = `
+                <button class="admin-login-btn" id="editPlotBtn" disabled style="background: rgba(255,255,255,0.05); color: var(--text-secondary); border: 1px solid var(--border-color); font-weight: 700; width: 100%; margin-top: 15px; cursor: not-allowed; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px; opacity: 0.6;">
+                    <i class="fa-solid fa-lock"></i> Edit Locked (Agent Active)
+                </button>
+            `;
+        } else {
+            editButtonHtml = `
+                <button class="admin-login-btn" id="editPlotBtn" style="background: var(--accent); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 15px; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px;">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit Plot Details
+                </button>
+            `;
+        }
+    }
+    
     modalBody.innerHTML = `
-        <div class="detail-card">
+        <div class="detail-card" style="display: flex; flex-direction: column; gap: 10px;">
+            ${conflictWarningHtml}
             <div class="detail-row">
                 <span class="detail-label">Plot Number</span>
                 <span class="detail-val" style="font-size: 18px; font-weight: 700; color: var(--accent)"># ${item.plot_no}</span>
@@ -833,17 +1182,29 @@ function openPlotModal(plotNo) {
             </div>
             <div class="detail-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
                 <span class="detail-label">Boundary Dimensions</span>
-                <div style="width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 10px; font-weight: 600; padding: 4px 6px; background: rgba(255,255,255,0.02); border-radius: 6px;">
+                <div style="width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 10px; font-weight: 600; padding: 6px; background: rgba(255,255,255,0.02); border-radius: 6px; border: 1px solid rgba(255,255,255,0.03);">
                     <div>North: ${item.dim_north || 'N/A'}</div>
                     <div>South: ${item.dim_south || 'N/A'}</div>
                     <div>East: ${item.dim_east || 'N/A'}</div>
                     <div>West: ${item.dim_west || 'N/A'}</div>
+                </div>
             </div>
+            ${adminCrmHtml}
         </div>
+        <button class="admin-login-btn" id="exportSpecSheetBtn" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border-color); font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px;">
+            <i class="fa-solid fa-file-pdf"></i> Export Spec-Sheet / PDF
+        </button>
         ${editButtonHtml}
     `;
     
-    if (isAdminLoggedIn) {
+    const exportPdfBtn = document.getElementById('exportSpecSheetBtn');
+    if (exportPdfBtn) {
+        exportPdfBtn.addEventListener('click', () => {
+            exportPlotSpecSheet(plotNo);
+        });
+    }
+
+    if (isAdminLoggedIn && !isLockedByOther) {
         const editBtn = document.getElementById('editPlotBtn');
         if (editBtn) {
             editBtn.addEventListener('click', () => {
@@ -1217,10 +1578,110 @@ function setupAdmin() {
     }
 }
 
+function updateSimulatedLocks() {
+    simulatedLocks = {};
+    if (!isAdminLoggedIn) return;
+    
+    const coordsSource = avatarCoordsPool[currentProject] || {};
+    const coordsKeys = Object.keys(coordsSource);
+    if (coordsKeys.length === 0) return;
+    
+    const agents = ["Suresh K.", "Anitha M.", "Kiran P.", "Rajesh V."];
+    const count = Math.min(2, coordsKeys.length);
+    for (let i = 0; i < count; i++) {
+        let attempts = 0;
+        let randomPlot;
+        do {
+            randomPlot = coordsKeys[Math.floor(Math.random() * coordsKeys.length)];
+            attempts++;
+        } while (simulatedLocks[randomPlot] && attempts < 20);
+        
+        const randomAgent = agents[(i + Math.floor(Math.random() * 4)) % agents.length];
+        const randomTime = Math.floor(Math.random() * 8) + 2; // 2 to 10 mins ago
+        
+        simulatedLocks[randomPlot] = {
+            agent: randomAgent,
+            timeAgo: randomTime
+        };
+    }
+}
+
+function togglePitchMode() {
+    let styleTag = document.getElementById('pitchModeStyle');
+    if (!styleTag) {
+        styleTag = document.createElement('style');
+        styleTag.id = 'pitchModeStyle';
+        styleTag.textContent = `
+            .pitch-mode-active #sidebar {
+                display: none !important;
+            }
+            .pitch-mode-active .header-bar {
+                display: none !important;
+            }
+            .pitch-mode-active .dashboard-container {
+                grid-template-columns: 1fr !important;
+                padding: 0 !important;
+                height: 100vh !important;
+                width: 100vw !important;
+            }
+            .pitch-mode-active .main-content {
+                padding: 0 !important;
+                height: 100vh !important;
+                width: 100vw !important;
+                overflow: hidden !important;
+            }
+            .pitch-mode-active .map-viewport-wrapper {
+                height: 100vh !important;
+                border-radius: 0 !important;
+                border: none !important;
+            }
+            .pitch-mode-active #adminBanner {
+                display: none !important;
+            }
+        `;
+        document.head.appendChild(styleTag);
+    }
+    
+    document.body.classList.toggle('pitch-mode-active');
+    
+    const isPitchActive = document.body.classList.contains('pitch-mode-active');
+    if (isPitchActive) {
+        let exitBtn = document.getElementById('exitPitchModeBtn');
+        if (!exitBtn) {
+            exitBtn = document.createElement('button');
+            exitBtn.id = 'exitPitchModeBtn';
+            exitBtn.style.cssText = 'position: fixed; top: 15px; right: 15px; z-index: 10000; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 10px 18px; border-radius: 30px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); transition: all 0.2s ease; font-family: var(--font-body);';
+            exitBtn.innerHTML = '<i class="fa-solid fa-desktop"></i> Exit Pitch Mode';
+            exitBtn.addEventListener('click', () => {
+                document.body.classList.remove('pitch-mode-active');
+                exitBtn.remove();
+                window.dispatchEvent(new Event('resize'));
+            });
+            document.body.appendChild(exitBtn);
+        }
+    } else {
+        const exitBtn = document.getElementById('exitPitchModeBtn');
+        if (exitBtn) exitBtn.remove();
+    }
+    
+    setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+    }, 100);
+}
+
 function setupAdminState() {
     if (!sidebarFooter) return;
 
     if (isAdminLoggedIn) {
+        updateSimulatedLocks();
+        if (!window.lockIntervalId) {
+            window.lockIntervalId = setInterval(() => {
+                if (isAdminLoggedIn) {
+                    updateSimulatedLocks();
+                    renderPlotDots();
+                }
+            }, 30000);
+        }
         if (mapperSection) mapperSection.style.display = 'block';
         
         sidebarFooter.innerHTML = `
@@ -1260,6 +1721,16 @@ function setupAdminState() {
         document.getElementById('logoutBtn').addEventListener('click', () => {
             isAdminLoggedIn = false;
             sessionStorage.removeItem('isAdminLoggedIn');
+            if (window.lockIntervalId) {
+                clearInterval(window.lockIntervalId);
+                window.lockIntervalId = null;
+            }
+            if (document.body.classList.contains('pitch-mode-active')) {
+                document.body.classList.remove('pitch-mode-active');
+            }
+            const exitBtn = document.getElementById('exitPitchModeBtn');
+            if (exitBtn) exitBtn.remove();
+            
             alert('Admin mode disabled.');
             window.location.reload();
         });
@@ -1270,8 +1741,15 @@ function setupAdminState() {
             banner = document.createElement('div');
             banner.id = 'adminBanner';
             banner.style.cssText = 'background: linear-gradient(90deg, #b45309, #d97706); color: #fff; text-align: center; padding: 8px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; z-index: 1000; position: relative;';
-            banner.innerHTML = `<i class="fa-solid fa-user-shield"></i> ADMINISTRATOR MODE ACTIVE &bull; Edit any plot details by opening their card and clicking "Edit Plot Details"`;
+            banner.innerHTML = `<i class="fa-solid fa-user-shield"></i> ADMINISTRATOR MODE ACTIVE &bull; Edit any plot details by opening their card and clicking "Edit Plot Details" <button id="togglePitchModeBtn" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.25); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; margin-left: 15px;"><i class="fa-solid fa-desktop"></i> Pitch Mode</button>`;
             document.body.insertBefore(banner, document.body.firstChild);
+            
+            const togglePitchBtn = document.getElementById('togglePitchModeBtn');
+            if (togglePitchBtn) {
+                togglePitchBtn.addEventListener('click', () => {
+                    togglePitchMode();
+                });
+            }
         }
     } else {
         if (mapperSection) mapperSection.style.display = 'none';
@@ -1305,7 +1783,13 @@ function openPlotEditForm(plotNo) {
         dim_north: '-',
         dim_south: '-',
         dim_east: '-',
-        dim_west: '-'
+        dim_west: '-',
+        customer_name: '',
+        customer_phone: '',
+        customer_email: '',
+        lead_source: 'Website',
+        pipeline_stage: 'Inquiry',
+        crm_notes: []
     };
 
     modalBody.innerHTML = `
@@ -1369,7 +1853,54 @@ function openPlotEditForm(plotNo) {
                     <input type="text" id="editWest" value="${item.dim_west || '-'}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 12px; outline: none;">
                 </div>
             </div>
-            
+
+            <!-- CRM Editing Fields -->
+            <div style="font-weight: 700; color: var(--accent); font-size: 14px; margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 12px; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-address-card"></i> CRM & Lead Editing
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Client Name</label>
+                <input type="text" id="editCustomerName" value="${item.customer_name || ''}" placeholder="e.g. Anil Kumar" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none;">
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Phone Number</label>
+                <input type="text" id="editCustomerPhone" value="${item.customer_phone || ''}" placeholder="e.g. +91 98765 43210" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none;">
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Email Address</label>
+                <input type="email" id="editCustomerEmail" value="${item.customer_email || ''}" placeholder="e.g. anil.k@example.com" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none;">
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Lead Source</label>
+                <select id="editLeadSource" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none; width: 100%;">
+                    <option value="Website" ${item.lead_source === 'Website' ? 'selected' : ''}>Website</option>
+                    <option value="Facebook" ${item.lead_source === 'Facebook' ? 'selected' : ''}>Facebook</option>
+                    <option value="Walk-in" ${item.lead_source === 'Walk-in' ? 'selected' : ''}>Walk-in</option>
+                    <option value="Reference" ${item.lead_source === 'Reference' ? 'selected' : ''}>Reference</option>
+                    <option value="Other" ${item.lead_source === 'Other' ? 'selected' : ''}>Other</option>
+                </select>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Pipeline Stage</label>
+                <select id="editPipelineStage" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none; width: 100%;">
+                    <option value="Inquiry" ${item.pipeline_stage === 'Inquiry' ? 'selected' : ''}>New Inquiry</option>
+                    <option value="Site Visit" ${item.pipeline_stage === 'Site Visit' ? 'selected' : ''}>Site Visit Scheduled</option>
+                    <option value="Negotiation" ${item.pipeline_stage === 'Negotiation' ? 'selected' : ''}>Negotiation</option>
+                    <option value="Token Paid" ${item.pipeline_stage === 'Token Paid' ? 'selected' : ''}>Token Advance Paid</option>
+                    <option value="Registered/Closed" ${item.pipeline_stage === 'Registered/Closed' ? 'selected' : ''}>Registered/Closed</option>
+                </select>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px;">
+                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Add CRM Note</label>
+                <textarea id="editNewNote" placeholder="Type a follow-up note..." rows="2" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none; resize: none; font-family: var(--font-body);"></textarea>
+            </div>
+
             <button id="savePlotEditBtn" class="admin-login-btn" style="background: var(--status-available); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 10px; padding: 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                 <i class="fa-solid fa-save"></i> Save Changes
             </button>
@@ -1394,7 +1925,27 @@ function savePlotEdits(plotNo) {
     const editEast = document.getElementById('editEast').value.trim();
     const editWest = document.getElementById('editWest').value.trim();
 
+    // CRM fields
+    const editCustomerName = document.getElementById('editCustomerName').value.trim();
+    const editCustomerPhone = document.getElementById('editCustomerPhone').value.trim();
+    const editCustomerEmail = document.getElementById('editCustomerEmail').value.trim();
+    const editLeadSource = document.getElementById('editLeadSource').value;
+    const editPipelineStage = document.getElementById('editPipelineStage').value;
+    const editNewNoteText = document.getElementById('editNewNote').value.trim();
+
     let idx = plotData.findIndex(p => String(p.plot_no) === String(plotNo));
+    
+    // Fetch existing notes or initialize
+    let crmNotes = [];
+    if (idx !== -1 && Array.isArray(plotData[idx].crm_notes)) {
+        crmNotes = [...plotData[idx].crm_notes];
+    }
+
+    if (editNewNoteText !== '') {
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10) + ' ' + now.toTimeString().slice(0, 5);
+        crmNotes.unshift(`${dateStr} - admin: ${editNewNoteText}`);
+    }
 
     const updatedPlot = {
         plot_no: String(plotNo),
@@ -1404,7 +1955,13 @@ function savePlotEdits(plotNo) {
         dim_north: editNorth,
         dim_south: editSouth,
         dim_east: editEast,
-        dim_west: editWest
+        dim_west: editWest,
+        customer_name: editCustomerName,
+        customer_phone: editCustomerPhone,
+        customer_email: editCustomerEmail,
+        lead_source: editLeadSource,
+        pipeline_stage: editPipelineStage,
+        crm_notes: crmNotes
     };
 
     if (idx !== -1) {
@@ -1921,6 +2478,9 @@ function applyLeafletMarkerFilters(marker, el) {
 }
 
 function updateSidebarAndHeaderForProject(project) {
+    if (isAdminLoggedIn) {
+        updateSimulatedLocks();
+    }
     const searchSection = document.getElementById('searchSection');
     const filtersSection = document.getElementById('filtersSection');
     const legendSection = document.getElementById('legendSection');
