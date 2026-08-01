@@ -149,6 +149,7 @@ function getStatusColor(status) {
     if (s === 'SOLD' || s === 'BOOKED' || s === 'CLUB HOUSE') return 'var(--status-sold)';
     if (s === 'HOLD') return 'var(--status-hold)';
     if (s === 'MORTGAGE') return 'var(--status-mortgage)';
+    if (s === 'REGISTERED') return 'var(--status-registered)';
     return '#6b7280'; // gray default
 }
 
@@ -177,7 +178,14 @@ function renderPlotDots() {
         
         dot.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (isMapperMode) return; // Disallow in mapper mode
+            if (isMapperMode) {
+                activeMapperPlot = parseInt(plotNo) || plotNo;
+                if (mapperActivePlot) {
+                    mapperActivePlot.value = plotNo;
+                }
+                highlightActiveMapperButton();
+                return;
+            }
             openPlotModal(plotNo);
         });
         
@@ -597,18 +605,18 @@ function updateStatistics() {
     const totalCount = plotData.length;
     statTotalPlots.textContent = totalCount;
     
-    let counts = { AVAILABLE: 0, SOLD: 0, HOLD: 0, MORTGAGE: 0 };
+    let counts = { AVAILABLE: 0, SOLD: 0, HOLD: 0, MORTGAGE: 0, REGISTERED: 0 };
     plotData.forEach(p => {
         const s = String(p.plot_status).toUpperCase().trim();
         if (counts[s] !== undefined) {
             counts[s]++;
-        } else if (s === 'BOOKED' || s === 'CLUB HOUSE' || s === 'REGISTERED') {
+        } else if (s === 'BOOKED' || s === 'CLUB HOUSE') {
             counts.SOLD++;
         }
     });
 
     statAvailablePlots.textContent = counts.AVAILABLE;
-    statBookedPlots.textContent = counts.SOLD;
+    statBookedPlots.textContent = counts.SOLD + counts.REGISTERED;
     
     // Render Sidebar Legend items
     statusLegendList.innerHTML = `
@@ -639,6 +647,13 @@ function updateStatistics() {
                 <span class="legend-name">Mortgage</span>
             </div>
             <span class="legend-count">${counts.MORTGAGE}</span>
+        </div>
+        <div class="legend-item" id="legend-REGISTERED" style="--legend-color: var(--status-registered);">
+            <div class="legend-label-group">
+                <div class="legend-color-dot"></div>
+                <span class="legend-name">Registered</span>
+            </div>
+            <span class="legend-count">${counts.REGISTERED}</span>
         </div>
     `;
 
@@ -985,6 +1000,7 @@ function openPlotEditForm(plotNo) {
                     <option value="SOLD" ${item.plot_status === 'SOLD' ? 'selected' : ''}>SOLD</option>
                     <option value="MORTGAGE" ${item.plot_status === 'MORTGAGE' ? 'selected' : ''}>MORTGAGE</option>
                     <option value="HOLD" ${item.plot_status === 'HOLD' ? 'selected' : ''}>HOLD</option>
+                    <option value="REGISTERED" ${item.plot_status === 'REGISTERED' ? 'selected' : ''}>REGISTERED</option>
                 </select>
             </div>
             

@@ -16,7 +16,7 @@
     --font-body: 'Plus Jakarta Sans', sans-serif;
     
     /* Plot Status Colors */
-    --status-available: #10b981;    /* Green */
+    --status-available: #006400;    /* Dark Green */
     --status-sold: #1d4ed8;         /* Deep Blue */
     --status-hold: #92400e;         /* Brown */
     --status-mortgage: #f97316;     /* Orange */

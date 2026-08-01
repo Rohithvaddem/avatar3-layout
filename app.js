@@ -330,7 +330,14 @@ function renderPlotDots() {
             
             dot.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (isMapperMode) return;
+                if (isMapperMode) {
+                    activeMapperPlot = parseInt(plotNo) || plotNo;
+                    if (mapperActivePlot) {
+                        mapperActivePlot.value = plotNo;
+                    }
+                    highlightActiveMapperButton();
+                    return;
+                }
                 openPlotModal(plotNo);
             });
             
@@ -363,7 +370,14 @@ function renderPlotDots() {
             
             dot.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (isMapperMode) return;
+                if (isMapperMode) {
+                    activeMapperPlot = parseInt(plotNo) || plotNo;
+                    if (mapperActivePlot) {
+                        mapperActivePlot.value = plotNo;
+                    }
+                    highlightActiveMapperButton();
+                    return;
+                }
                 openPlotModal(plotNo);
             });
             
@@ -933,6 +947,7 @@ function updateStatistics() {
         { label: 'SOLD / BOOKED', status: 'SOLD' },
         { label: 'MORTGAGE', status: 'MORTGAGE' },
         { label: 'HOLD', status: 'HOLD' },
+        { label: 'REGISTERED', status: 'REGISTERED' },
         { label: 'RESALE', status: 'RESALE' }
     ];
 
@@ -1310,6 +1325,7 @@ function openPlotEditForm(plotNo) {
                     <option value="SOLD" ${item.plot_status === 'SOLD' ? 'selected' : ''}>SOLD</option>
                     <option value="MORTGAGE" ${item.plot_status === 'MORTGAGE' ? 'selected' : ''}>MORTGAGE</option>
                     <option value="HOLD" ${item.plot_status === 'HOLD' ? 'selected' : ''}>HOLD</option>
+                    <option value="REGISTERED" ${item.plot_status === 'REGISTERED' ? 'selected' : ''}>REGISTERED</option>
                     <option value="RESALE" ${item.plot_status === 'RESALE' ? 'selected' : ''}>RESALE</option>
                 </select>
             </div>
