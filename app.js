@@ -1108,6 +1108,18 @@ function exportPlotSpecSheet(plotNo) {
                     <button class="btn-calc" onclick="calculatePriceAndPrint()"><i class="fa-solid fa-file-invoice-dollar"></i> Calculate &amp; Save as PDF</button>
                 </div>
                 ` : ''}
+                <!-- Venture Layout Map -->
+                <div style="margin-bottom: 30px;">
+                    <div class="spec-title" style="margin-bottom: 12px; color: #3b82f6;">Venture Layout Map</div>
+                    <div style="width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #f8fafc; padding: 10px; display: flex; justify-content: center; align-items: center; box-sizing: border-box;">
+                        <img src="${currentProject === 'avatar1' ? 'avatar1_map_layout.jpg' : 
+                                   currentProject === 'avatar2' ? 'avatar2_digi/map_layout.jpg' : 
+                                   'map_layout.png'}" 
+                             alt="Venture Layout Map" 
+                             style="max-width: 100%; max-height: 280px; object-fit: contain; border-radius: 4px;">
+                    </div>
+                </div>
+
                 <!-- Invoice-Style Details Table -->
                 <div style="margin-bottom: 30px;">
                     <div class="spec-title" style="margin-bottom: 12px; color: #3b82f6;">Plot &amp; Venture Details</div>
@@ -1161,18 +1173,6 @@ function exportPlotSpecSheet(plotNo) {
                             </tr>
                         </tbody>
                     </table>
-                </div>
-
-                <!-- Venture Layout Map -->
-                <div style="margin-bottom: 30px;">
-                    <div class="spec-title" style="margin-bottom: 12px; color: #3b82f6;">Venture Layout Map</div>
-                    <div style="width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #f8fafc; padding: 10px; display: flex; justify-content: center; align-items: center; box-sizing: border-box;">
-                        <img src="${currentProject === 'avatar1' ? 'avatar1_map_layout.jpg' : 
-                                   currentProject === 'avatar2' ? 'avatar2_digi/map_layout.jpg' : 
-                                   'map_layout.png'}" 
-                             alt="Venture Layout Map" 
-                             style="max-width: 100%; max-height: 280px; object-fit: contain; border-radius: 4px;">
-                    </div>
                 </div>
 
                 <!-- Price Structure Container (Visible on Calculation) -->
