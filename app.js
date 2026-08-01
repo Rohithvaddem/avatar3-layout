@@ -2493,7 +2493,7 @@ function updateSidebarAndHeaderForProject(project) {
             } else if (project === 'avatar2') {
                 approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved';
             } else {
-                approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Layout Approved';
+                approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved 224/2023/h &nbsp;|&nbsp; RERA Approved po2400007808';
             }
         }
     } else {
