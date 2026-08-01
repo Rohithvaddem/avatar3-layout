@@ -1040,11 +1040,43 @@ function exportPlotSpecSheet(plotNo) {
                         display: none !important;
                     }
                     body {
-                        padding: 0;
+                        padding: 10px !important;
+                        margin: 0 !important;
+                        font-size: 12px !important;
                     }
                     .spec-container {
-                        border: none;
-                        padding: 0;
+                        border: none !important;
+                        padding: 0 !important;
+                        margin: 0 auto !important;
+                        max-width: 100% !important;
+                    }
+                    .invoice-table th, .invoice-table td {
+                        padding: 6px 8px !important;
+                        font-size: 12px !important;
+                    }
+                    .header {
+                        margin-bottom: 15px !important;
+                        padding-bottom: 10px !important;
+                    }
+                    .title-section {
+                        margin-bottom: 15px !important;
+                    }
+                    .plot-header {
+                        font-size: 24px !important;
+                    }
+                    .spec-title {
+                        margin-bottom: 6px !important;
+                    }
+                    img[alt="Venture Layout Map"] {
+                        max-height: 220px !important;
+                    }
+                    div[style*="margin-bottom: 30px"] {
+                        margin-bottom: 15px !important;
+                    }
+                    .footer {
+                        margin-top: 25px !important;
+                        padding-top: 10px !important;
+                        font-size: 10px !important;
                     }
                 }
             </style>
