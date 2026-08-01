@@ -309,7 +309,7 @@ function renderPlotDots() {
     
     if (currentProject === 'avatar3') {
         const scaleX = 1024 / 2500;
-        const scaleY = 576 / 1406;
+        const scaleY = 576 / 1579;
         
         Object.keys(coordsSource).forEach(plotNo => {
             const coords = coordsSource[plotNo];
@@ -661,9 +661,8 @@ function focusOnPlot(plotNo) {
         const markerEl = document.getElementById(`leaflet-plot-marker-${plotNo}`);
         if (markerEl) markerEl.classList.add('highlighted');
         
-        // Calculate Lat/Lng
         let width2D = 2500;
-        let height2D = 1406;
+        let height2D = 1579;
         if (currentProject === 'avatar2') {
             width2D = 1024;
             height2D = 646;
@@ -681,7 +680,7 @@ function focusOnPlot(plotNo) {
     let y2d = coords.top;
     if (currentProject === 'avatar3') {
         const scaleX = 1024 / 2500;
-        const scaleY = 576 / 1406;
+        const scaleY = 576 / 1579;
         x2d = coords.left * scaleX;
         y2d = coords.top * scaleY;
     }
@@ -1094,7 +1093,7 @@ function handleMapClick(e) {
     let origLeft, origTop;
     if (currentProject === 'avatar3') {
         const scaleX = 1024 / 2500;
-        const scaleY = 576 / 1406;
+        const scaleY = 576 / 1579;
         origLeft = Math.round(clickX / scaleX);
         origTop = Math.round(clickY / scaleY);
     } else {
@@ -1581,8 +1580,8 @@ function initLeafletMap() {
         maxZoom: 21
     }).addTo(leafletMap);
 
-    // Initialize custom Mini-map Inset
-    setupMiniMap();
+    // Initialize custom Mini-map Inset (Disabled)
+    // setupMiniMap();
 
     // Setup L.ImageOverlay.Rotated extension
     if (!L.ImageOverlay.Rotated) {
