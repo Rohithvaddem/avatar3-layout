@@ -1179,9 +1179,11 @@ function openPlotModal(plotNo) {
             </div>
             ${adminCrmHtml}
         </div>
+        ${isAdminLoggedIn ? `
         <button class="admin-login-btn" id="exportSpecSheetBtn" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border-color); font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px;">
             <i class="fa-solid fa-file-pdf"></i> Export Spec-Sheet / PDF
         </button>
+        ` : ''}
         ${editButtonHtml}
     `;
     
