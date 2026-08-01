@@ -1065,18 +1065,12 @@ function exportPlotSpecSheet(plotNo) {
                     <div class="project-name"><i class="fa-solid fa-location-dot"></i> ${projectMeta.title} &bull; ${projectMeta.location}</div>
                 </div>
 
-                ${(currentProject === 'avatar1' || currentProject === 'avatar2') ? `
+                ${((currentProject === 'avatar1' || currentProject === 'avatar2') && item.plot_status === 'AVAILABLE') ? `
                 <div class="calculator-container no-print">
                     <div class="calculator-title"><i class="fa-solid fa-calculator"></i> Customize Quotation &amp; Pricing</div>
-                    <div class="calculator-grid">
-                        <div>
-                            <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 5px;">Price per Square Yard (₹)</label>
-                            <input type="number" id="pricePerSqYard" class="calc-input" value="${currentProject === 'avatar1' ? '15000' : '18000'}" placeholder="Enter rate per sq. yard">
-                        </div>
-                        <div>
-                            <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 5px;">PLC / Facing Premium (%)</label>
-                            <input type="number" id="plcPremiumPercent" class="calc-input" value="${(item.facing === 'East' || item.facing === 'North') ? '5' : '0'}" placeholder="e.g. 5 for East facing">
-                        </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 5px;">Price per Square Yard (₹)</label>
+                        <input type="number" id="pricePerSqYard" class="calc-input" value="${currentProject === 'avatar1' ? '15000' : '18000'}" placeholder="Enter rate per sq. yard">
                     </div>
                     <button class="btn-calc" onclick="calculatePriceAndPrint()"><i class="fa-solid fa-file-invoice-dollar"></i> Calculate &amp; Save as PDF</button>
                 </div>
@@ -1170,23 +1164,11 @@ function exportPlotSpecSheet(plotNo) {
                     <table class="dim-table">
                         <tbody>
                             <tr>
-                                <td><strong>Base Price</strong> (Area &times; Rate per Sq. Yard)</td>
+                                <td><strong>Base Price / Total Plot Price</strong> (Area &times; Rate per Sq. Yard)</td>
                                 <td id="valBasePrice" style="text-align: right; font-weight: 600;">₹0.00</td>
                             </tr>
                             <tr>
-                                <td><strong>Development Charges</strong> (₹500 per Sq. Yard)</td>
-                                <td id="valDevCharges" style="text-align: right; font-weight: 600;">₹0.00</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Preferred Location Charges (PLC)</strong></td>
-                                <td id="valPlcCharges" style="text-align: right; font-weight: 600;">₹0.00</td>
-                            </tr>
-                            <tr style="background: #f8fafc; font-weight: 700; border-top: 2px solid #e2e8f0;">
-                                <td>Gross Project Price</td>
-                                <td id="valGrossPrice" style="text-align: right;">₹0.00</td>
-                            </tr>
-                            <tr>
-                                <td>Estimated Registration &amp; GST (approx. 5%)</td>
+                                <td><strong>Estimated Registration &amp; GST</strong> (approx. 5%)</td>
                                 <td id="valTaxCharges" style="text-align: right; font-weight: 600;">₹0.00</td>
                             </tr>
                             <tr style="background: #eff6ff; font-weight: 800; font-size: 16px; border-top: 2px solid #2563eb; color: #1e3a8a;">
@@ -1206,7 +1188,6 @@ function exportPlotSpecSheet(plotNo) {
             <script>
                 function calculatePriceAndPrint() {
                     const rate = parseFloat(document.getElementById('pricePerSqYard').value) || 0;
-                    const plcPercent = parseFloat(document.getElementById('plcPremiumPercent').value) || 0;
                     const area = parseFloat("${item.plot_size}".replace(/[^0-9.]/g, '')) || 0;
                     
                     if (area === 0) {
@@ -1215,11 +1196,8 @@ function exportPlotSpecSheet(plotNo) {
                     }
                     
                     const basePrice = area * rate;
-                    const devCharges = area * 500;
-                    const plcCharges = basePrice * (plcPercent / 100);
-                    const grossPrice = basePrice + devCharges + plcCharges;
-                    const taxCharges = grossPrice * 0.05;
-                    const grandTotal = grossPrice + taxCharges;
+                    const taxCharges = basePrice * 0.05;
+                    const grandTotal = basePrice + taxCharges;
                     
                     // Format currency
                     const fmt = (val) => '₹ ' + val.toLocaleString('en-IN', {
@@ -1228,9 +1206,6 @@ function exportPlotSpecSheet(plotNo) {
                     });
                     
                     document.getElementById('valBasePrice').textContent = fmt(basePrice);
-                    document.getElementById('valDevCharges').textContent = fmt(devCharges);
-                    document.getElementById('valPlcCharges').textContent = fmt(plcCharges);
-                    document.getElementById('valGrossPrice').textContent = fmt(grossPrice);
                     document.getElementById('valTaxCharges').textContent = fmt(taxCharges);
                     document.getElementById('valGrandTotal').textContent = fmt(grandTotal);
                     
