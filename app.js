@@ -5,11 +5,75 @@ let activeFilters = {
     status: null
 };
 
+// Layout management pools
+let currentProject = 'avatar3';
+let avatarDataPool = {
+    avatar1: [],
+    avatar2: [],
+    avatar3: []
+};
+let avatarCoordsPool = {
+    avatar1: {},
+    avatar2: {},
+    avatar3: {}
+};
+
 // Leaflet GIS Map state
 let leafletMap = null;
 let isSatelliteActive = false;
 let leafletMarkers = {};
 let activeSearchPlot = null;
+let miniMap = null;
+let miniMapRect = null;
+
+const projectMetadata = {
+    avatar1: {
+        title: "Aspirealty Avatar - Phase 1",
+        location: "Kadthal, Srisailam Highway, Hyderabad",
+        area: "24.49 Acres",
+        plots: "328 Plots",
+        lpNumber: "TLP No. 224/2023/H (DTCP Approved)",
+        status: "Completed & Ready for Construction",
+        highlights: [
+            "Located in FCDA / Future City zone",
+            "RERA Registered project: P02400007808",
+            "Mega 70-acre proposed gated community layout",
+            "Immediate spot registration & development",
+            "Underground drainage, water lines & electricity ready"
+        ]
+    },
+    avatar2: {
+        title: "Aspirealty Avatar 2",
+        location: "Karkalpahad, Srisailam Highway, Hyderabad",
+        area: "17 Acres (1st phase)",
+        plots: "96 Plots",
+        lpNumber: "RERA Reg: P02400009896 (DTCP Approved)",
+        status: "Infrastructure Construction Stage",
+        highlights: [
+            "Strategic position in FCDA / Future City Development zone",
+            "550 meters from the Srisailam Highway",
+            "Connected to the 300-ft Tata Greenfield Road",
+            "Lush green avenue plantations and overhead water storage",
+            "Positioned within the Regional Ring Road (RRR) corridor"
+        ]
+    },
+    avatar3: {
+        title: "Aspirealty Avatar 3",
+        location: "Karkalapahd Srisailam Highway",
+        area: "13 Acres",
+        plots: "206 Plots",
+        lpNumber: "LP No. 224/2023/H (DTCP Approved)",
+        status: "Active Bookings Open",
+        highlights: [
+            "Immediate registration & spot construction ready",
+            "100% Vaastu compliant layouts & sizing",
+            "Grand entry archway with gated security portals",
+            "Children's play park & fully landscaped gardens",
+            "Surrounded by upcoming premium villa developments"
+        ]
+    }
+};
+
 const siteBounds = {
     west: 78.53563,
     south: 16.92999,
@@ -74,58 +138,151 @@ window.addEventListener('DOMContentLoaded', () => {
     setupMapper();
     setupAdmin();
     setupSatelliteToggle();
+    setupProjectNavigation();
+
+    // Check URL parameters to initialize project and view
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialProject = urlParams.get('project');
+    if (initialProject) {
+        const btn = document.querySelector(`.project-nav-btn[data-project="${initialProject}"]`);
+        if (btn) {
+            btn.click();
+        }
+    }
 });
 
 // Main App Initialization
 function initApp() {
-    // Check local storage first for admin edits
-    const localData = localStorage.getItem('aspire_avatar3_data');
-    if (localData) {
+    // Populate Avatar 3 coordinates from global variable loaded by plot_coords.js
+    if (typeof plotCoordinates !== 'undefined') {
+        avatarCoordsPool.avatar3 = plotCoordinates;
+    }
+
+    // Populate Avatar 2 coordinates from global variable loaded by avatar2_plot_coords.js
+    if (typeof plotCoordinatesAvatar2 !== 'undefined') {
+        avatarCoordsPool.avatar2 = plotCoordinatesAvatar2;
+    }
+
+    // Populate Avatar 1 coordinates from global variable loaded by avatar1_plot_coords.js
+    if (typeof plotCoordinatesAvatar1 !== 'undefined') {
+        avatarCoordsPool.avatar1 = plotCoordinatesAvatar1;
+    }
+
+    // Load Avatar 3 data from local storage if exists
+    const localDataAvatar3 = localStorage.getItem('aspire_avatar3_data');
+    if (localDataAvatar3) {
         try {
-            plotData = JSON.parse(localData).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-            renderPlotDots();
-            updateStatistics();
-            setTimeout(fitMapToViewport, 100);
-            setupAdminState();
-            return;
+            avatarDataPool.avatar3 = JSON.parse(localDataAvatar3).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
         } catch (e) {
-            console.error('Error parsing local storage data', e);
+            console.error('Error parsing local storage Avatar 3 data', e);
+        }
+    }
+    
+    // Load Avatar 2 data from local storage if exists
+    const localDataAvatar2 = localStorage.getItem('aspire_avatar2_data');
+    if (localDataAvatar2) {
+        try {
+            avatarDataPool.avatar2 = JSON.parse(localDataAvatar2).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+        } catch (e) {
+            console.error('Error parsing local storage Avatar 2 data', e);
         }
     }
 
-    // 1. Fetch plot data database
-    fetch('data.json')
+    // Load Avatar 1 data from local storage if exists
+    const localDataAvatar1 = localStorage.getItem('aspire_avatar1_data');
+    if (localDataAvatar1) {
+        try {
+            avatarDataPool.avatar1 = JSON.parse(localDataAvatar1).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+        } catch (e) {
+            console.error('Error parsing local storage Avatar 1 data', e);
+        }
+    }
+
+    // Fetch Avatar 3 JSON
+    const fetch3 = fetch('data.json')
         .then(response => {
             if (!response.ok) throw new Error('Data fetch failed');
             return response.json();
         })
         .then(data => {
-            plotData = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-            
-            // 2. Render plot markers
-            renderPlotDots();
-            
-            // 3. Calculate statistics
-            updateStatistics();
-            
-            // 4. Set initial view scale (fit to screen)
-            setTimeout(fitMapToViewport, 100);
-            setupAdminState();
+            if (!avatarDataPool.avatar3.length) {
+                avatarDataPool.avatar3 = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+            }
         })
         .catch(err => {
-            console.warn('CORS or network error. Falling back to offline dataset (data.js):', err);
-            if (typeof plotDataRaw !== 'undefined') {
-                plotData = plotDataRaw.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-            } else {
-                console.error('Offline dataset not found.');
+            console.warn('CORS or network error. Falling back to offline dataset (data.js) for Avatar 3:', err);
+            if (typeof plotDataRaw !== 'undefined' && !avatarDataPool.avatar3.length) {
+                avatarDataPool.avatar3 = plotDataRaw.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
             }
-            
-            // Render dots, stats and fit using fallback data
-            renderPlotDots();
-            updateStatistics();
-            setTimeout(fitMapToViewport, 100);
-            setupAdminState();
         });
+
+    // Fetch Avatar 2 JSON
+    const fetch2 = fetch('avatar2_digi/data.json')
+        .then(response => {
+            if (!response.ok) throw new Error('Data fetch failed');
+            return response.json();
+        })
+        .then(data => {
+            if (!avatarDataPool.avatar2.length) {
+                avatarDataPool.avatar2 = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+            }
+        })
+        .catch(err => {
+            console.warn('CORS or network error. Falling back to offline dataset (avatar2_data.js) for Avatar 2:', err);
+            if (typeof plotDataRawAvatar2 !== 'undefined' && !avatarDataPool.avatar2.length) {
+                avatarDataPool.avatar2 = plotDataRawAvatar2.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+            }
+        });
+
+    // Fetch Avatar 1 JSON
+    const fetch1 = fetch('avatar1_data.json')
+        .then(response => {
+            if (!response.ok) throw new Error('Data fetch failed');
+            return response.json();
+        })
+        .then(data => {
+            if (!avatarDataPool.avatar1.length) {
+                avatarDataPool.avatar1 = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+            }
+        })
+        .catch(err => {
+            console.warn('CORS or network error. Falling back to offline dataset (avatar1_data.js) for Avatar 1:', err);
+            if (typeof plotDataRawAvatar1 !== 'undefined' && !avatarDataPool.avatar1.length) {
+                avatarDataPool.avatar1 = plotDataRawAvatar1.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+            }
+        });
+
+    // Fallback coordinates fetch in case script load failed but json works
+    let fetchCoordsPromise = Promise.resolve();
+    if (!avatarCoordsPool.avatar2 || !Object.keys(avatarCoordsPool.avatar2).length) {
+        fetchCoordsPromise = fetch('avatar2_plot_coords.json')
+            .then(res => res.json())
+            .then(coords => {
+                avatarCoordsPool.avatar2 = coords;
+            })
+            .catch(err => console.error('Failed to load Avatar 2 coordinates from JSON fallback:', err));
+    }
+
+    let fetchCoordsPromise1 = Promise.resolve();
+    if (!avatarCoordsPool.avatar1 || !Object.keys(avatarCoordsPool.avatar1).length) {
+        fetchCoordsPromise1 = fetch('avatar1_plot_coords.json')
+            .then(res => res.json())
+            .then(coords => {
+                avatarCoordsPool.avatar1 = coords;
+            })
+            .catch(err => console.error('Failed to load Avatar 1 coordinates from JSON fallback:', err));
+    }
+
+    Promise.all([fetchCoordsPromise, fetchCoordsPromise1, fetch3, fetch2, fetch1]).finally(() => {
+        // Set the active project plotData reference
+        plotData = avatarDataPool[currentProject] || [];
+        
+        // Render dots, stats and fit using fallback data
+        renderPlotDots();
+        updateStatistics();
+        setTimeout(fitMapToViewport, 100);
+        setupAdminState();
+    });
 }
 
 // ----------------------------------------------------
@@ -147,44 +304,87 @@ function getStatusColor(status) {
 function renderPlotDots() {
     plotsOverlay.innerHTML = '';
     
-    // Scale factors: original coords are mapped to 2500x1406 background
-    const scaleX = 1024 / 2500;
-    const scaleY = 576 / 1406;
+    const coordsSource = avatarCoordsPool[currentProject] || {};
+    const dataSource = avatarDataPool[currentProject] || [];
     
-    // plotCoordinates is a global defined in plot_coords.js
-    Object.keys(plotCoordinates).forEach(plotNo => {
-        const coords = plotCoordinates[plotNo];
-        const detail = plotData.find(p => String(p.plot_no) === String(plotNo));
-        const status = detail ? detail.plot_status : 'AVAILABLE';
+    if (currentProject === 'avatar3') {
+        const scaleX = 1024 / 2500;
+        const scaleY = 576 / 1406;
         
-        const dot = document.createElement('button');
-        dot.className = 'plot-dot';
-        dot.id = `plot-dot-${plotNo}`;
-        dot.dataset.plotNo = plotNo;
-        dot.dataset.facing = detail && detail.facing ? detail.facing : 'Unknown';
-        dot.dataset.status = status;
-        
-        // CSS custom property to style the background color dynamically
-        dot.style.setProperty('--plot-color', getStatusColor(status));
-        
-        // Center the dot by offseting by half size (15px wide -> 7.5px offset)
-        // Scaled coordinates mapping
-        dot.style.left = `${(coords.left * scaleX) - 7.5}px`;
-        dot.style.top = `${(coords.top * scaleY) - 7.5}px`;
-        
-        dot.textContent = plotNo;
-        
-        // Modal Trigger
-        dot.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (isMapperMode) return; // Don't trigger details in mapper mode
-            openPlotModal(plotNo);
+        Object.keys(coordsSource).forEach(plotNo => {
+            const coords = coordsSource[plotNo];
+            const detail = dataSource.find(p => String(p.plot_no) === String(plotNo));
+            const status = detail ? detail.plot_status : 'AVAILABLE';
+            
+            const dot = document.createElement('button');
+            dot.className = 'plot-dot';
+            dot.id = `plot-dot-${plotNo}`;
+            dot.dataset.plotNo = plotNo;
+            dot.dataset.facing = detail && detail.facing ? detail.facing : 'Unknown';
+            dot.dataset.status = status;
+            
+            dot.style.setProperty('--plot-color', getStatusColor(status));
+            dot.style.left = `${(coords.left * scaleX) - 7.5}px`;
+            dot.style.top = `${(coords.top * scaleY) - 7.5}px`;
+            dot.textContent = plotNo;
+            
+            dot.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (isMapperMode) {
+                    activeMapperPlot = parseInt(plotNo) || plotNo;
+                    if (mapperActivePlot) {
+                        mapperActivePlot.value = plotNo;
+                    }
+                    highlightActiveMapperButton();
+                    return;
+                }
+                openPlotModal(plotNo);
+            });
+            
+            plotsOverlay.appendChild(dot);
         });
-        
-        plotsOverlay.appendChild(dot);
-    });
+    } else if (currentProject === 'avatar2' || currentProject === 'avatar1') {
+        Object.keys(coordsSource).forEach(plotNo => {
+            const coords = coordsSource[plotNo];
+            const detail = dataSource.find(p => String(p.plot_no) === String(plotNo));
+            const status = detail ? detail.plot_status : 'AVAILABLE';
+            
+            const dot = document.createElement('button');
+            dot.className = 'plot-dot';
+            
+            let offset = 7.5;
+            if (currentProject === 'avatar2') {
+                dot.classList.add('avatar2-dot');
+                offset = 12;
+            }
+            
+            dot.id = `plot-dot-${plotNo}`;
+            dot.dataset.plotNo = plotNo;
+            dot.dataset.facing = detail && detail.facing ? detail.facing : 'Unknown';
+            dot.dataset.status = status;
+            
+            dot.style.setProperty('--plot-color', getStatusColor(status));
+            dot.style.left = `${coords.left - offset}px`;
+            dot.style.top = `${coords.top - offset}px`;
+            dot.textContent = plotNo;
+            
+            dot.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (isMapperMode) {
+                    activeMapperPlot = parseInt(plotNo) || plotNo;
+                    if (mapperActivePlot) {
+                        mapperActivePlot.value = plotNo;
+                    }
+                    highlightActiveMapperButton();
+                    return;
+                }
+                openPlotModal(plotNo);
+            });
+            
+            plotsOverlay.appendChild(dot);
+        });
+    }
 
-    // Synchronize updates with Leaflet markers if Leaflet is initialized
     if (leafletMap) {
         refreshLeafletMarkers();
     }
@@ -322,13 +522,20 @@ function fitMapToViewport() {
     const vWidth = mapViewport.clientWidth;
     const vHeight = mapViewport.clientHeight;
     
-    // Background original dims: width: 1024, height: 576
-    const fitScale = Math.min(vWidth / 1024, vHeight / 576) * 0.95; // 5% margins
+    let height = 576;
+    if (currentProject === 'avatar2') {
+        height = 646;
+    } else if (currentProject === 'avatar1') {
+        height = 647;
+    }
+    
+    // Background original dims: width: 1024, height: dynamic
+    const fitScale = Math.min(vWidth / 1024, vHeight / height) * 0.95; // 5% margins
     zoomScale = Math.max(fitScale, 0.1);
     
     // Centering calculations
     panX = (vWidth - 1024 * zoomScale) / 2;
-    panY = (vHeight - 576 * zoomScale) / 2;
+    panY = (vHeight - height * zoomScale) / 2;
     
     applyTransform();
 }
@@ -397,14 +604,16 @@ function setupSearch() {
 }
 
 function renderSearchSuggestions(query) {
-    const matches = Object.keys(plotCoordinates)
+    const coordsSource = avatarCoordsPool[currentProject] || {};
+    const matches = Object.keys(coordsSource)
         .filter(no => no.toLowerCase().startsWith(query))
         .slice(0, 5); // Max 5 suggestions
         
     if (matches.length > 0) {
         searchSuggestions.innerHTML = '';
         matches.forEach(plotNo => {
-            const detail = plotData.find(p => String(p.plot_no) === String(plotNo));
+            const dataSource = avatarDataPool[currentProject] || [];
+            const detail = dataSource.find(p => String(p.plot_no) === String(plotNo));
             const status = detail ? detail.plot_status : 'AVAILABLE';
             
             const div = document.createElement('div');
@@ -428,7 +637,8 @@ function renderSearchSuggestions(query) {
 }
 
 function focusOnPlot(plotNo) {
-    const coords = plotCoordinates[plotNo];
+    const coordsSource = avatarCoordsPool[currentProject] || {};
+    const coords = coordsSource[plotNo];
     if (!coords) return;
     
     // Set active search plot and filter out all other plot dots
@@ -452,25 +662,37 @@ function focusOnPlot(plotNo) {
         if (markerEl) markerEl.classList.add('highlighted');
         
         // Calculate Lat/Lng
-        const width2D = 2500;
-        const height2D = 1406;
+        let width2D = 2500;
+        let height2D = 1406;
+        if (currentProject === 'avatar2') {
+            width2D = 1024;
+            height2D = 646;
+        } else if (currentProject === 'avatar1') {
+            width2D = 1024;
+            height2D = 647;
+        }
         const lng = siteBounds.west + (coords.left / width2D) * (siteBounds.east - siteBounds.west);
         const lat = siteBounds.north - (coords.top / height2D) * (siteBounds.north - siteBounds.south);
         
         leafletMap.setView([lat, lng], 19);
     }
     
-    // Scale factors: original coords are mapped to 2500x1406 background
-    const scaleX = 1024 / 2500;
-    const scaleY = 576 / 1406;
+    let x2d = coords.left;
+    let y2d = coords.top;
+    if (currentProject === 'avatar3') {
+        const scaleX = 1024 / 2500;
+        const scaleY = 576 / 1406;
+        x2d = coords.left * scaleX;
+        y2d = coords.top * scaleY;
+    }
     
     // Zoom close and Center on coordinates
-    zoomScale = 1.0; // close up zoom
+    zoomScale = 2.0; // close up zoom
     const vWidth = mapViewport.clientWidth;
     const vHeight = mapViewport.clientHeight;
     
-    panX = vWidth / 2 - (coords.left * scaleX) * zoomScale;
-    panY = vHeight / 2 - (coords.top * scaleY) * zoomScale;
+    panX = vWidth / 2 - x2d * zoomScale;
+    panY = vHeight / 2 - y2d * zoomScale;
     
     applyTransform();
     
@@ -617,15 +839,6 @@ function openPlotModal(plotNo) {
                     <div>South: ${item.dim_south || 'N/A'}</div>
                     <div>East: ${item.dim_east || 'N/A'}</div>
                     <div>West: ${item.dim_west || 'N/A'}</div>
-                </div>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Customer Name</span>
-                <span class="detail-val">${item.customer_name ? (isAdminLoggedIn ? item.customer_name : maskName(item.customer_name)) : 'N/A'}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Reference / Share</span>
-                <span class="detail-val">${item.reference_name || 'N/A'}</span>
             </div>
         </div>
         ${editButtonHtml}
@@ -721,7 +934,8 @@ function updateStatistics() {
 
     // Update Header Counts (Available vs Booked/Sold)
     // Placed dots counts
-    const totalPlaced = Object.keys(plotCoordinates).length;
+    const coordsSource = avatarCoordsPool[currentProject] || {};
+    const totalPlaced = Object.keys(coordsSource).length;
     
     statAvailablePlots.textContent = statusCounts['AVAILABLE'] + statusCounts['RESALE'];
     statBookedPlots.textContent = statusCounts['SOLD'] + statusCounts['REGISTERED'] + statusCounts['HOLD'] + statusCounts['MORTGAGE'] + statusCounts['INVESTOR'];
@@ -733,6 +947,7 @@ function updateStatistics() {
         { label: 'SOLD / BOOKED', status: 'SOLD' },
         { label: 'MORTGAGE', status: 'MORTGAGE' },
         { label: 'HOLD', status: 'HOLD' },
+        { label: 'REGISTERED', status: 'REGISTERED' },
         { label: 'RESALE', status: 'RESALE' }
     ];
 
@@ -796,7 +1011,8 @@ function setupMapper() {
     });
 
     mapperExportBtn.addEventListener('click', () => {
-        const configCode = `const plotCoordinates = ${JSON.stringify(plotCoordinates, null, 4)};`;
+        const coordsSource = avatarCoordsPool[currentProject] || {};
+        const configCode = `const plotCoordinates = ${JSON.stringify(coordsSource, null, 4)};`;
         
         modalBody.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 12px; text-align: left;">
@@ -822,8 +1038,14 @@ function setupMapper() {
 
 function renderMapperPlotList() {
     mapperPlotList.innerHTML = '';
-    // Plots numbers 1 to 206
-    for (let i = 1; i <= 206; i++) {
+    let maxPlots = 206;
+    if (currentProject === 'avatar2') {
+        maxPlots = 96;
+    } else if (currentProject === 'avatar1') {
+        maxPlots = 328;
+    }
+    const coordsSource = avatarCoordsPool[currentProject] || {};
+    for (let i = 1; i <= maxPlots; i++) {
         const btn = document.createElement('button');
         btn.id = `mapper-btn-${i}`;
         btn.style.padding = '4px';
@@ -834,7 +1056,7 @@ function renderMapperPlotList() {
         btn.style.cursor = 'pointer';
         
         // Style based on placement state
-        const isPlaced = plotCoordinates[i] !== undefined;
+        const isPlaced = coordsSource[i] !== undefined;
         btn.style.backgroundColor = isPlaced ? 'rgba(16, 185, 129, 0.2)' : 'var(--bg-tertiary)';
         btn.style.color = isPlaced ? 'var(--status-available)' : 'var(--text-secondary)';
         btn.style.borderColor = isPlaced ? 'var(--status-available)' : 'var(--border-color)';
@@ -869,16 +1091,20 @@ function handleMapClick(e) {
     const clickX = (e.clientX - rect.left) / zoomScale;
     const clickY = (e.clientY - rect.top) / zoomScale;
     
-    // Scale factors: original coords map to 2500x1406 dimensions
-    const scaleX = 1024 / 2500;
-    const scaleY = 576 / 1406;
-    
-    // Convert current click coordinate back to original reference size
-    const origLeft = Math.round(clickX / scaleX);
-    const origTop = Math.round(clickY / scaleY);
+    let origLeft, origTop;
+    if (currentProject === 'avatar3') {
+        const scaleX = 1024 / 2500;
+        const scaleY = 576 / 1406;
+        origLeft = Math.round(clickX / scaleX);
+        origTop = Math.round(clickY / scaleY);
+    } else {
+        origLeft = Math.round(clickX);
+        origTop = Math.round(clickY);
+    }
     
     // Save coordinate point
-    plotCoordinates[activeMapperPlot] = {
+    const coordsSource = avatarCoordsPool[currentProject] || {};
+    coordsSource[activeMapperPlot] = {
         left: origLeft,
         top: origTop
     };
@@ -895,7 +1121,13 @@ function handleMapClick(e) {
     }
     
     // Advance mapper active selection to the next plot number
-    if (activeMapperPlot < 206) {
+    let maxPlots = 206;
+    if (currentProject === 'avatar2') {
+        maxPlots = 96;
+    } else if (currentProject === 'avatar1') {
+        maxPlots = 328;
+    }
+    if (activeMapperPlot < maxPlots) {
         activeMapperPlot++;
         mapperActivePlot.value = activeMapperPlot;
         highlightActiveMapperButton();
@@ -1074,9 +1306,7 @@ function openPlotEditForm(plotNo) {
         dim_north: '-',
         dim_south: '-',
         dim_east: '-',
-        dim_west: '-',
-        customer_name: '',
-        reference_name: ''
+        dim_west: '-'
     };
 
     modalBody.innerHTML = `
@@ -1095,6 +1325,7 @@ function openPlotEditForm(plotNo) {
                     <option value="SOLD" ${item.plot_status === 'SOLD' ? 'selected' : ''}>SOLD</option>
                     <option value="MORTGAGE" ${item.plot_status === 'MORTGAGE' ? 'selected' : ''}>MORTGAGE</option>
                     <option value="HOLD" ${item.plot_status === 'HOLD' ? 'selected' : ''}>HOLD</option>
+                    <option value="REGISTERED" ${item.plot_status === 'REGISTERED' ? 'selected' : ''}>REGISTERED</option>
                     <option value="RESALE" ${item.plot_status === 'RESALE' ? 'selected' : ''}>RESALE</option>
                 </select>
             </div>
@@ -1140,16 +1371,6 @@ function openPlotEditForm(plotNo) {
                 </div>
             </div>
             
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Customer Name</label>
-                <input type="text" id="editCustomer" value="${item.customer_name || ''}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none;" placeholder="Full name">
-            </div>
-            
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Reference / Share</label>
-                <input type="text" id="editReference" value="${item.reference_name || ''}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none;" placeholder="Developer / Land Owner">
-            </div>
-            
             <button id="savePlotEditBtn" class="admin-login-btn" style="background: var(--status-available); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 10px; padding: 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                 <i class="fa-solid fa-save"></i> Save Changes
             </button>
@@ -1173,8 +1394,6 @@ function savePlotEdits(plotNo) {
     const editSouth = document.getElementById('editSouth').value.trim();
     const editEast = document.getElementById('editEast').value.trim();
     const editWest = document.getElementById('editWest').value.trim();
-    const editCustomer = document.getElementById('editCustomer').value.trim();
-    const editReference = document.getElementById('editReference').value.trim();
 
     let idx = plotData.findIndex(p => String(p.plot_no) === String(plotNo));
 
@@ -1186,9 +1405,7 @@ function savePlotEdits(plotNo) {
         dim_north: editNorth,
         dim_south: editSouth,
         dim_east: editEast,
-        dim_west: editWest,
-        customer_name: editCustomer,
-        reference_name: editReference
+        dim_west: editWest
     };
 
     if (idx !== -1) {
@@ -1197,7 +1414,8 @@ function savePlotEdits(plotNo) {
         plotData.push(updatedPlot);
     }
 
-    localStorage.setItem('aspire_avatar3_data', JSON.stringify(plotData));
+    const storageKey = `aspire_${currentProject}_data`;
+    localStorage.setItem(storageKey, JSON.stringify(plotData));
 
     renderPlotDots();
     updateStatistics();
@@ -1228,6 +1446,9 @@ function toggleSatelliteView() {
     const leafletContainer = document.getElementById('leafletMapContainer');
     const layerControl = document.getElementById('gisLayerControl');
     const mapControls = document.querySelector('.map-controls');
+    const projectNav = document.getElementById('projectNavSection');
+    
+    if (projectNav) projectNav.style.display = 'block'; // Always show project nav
     
     if (isSatelliteActive) {
         toggleBtn.classList.add('active');
@@ -1248,10 +1469,12 @@ function toggleSatelliteView() {
             initLeafletMap();
         } else {
             leafletMap.invalidateSize();
+            if (miniMap) {
+                miniMap.invalidateSize();
+            }
             // Recenter map on active project center
-            const centerLat = (siteBounds.south + siteBounds.north) / 2;
-            const centerLng = (siteBounds.west + siteBounds.east) / 2;
-            leafletMap.setView([centerLat, centerLng], 17);
+            const loc = getActiveProjectCenter();
+            leafletMap.setView(loc, 17);
         }
     } else {
         toggleBtn.classList.remove('active');
@@ -1263,24 +1486,61 @@ function toggleSatelliteView() {
         leafletContainer.style.display = 'none';
         if (layerControl) layerControl.style.display = 'none';
         
+        // Hide Project Details Card when leaving Satellite View
+        const detailsCard = document.getElementById('projectDetailsCard');
+        if (detailsCard) detailsCard.style.display = 'none';
+        
         if (mapTip) {
             mapTip.style.display = 'flex';
             mapTip.innerHTML = '<i class="fa-solid fa-hand-pointer"></i> Drag to Pan &bull; Scroll or Pinch to Zoom';
         }
         
-        // Highlight active filters or highlights in 2D View
-        applyFilters();
-        fitMapToViewport();
+        // Check active project selector
+        const activeProjectBtn = document.querySelector('.project-nav-btn.active');
+        let project = activeProjectBtn ? activeProjectBtn.dataset.project : 'avatar3';
+        currentProject = project;
+        
+        updateSidebarAndHeaderForProject(currentProject);
+
+        if (currentProject === 'avatar2') {
+            changeLayoutImage('avatar2_digi/map_layout.jpg', '1024px', '646px', '1024px', '646px', () => {
+                plotData = avatarDataPool.avatar2 || [];
+                applyFilters();
+                updateStatistics();
+            });
+        } else if (currentProject === 'avatar1') {
+            changeLayoutImage('avatar1_map_layout.jpg', '1024px', '647px', '1024px', '647px', () => {
+                plotData = avatarDataPool.avatar1 || [];
+                applyFilters();
+                updateStatistics();
+            });
+        } else {
+            changeLayoutImage('map_layout.png', '1024px', '576px', '1024px', '576px', () => {
+                plotData = avatarDataPool.avatar3 || [];
+                applyFilters();
+                updateStatistics();
+            });
+        }
     }
 }
 
+function getActiveProjectCenter() {
+    const projectLocations = {
+        avatar1: [16.9498389, 78.4960974],
+        avatar2: [16.9233266, 78.5325395],
+        avatar3: [16.9307952, 78.5382904]
+    };
+    const activeProjectBtn = document.querySelector('.project-nav-btn.active');
+    const project = activeProjectBtn ? activeProjectBtn.dataset.project : 'avatar3';
+    return projectLocations[project] || projectLocations.avatar3;
+}
+
 function initLeafletMap() {
-    const centerLat = (siteBounds.south + siteBounds.north) / 2;
-    const centerLng = (siteBounds.west + siteBounds.east) / 2;
+    const loc = getActiveProjectCenter();
     
     leafletMap = L.map('leafletMapContainer', {
         zoomControl: false, // Hiding default zoom to use our custom floating controls
-        center: [centerLat, centerLng],
+        center: loc,
         zoom: 17,
         maxZoom: 21,
         minZoom: 13
@@ -1310,7 +1570,8 @@ function initLeafletMap() {
     document.getElementById('zoomResetBtn').addEventListener('click', (e) => {
         if (isSatelliteActive && leafletMap) {
             e.stopPropagation();
-            leafletMap.setView([centerLat, centerLng], 17);
+            const activeLoc = getActiveProjectCenter();
+            leafletMap.setView(activeLoc, 17);
         }
     });
     
@@ -1319,6 +1580,9 @@ function initLeafletMap() {
         attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS, AeroGRID, IGN, and the GIS User Community',
         maxZoom: 21
     }).addTo(leafletMap);
+
+    // Initialize custom Mini-map Inset
+    setupMiniMap();
 
     // Setup L.ImageOverlay.Rotated extension
     if (!L.ImageOverlay.Rotated) {
@@ -1347,48 +1611,68 @@ function initLeafletMap() {
         };
     }
     
-    // Parse doc.kml file
-    fetch('doc.kml')
-        .then(response => {
-            if (!response.ok) throw new Error('Failed to load KML file');
-            return response.text();
-        })
-        .then(kmlText => {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(kmlText, 'text/xml');
+    function parseKML(kmlText) {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(kmlText, 'text/xml');
+        
+        // Helper to parse aabbggrr color string to Leaflet color and opacity
+        function parseKmlColor(kmlColorStr) {
+            if (!kmlColorStr || kmlColorStr.length !== 8) return { color: '#3b82f6', opacity: 0.85 };
+            const aHex = kmlColorStr.substring(0, 2);
+            const bHex = kmlColorStr.substring(2, 4);
+            const gHex = kmlColorStr.substring(4, 6);
+            const rHex = kmlColorStr.substring(6, 8);
             
-            // Helper to parse aabbggrr color string to Leaflet color and opacity
-            function parseKmlColor(kmlColorStr) {
-                if (!kmlColorStr || kmlColorStr.length !== 8) return { color: '#3b82f6', opacity: 0.85 };
-                const aHex = kmlColorStr.substring(0, 2);
-                const bHex = kmlColorStr.substring(2, 4);
-                const gHex = kmlColorStr.substring(4, 6);
-                const rHex = kmlColorStr.substring(6, 8);
-                
-                const r = parseInt(rHex, 16);
-                const g = parseInt(gHex, 16);
-                const b = parseInt(bHex, 16);
-                const a = parseInt(aHex, 16) / 255;
-                
-                const hexColor = "#" + 
-                    r.toString(16).padStart(2, '0') + 
-                    g.toString(16).padStart(2, '0') + 
-                    b.toString(16).padStart(2, '0');
-                
-                return { color: hexColor, opacity: a };
-            }
+            const r = parseInt(rHex, 16);
+            const g = parseInt(gHex, 16);
+            const b = parseInt(bHex, 16);
+            const a = parseInt(aHex, 16) / 255;
+            
+            const hexColor = "#" + 
+                r.toString(16).padStart(2, '0') + 
+                g.toString(16).padStart(2, '0') + 
+                b.toString(16).padStart(2, '0');
+            
+            return { color: hexColor, opacity: a };
+        }
 
-            // Parse KML Styles
-            const styles = {};
-            const styleMaps = {};
+        // Parse KML Styles
+        const styles = {};
+        const styleMaps = {};
+        
+        // Extract Style elements
+        const styleNodes = xmlDoc.getElementsByTagName('Style');
+        for (let i = 0; i < styleNodes.length; i++) {
+            const styleNode = styleNodes[i];
+            const id = styleNode.getAttribute('id') || styleNode.getAttribute('kml:id');
+            if (!id) continue;
             
-            // Extract Style elements
-            const styleNodes = xmlDoc.getElementsByTagName('Style');
-            for (let i = 0; i < styleNodes.length; i++) {
-                const styleNode = styleNodes[i];
-                const id = styleNode.getAttribute('id') || styleNode.getAttribute('kml:id');
-                if (!id) continue;
+            const lineStyle = styleNode.getElementsByTagName('LineStyle')[0];
+            let colorInfo = null;
+            let width = null;
+            if (lineStyle) {
+                const colorNode = lineStyle.getElementsByTagName('color')[0];
+                if (colorNode) colorInfo = parseKmlColor(colorNode.textContent);
                 
+                const widthNode = lineStyle.getElementsByTagName('width')[0];
+                if (widthNode) width = parseFloat(widthNode.textContent);
+            }
+            styles[id] = {
+                color: colorInfo?.color || '#3b82f6',
+                opacity: colorInfo !== null ? colorInfo.opacity : 0.85,
+                width: width !== null ? width : 3
+            };
+        }
+        
+        // Extract gx:CascadingStyle elements
+        const cascadingStyleNodes = xmlDoc.getElementsByTagName('gx:CascadingStyle');
+        for (let i = 0; i < cascadingStyleNodes.length; i++) {
+            const csNode = cascadingStyleNodes[i];
+            const id = csNode.getAttribute('kml:id') || csNode.getAttribute('id');
+            if (!id) continue;
+            
+            const styleNode = csNode.getElementsByTagName('Style')[0];
+            if (styleNode) {
                 const lineStyle = styleNode.getElementsByTagName('LineStyle')[0];
                 let colorInfo = null;
                 let width = null;
@@ -1405,203 +1689,192 @@ function initLeafletMap() {
                     width: width !== null ? width : 3
                 };
             }
+        }
+        
+        // Extract StyleMap elements
+        const styleMapNodes = xmlDoc.getElementsByTagName('StyleMap');
+        for (let i = 0; i < styleMapNodes.length; i++) {
+            const styleMapNode = styleMapNodes[i];
+            const id = styleMapNode.getAttribute('id') || styleMapNode.getAttribute('kml:id');
+            if (!id) continue;
             
-            // Extract gx:CascadingStyle elements
-            const cascadingStyleNodes = xmlDoc.getElementsByTagName('gx:CascadingStyle');
-            for (let i = 0; i < cascadingStyleNodes.length; i++) {
-                const csNode = cascadingStyleNodes[i];
-                const id = csNode.getAttribute('kml:id') || csNode.getAttribute('id');
-                if (!id) continue;
-                
-                const styleNode = csNode.getElementsByTagName('Style')[0];
-                if (styleNode) {
-                    const lineStyle = styleNode.getElementsByTagName('LineStyle')[0];
-                    let colorInfo = null;
-                    let width = null;
-                    if (lineStyle) {
-                        const colorNode = lineStyle.getElementsByTagName('color')[0];
-                        if (colorNode) colorInfo = parseKmlColor(colorNode.textContent);
-                        
-                        const widthNode = lineStyle.getElementsByTagName('width')[0];
-                        if (widthNode) width = parseFloat(widthNode.textContent);
-                    }
-                    styles[id] = {
-                        color: colorInfo?.color || '#3b82f6',
-                        opacity: colorInfo !== null ? colorInfo.opacity : 0.85,
-                        width: width !== null ? width : 3
-                    };
+            const pairs = styleMapNode.getElementsByTagName('Pair');
+            for (let j = 0; j < pairs.length; j++) {
+                const key = pairs[j].getElementsByTagName('key')[0]?.textContent;
+                if (key === 'normal') {
+                    let styleUrl = pairs[j].getElementsByTagName('styleUrl')[0]?.textContent || '';
+                    if (styleUrl.startsWith('#')) styleUrl = styleUrl.substring(1);
+                    styleMaps[id] = styleUrl;
                 }
             }
-            
-            // Extract StyleMap elements
-            const styleMapNodes = xmlDoc.getElementsByTagName('StyleMap');
-            for (let i = 0; i < styleMapNodes.length; i++) {
-                const styleMapNode = styleMapNodes[i];
-                const id = styleMapNode.getAttribute('id') || styleMapNode.getAttribute('kml:id');
-                if (!id) continue;
-                
-                const pairs = styleMapNode.getElementsByTagName('Pair');
-                for (let j = 0; j < pairs.length; j++) {
-                    const key = pairs[j].getElementsByTagName('key')[0]?.textContent;
-                    if (key === 'normal') {
-                        let styleUrl = pairs[j].getElementsByTagName('styleUrl')[0]?.textContent || '';
-                        if (styleUrl.startsWith('#')) styleUrl = styleUrl.substring(1);
-                        styleMaps[id] = styleUrl;
-                    }
-                }
-            }
+        }
 
-            function getPlacemarkStyle(pmNode) {
-                let styleUrl = pmNode.getElementsByTagName('styleUrl')[0]?.textContent || '';
-                if (styleUrl.startsWith('#')) styleUrl = styleUrl.substring(1);
-                
-                // Resolve StyleMap to Style ID
-                if (styleMaps[styleUrl]) {
-                    styleUrl = styleMaps[styleUrl];
-                }
-                
-                const resolved = styles[styleUrl];
-                return {
-                    color: resolved?.color || '#3b82f6',
-                    opacity: resolved !== undefined ? resolved.opacity : 0.85,
-                    width: resolved?.width || 3
-                };
+        function getPlacemarkStyle(pmNode) {
+            let styleUrl = pmNode.getElementsByTagName('styleUrl')[0]?.textContent || '';
+            if (styleUrl.startsWith('#')) styleUrl = styleUrl.substring(1);
+            
+            // Resolve StyleMap to Style ID
+            if (styleMaps[styleUrl]) {
+                styleUrl = styleMaps[styleUrl];
             }
             
-            // Parse GroundOverlays
-            const groundOverlays = xmlDoc.getElementsByTagName('GroundOverlay');
-            for (let i = 0; i < groundOverlays.length; i++) {
-                const overlayNode = groundOverlays[i];
-                const name = overlayNode.getElementsByTagName('name')[0]?.textContent || 'Layout Overlay';
-                const href = overlayNode.getElementsByTagName('href')[0]?.textContent || '';
-                const latLonBox = overlayNode.getElementsByTagName('LatLonBox')[0];
-                const visibilityNode = overlayNode.getElementsByTagName('visibility')[0];
-                const isVisible = visibilityNode ? visibilityNode.textContent !== '0' : true;
+            const resolved = styles[styleUrl];
+            return {
+                color: resolved?.color || '#3b82f6',
+                opacity: resolved !== undefined ? resolved.opacity : 0.85,
+                width: resolved?.width || 3
+            };
+        }
+        
+        // Parse GroundOverlays
+        const groundOverlays = xmlDoc.getElementsByTagName('GroundOverlay');
+        for (let i = 0; i < groundOverlays.length; i++) {
+            const overlayNode = groundOverlays[i];
+            const name = overlayNode.getElementsByTagName('name')[0]?.textContent || 'Layout Overlay';
+            const href = overlayNode.getElementsByTagName('href')[0]?.textContent || '';
+            const latLonBox = overlayNode.getElementsByTagName('LatLonBox')[0];
+            const visibilityNode = overlayNode.getElementsByTagName('visibility')[0];
+            const isVisible = visibilityNode ? visibilityNode.textContent !== '0' : true;
+            
+            // Only add GroundOverlays that are visible by default
+            if (latLonBox && href && isVisible) {
+                const north = parseFloat(latLonBox.getElementsByTagName('north')[0]?.textContent || '0');
+                const south = parseFloat(latLonBox.getElementsByTagName('south')[0]?.textContent || '0');
+                const east = parseFloat(latLonBox.getElementsByTagName('east')[0]?.textContent || '0');
+                const west = parseFloat(latLonBox.getElementsByTagName('west')[0]?.textContent || '0');
+                const rotationNode = latLonBox.getElementsByTagName('rotation')[0];
+                const rotation = rotationNode ? parseFloat(rotationNode.textContent) : 0;
                 
-                // Only add GroundOverlays that are visible by default
-                if (latLonBox && href && isVisible) {
-                    const north = parseFloat(latLonBox.getElementsByTagName('north')[0]?.textContent || '0');
-                    const south = parseFloat(latLonBox.getElementsByTagName('south')[0]?.textContent || '0');
-                    const east = parseFloat(latLonBox.getElementsByTagName('east')[0]?.textContent || '0');
-                    const west = parseFloat(latLonBox.getElementsByTagName('west')[0]?.textContent || '0');
-                    const rotationNode = latLonBox.getElementsByTagName('rotation')[0];
-                    const rotation = rotationNode ? parseFloat(rotationNode.textContent) : 0;
-                    
-                    const bounds = [[south, west], [north, east]];
-                    
-                    // Parse custom overlay color/opacity tint
-                    const colorNode = overlayNode.getElementsByTagName('color')[0];
-                    let overlayOpacity = 0.85;
-                    if (colorNode) {
-                        const parsedColor = parseKmlColor(colorNode.textContent);
-                        overlayOpacity = parsedColor.opacity;
-                    }
+                const bounds = [[south, west], [north, east]];
+                
+                // Parse custom overlay color/opacity tint
+                const colorNode = overlayNode.getElementsByTagName('color')[0];
+                let overlayOpacity = 0.85;
+                if (colorNode) {
+                    const parsedColor = parseKmlColor(colorNode.textContent);
+                    overlayOpacity = parsedColor.opacity;
+                }
 
-                    const leafletOverlay = L.imageOverlay.rotated(href, bounds, {
-                        rotation: rotation,
-                        opacity: overlayOpacity
-                    });
-                    layoutsGroup.addLayer(leafletOverlay);
-                }
-            }
-            
-            // Helper to determine parent folder
-            function getParentFolderName(node) {
-                let parent = node.parentNode;
-                while (parent && parent.nodeName !== 'Folder' && parent.nodeName !== 'Document' && parent.nodeName !== 'kml') {
-                    parent = parent.parentNode;
-                }
-                return parent && parent.nodeName === 'Folder' ? parent.getElementsByTagName('name')[0]?.textContent : '';
-            }
-            
-            // Parse coordinates string
-            function parseCoordinates(coordsText) {
-                const points = [];
-                const coordsArray = coordsText.trim().split(/\s+/);
-                for (const coordStr of coordsArray) {
-                    if (!coordStr) continue;
-                    const parts = coordStr.split(',');
-                    if (parts.length >= 2) {
-                        const lng = parseFloat(parts[0]);
-                        const lat = parseFloat(parts[1]);
-                        if (!isNaN(lat) && !isNaN(lng)) {
-                            points.push([lat, lng]);
-                        }
-                    }
-                }
-                return points;
-            }
-            
-            // Customize marker icons
-            function createProjectMarkerIcon(name) {
-                return L.divIcon({
-                    className: 'custom-gis-marker',
-                    html: `
-                        <div class="gis-marker-pulse"></div>
-                        <div class="gis-marker-dot"></div>
-                        <div class="gis-marker-label">${name}</div>
-                    `,
-                    iconSize: [20, 20],
-                    iconAnchor: [10, 10]
+                const leafletOverlay = L.imageOverlay.rotated(href, bounds, {
+                    rotation: rotation,
+                    opacity: overlayOpacity
                 });
+                layoutsGroup.addLayer(leafletOverlay);
+            }
+        }
+        
+        // Helper to determine parent folder
+        function getParentFolderName(node) {
+            let parent = node.parentNode;
+            while (parent && parent.nodeName !== 'Folder' && parent.nodeName !== 'Document' && parent.nodeName !== 'kml') {
+                parent = parent.parentNode;
+            }
+            return parent && parent.nodeName === 'Folder' ? parent.getElementsByTagName('name')[0]?.textContent : '';
+        }
+        
+        // Parse coordinates string
+        function parseCoordinates(coordsText) {
+            const points = [];
+            const coordsArray = coordsText.trim().split(/\s+/);
+            for (const coordStr of coordsArray) {
+                if (!coordStr) continue;
+                const parts = coordStr.split(',');
+                if (parts.length >= 2) {
+                    const lng = parseFloat(parts[0]);
+                    const lat = parseFloat(parts[1]);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        points.push([lat, lng]);
+                    }
+                }
+            }
+            return points;
+        }
+        
+        // Customize marker icons
+        function createProjectMarkerIcon(name) {
+            return L.divIcon({
+                className: 'custom-gis-marker',
+                html: `
+                    <div class="gis-marker-pulse"></div>
+                    <div class="gis-marker-dot"></div>
+                    <div class="gis-marker-label">${name}</div>
+                `,
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+        }
+        
+        // Parse Placemarks
+        const placemarks = xmlDoc.getElementsByTagName('Placemark');
+        for (let i = 0; i < placemarks.length; i++) {
+            const pmNode = placemarks[i];
+            const name = pmNode.getElementsByTagName('name')[0]?.textContent || 'Feature';
+            const folderName = getParentFolderName(pmNode) || '';
+            
+            // LineString (Roads)
+            const lineString = pmNode.getElementsByTagName('LineString')[0];
+            if (lineString) {
+                const coordsText = lineString.getElementsByTagName('coordinates')[0]?.textContent || '';
+                const coords = parseCoordinates(coordsText);
+                if (coords.length > 0) {
+                    const isRegional = folderName.includes('RRR') || folderName.includes('ORR') || name.toLowerCase().includes('orr') || name.toLowerCase().includes('rrr') || name.toLowerCase().includes('highway');
+                    const styleInfo = getPlacemarkStyle(pmNode);
+                    
+                    const polyline = L.polyline(coords, {
+                        color: styleInfo.color,
+                        weight: styleInfo.width,
+                        opacity: styleInfo.opacity
+                    });
+                    
+                    if (isRegional) {
+                        polyline.bindTooltip(name, {
+                            permanent: true,
+                            direction: 'center',
+                            className: 'road-label'
+                        });
+                        regionalRoadsGroup.addLayer(polyline);
+                    } else {
+                        polyline.bindTooltip(name, {
+                            sticky: true,
+                            className: 'road-label-local'
+                        });
+                        localRoadsGroup.addLayer(polyline);
+                    }
+                }
             }
             
-            // Parse Placemarks
-            const placemarks = xmlDoc.getElementsByTagName('Placemark');
-            for (let i = 0; i < placemarks.length; i++) {
-                const pmNode = placemarks[i];
-                const name = pmNode.getElementsByTagName('name')[0]?.textContent || 'Feature';
-                const folderName = getParentFolderName(pmNode) || '';
-                
-                // LineString (Roads)
-                const lineString = pmNode.getElementsByTagName('LineString')[0];
-                if (lineString) {
-                    const coordsText = lineString.getElementsByTagName('coordinates')[0]?.textContent || '';
-                    const coords = parseCoordinates(coordsText);
-                    if (coords.length > 0) {
-                        const isRegional = folderName.includes('RRR') || folderName.includes('ORR') || name.toLowerCase().includes('orr') || name.toLowerCase().includes('rrr') || name.toLowerCase().includes('highway');
-                        const styleInfo = getPlacemarkStyle(pmNode);
-                        
-                        const polyline = L.polyline(coords, {
-                            color: styleInfo.color,
-                            weight: styleInfo.width,
-                            opacity: styleInfo.opacity
-                        });
-                        
-                        if (isRegional) {
-                            polyline.bindTooltip(name, {
-                                permanent: true,
-                                direction: 'center',
-                                className: 'road-label'
-                            });
-                            regionalRoadsGroup.addLayer(polyline);
-                        } else {
-                            polyline.bindTooltip(name, {
-                                sticky: true,
-                                className: 'road-label-local'
-                            });
-                            localRoadsGroup.addLayer(polyline);
-                        }
-                    }
-                }
-                
-                // Point (Markers)
-                const point = pmNode.getElementsByTagName('Point')[0];
-                if (point) {
-                    const coordsText = point.getElementsByTagName('coordinates')[0]?.textContent || '';
-                    const coords = parseCoordinates(coordsText);
-                    if (coords.length > 0) {
-                        const marker = L.marker(coords[0], {
-                            icon: createProjectMarkerIcon(name)
-                        }).bindPopup(`<b>${name}</b>`);
-                        
-                        projectMarkersGroup.addLayer(marker);
-                    }
+            // Point (Markers)
+            const point = pmNode.getElementsByTagName('Point')[0];
+            if (point) {
+                const coordsText = point.getElementsByTagName('coordinates')[0]?.textContent || '';
+                const coords = parseCoordinates(coordsText);
+                if (coords.length > 0) {
+                    const marker = L.marker(coords[0], {
+                        icon: createProjectMarkerIcon(name)
+                    }).bindPopup(`<b>${name}</b>`);
+                    
+                    projectMarkersGroup.addLayer(marker);
                 }
             }
+        }
+    }
+    
+    // Parse doc.kml file with local fallback to support offline/local file loads
+    fetch('doc.kml')
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load KML file');
+            return response.text();
+        })
+        .then(kmlText => {
+            parseKML(kmlText);
         })
         .catch(err => {
-            console.error('Error loading or parsing KML:', err);
+            console.warn('CORS or network error. Falling back to local docKmlContent:', err);
+            if (typeof docKmlContent !== 'undefined') {
+                parseKML(docKmlContent);
+            } else {
+                console.error('Local docKmlContent fallback not found.');
+            }
         });
         
     // Setup Layer Checkbox Handlers
@@ -1646,5 +1919,314 @@ function refreshLeafletMarkers() {
 function applyLeafletMarkerFilters(marker, el) {
     // No-op since markers rendering is disabled in Satellite View.
     return;
+}
+
+function updateSidebarAndHeaderForProject(project) {
+    const searchSection = document.getElementById('searchSection');
+    const filtersSection = document.getElementById('filtersSection');
+    const legendSection = document.getElementById('legendSection');
+    const headerStats = document.querySelector('.header-stats');
+    const approvedBadge = document.querySelector('.approved-badge');
+    const projectNameEl = document.querySelector('.project-name');
+    
+    if (!isSatelliteActive && (project === 'avatar3' || project === 'avatar2' || project === 'avatar1')) {
+        if (searchSection) searchSection.style.display = 'block';
+        if (filtersSection) filtersSection.style.display = 'block';
+        if (legendSection) legendSection.style.display = 'block';
+        if (headerStats) headerStats.style.display = 'flex';
+        if (approvedBadge) approvedBadge.style.display = 'inline-flex';
+        if (projectNameEl) {
+            if (project === 'avatar3') projectNameEl.textContent = 'Layout View (Avatar 3)';
+            else if (project === 'avatar2') projectNameEl.textContent = 'Layout View (Avatar 2)';
+            else projectNameEl.textContent = 'Layout View (Avatar 1)';
+        }
+        if (approvedBadge) {
+            if (project === 'avatar3') {
+                approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved (LP No. 224/2023/H)';
+            } else if (project === 'avatar2') {
+                approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved';
+            } else {
+                approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Layout Approved';
+            }
+        }
+    } else {
+        if (searchSection) searchSection.style.display = 'none';
+        if (filtersSection) filtersSection.style.display = 'none';
+        if (legendSection) legendSection.style.display = 'none';
+        if (headerStats) headerStats.style.display = 'none';
+        if (approvedBadge) approvedBadge.style.display = 'none';
+        if (projectNameEl) {
+            if (project === 'avatar1') projectNameEl.textContent = 'Avatar 1';
+            else if (project === 'avatar2') projectNameEl.textContent = 'Avatar 2';
+            else projectNameEl.textContent = 'Avatar 3';
+        }
+    }
+}
+
+function changeLayoutImage(newSrc, containerWidth, containerHeight, imageWidth, imageHeight, onBeforeLoad) {
+    const loader = document.getElementById('layoutLoader');
+    
+    // Show loader and fade out old content
+    if (loader) loader.classList.add('active');
+    mapImage.classList.add('loading-layout');
+    plotsOverlay.classList.add('loading-layout');
+    
+    // Check if the image source is actually changing.
+    const cleanSrc = newSrc.split('?')[0];
+    const currentCleanSrc = mapImage.src.substring(mapImage.src.length - cleanSrc.length);
+    
+    let isTransitioned = false;
+    const transitionDone = () => {
+        if (isTransitioned) return;
+        isTransitioned = true;
+        
+        // Update dimensions before rendering dots so they place correctly
+        mapContainer.style.width = containerWidth;
+        mapContainer.style.height = containerHeight;
+        mapImage.style.width = imageWidth;
+        mapImage.style.height = imageHeight;
+        
+        if (onBeforeLoad) onBeforeLoad();
+        
+        // Render and fit
+        renderPlotDots();
+        fitMapToViewport();
+        
+        // Fade in
+        mapImage.classList.remove('loading-layout');
+        plotsOverlay.classList.remove('loading-layout');
+        if (loader) loader.classList.remove('active');
+    };
+    
+    if (currentCleanSrc === cleanSrc && mapImage.complete) {
+        // Already loaded the same image
+        transitionDone();
+        return;
+    }
+    
+    // Hook load event
+    const handleLoad = () => {
+        mapImage.removeEventListener('load', handleLoad);
+        mapImage.removeEventListener('error', handleError);
+        transitionDone();
+    };
+    
+    const handleError = () => {
+        mapImage.removeEventListener('load', handleLoad);
+        mapImage.removeEventListener('error', handleError);
+        console.warn('Failed to load image:', newSrc);
+        transitionDone(); // Proceed anyway to not block UI forever
+    };
+    
+    mapImage.addEventListener('load', handleLoad);
+    mapImage.addEventListener('error', handleError);
+    
+    // Change source
+    mapImage.src = newSrc;
+}
+
+function setupProjectNavigation() {
+    const projectLocations = {
+        avatar1: [16.9498389, 78.4960974],
+        avatar2: [16.9233266, 78.5325395],
+        avatar3: [16.9307952, 78.5382904]
+    };
+
+    const navButtons = document.querySelectorAll('.project-nav-btn');
+
+    navButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const project = btn.dataset.project;
+
+            // Update active states for the nav buttons
+            navButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            currentProject = project;
+
+            // Reset active mapper plot to 1 when project changes
+            activeMapperPlot = 1;
+            if (typeof mapperActivePlot !== 'undefined' && mapperActivePlot) {
+                mapperActivePlot.value = 1;
+            }
+            if (isMapperMode) {
+                renderMapperPlotList();
+                highlightActiveMapperButton();
+            }
+
+            // Update sidebar & header views based on project
+            updateSidebarAndHeaderForProject(project);
+            
+            // Display Project Details Card on Map view
+            showProjectDetailsCard(project);
+
+            if (project === 'avatar1') {
+                if (isSatelliteActive) {
+                    if (leafletMap) {
+                        leafletMap.flyTo(projectLocations[project], 17, { duration: 1.5 });
+                    }
+                } else {
+                    changeLayoutImage('avatar1_map_layout.jpg', '1024px', '647px', '1024px', '647px', () => {
+                        plotData = avatarDataPool.avatar1 || [];
+                        activeSearchPlot = null;
+                        if (searchInput) searchInput.value = '';
+                        if (searchClearBtn) searchClearBtn.style.display = 'none';
+                        if (searchSuggestions) searchSuggestions.style.display = 'none';
+                        applyFilters();
+                        updateStatistics();
+                    });
+                }
+            } else if (project === 'avatar2') {
+                if (isSatelliteActive) {
+                    if (leafletMap) {
+                        leafletMap.flyTo(projectLocations[project], 17, { duration: 1.5 });
+                    }
+                } else {
+                    changeLayoutImage('avatar2_digi/map_layout.jpg', '1024px', '646px', '1024px', '646px', () => {
+                        plotData = avatarDataPool.avatar2 || [];
+                        activeSearchPlot = null;
+                        if (searchInput) searchInput.value = '';
+                        if (searchClearBtn) searchClearBtn.style.display = 'none';
+                        if (searchSuggestions) searchSuggestions.style.display = 'none';
+                        applyFilters();
+                        updateStatistics();
+                    });
+                }
+            } else if (project === 'avatar3') {
+                if (isSatelliteActive) {
+                    if (leafletMap) {
+                        leafletMap.flyTo(projectLocations[project], 17, { duration: 1.5 });
+                    }
+                } else {
+                    changeLayoutImage('map_layout.png', '1024px', '576px', '1024px', '576px', () => {
+                        plotData = avatarDataPool.avatar3 || [];
+                        activeSearchPlot = null;
+                        if (searchInput) searchInput.value = '';
+                        if (searchClearBtn) searchClearBtn.style.display = 'none';
+                        if (searchSuggestions) searchSuggestions.style.display = 'none';
+                        applyFilters();
+                        updateStatistics();
+                    });
+                }
+            }
+        });
+    });
+
+    // Close details card button listener
+    const closeBtn = document.getElementById('projDetailsCloseBtn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            const card = document.getElementById('projectDetailsCard');
+            if (card) card.style.display = 'none';
+        });
+    }
+}
+
+function showProjectDetailsCard(project) {
+    const card = document.getElementById('projectDetailsCard');
+    const titleEl = document.getElementById('projDetailsTitle');
+    const locationEl = document.getElementById('projDetailsLocation');
+    const areaEl = document.getElementById('projDetailsArea');
+    const plotsEl = document.getElementById('projDetailsPlots');
+    const lpEl = document.getElementById('projDetailsLP');
+    const statusEl = document.getElementById('projDetailsStatus');
+    const highlightsEl = document.getElementById('projDetailsHighlights');
+    
+    if (!card) return;
+    
+    // Hide details card for Avatar 3 when not in Satellite view or if not navigated
+    if (!isSatelliteActive) {
+        card.style.display = 'none';
+        return;
+    }
+    
+    const info = projectMetadata[project];
+    if (!info) {
+        card.style.display = 'none';
+        return;
+    }
+    
+    titleEl.textContent = info.title;
+    locationEl.textContent = info.location;
+    areaEl.textContent = info.area;
+    plotsEl.textContent = info.plots;
+    lpEl.textContent = info.lpNumber;
+    statusEl.textContent = info.status;
+    
+    // Build highlights list
+    highlightsEl.innerHTML = '';
+    info.highlights.forEach(highlight => {
+        const li = document.createElement('li');
+        li.textContent = highlight;
+        highlightsEl.appendChild(li);
+    });
+    
+    card.style.display = 'block';
+}
+
+function setupMiniMap() {
+    const MiniMapControl = L.Control.extend({
+        options: {
+            position: 'bottomleft'
+        },
+        onAdd: function (map) {
+            const container = L.DomUtil.create('div', 'leaflet-control-minimap');
+            container.id = 'miniMapContainer';
+            container.style.width = '140px';
+            container.style.height = '100px';
+            
+            // Prevent map dragging/zooming propagation
+            L.DomEvent.disableClickPropagation(container);
+            
+            return container;
+        }
+    });
+
+    leafletMap.addControl(new MiniMapControl());
+
+    // Create the Leaflet map inside the container
+    miniMap = L.map('miniMapContainer', {
+        attributionControl: false,
+        zoomControl: false,
+        dragging: false,
+        touchZoom: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false
+    });
+
+    // Add Esri Satellite tiles to the mini-map
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 21
+    }).addTo(miniMap);
+
+    // Bounding viewport rectangle
+    miniMapRect = L.rectangle(leafletMap.getBounds(), {
+        color: '#ef4444',
+        weight: 1.5,
+        fillColor: '#ef4444',
+        fillOpacity: 0.15,
+        interactive: false,
+        className: 'minimap-viewport-rect'
+    }).addTo(miniMap);
+
+    // Sync function
+    function syncMiniMap() {
+        if (!miniMap || !miniMapRect || !leafletMap) return;
+        const center = leafletMap.getCenter();
+        const mainZoom = leafletMap.getZoom();
+        const miniZoom = Math.max(9, Math.min(14, mainZoom - 5));
+        
+        miniMap.setView(center, miniZoom);
+        miniMapRect.setBounds(leafletMap.getBounds());
+    }
+
+    // Bind event listeners
+    leafletMap.on('move', syncMiniMap);
+    leafletMap.on('zoomend', syncMiniMap);
+
+    // Initial sync
+    syncMiniMap();
 }
 

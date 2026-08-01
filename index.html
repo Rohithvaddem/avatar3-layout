@@ -42,8 +42,18 @@
 
             <!-- Scrollable Sidebar Menu Content -->
             <div class="sidebar-menu">
+                <!-- Project Selection Navigation -->
+                <div class="sidebar-section" id="projectNavSection">
+                    <h3 class="section-title">Project Selector</h3>
+                    <div class="project-nav-grid">
+                        <button class="project-nav-btn" id="navAvatar1" data-project="avatar1">Avatar 1</button>
+                        <button class="project-nav-btn" id="navAvatar2" data-project="avatar2">Avatar 2</button>
+                        <button class="project-nav-btn active" id="navAvatar3" data-project="avatar3">Avatar 3</button>
+                    </div>
+                </div>
+
                 <!-- Search Section -->
-                <div class="sidebar-section">
+                <div class="sidebar-section" id="searchSection">
                     <h3 class="section-title">Search Plots</h3>
                     <div class="search-box">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
@@ -54,7 +64,7 @@
                 </div>
 
                 <!-- Filters Section -->
-                <div class="sidebar-section">
+                <div class="sidebar-section" id="filtersSection">
                     <div class="section-header">
                         <h3 class="section-title">Filter by Facing</h3>
                         <button class="filter-reset-btn" id="facingResetBtn">Clear</button>
@@ -72,7 +82,7 @@
                 </div>
 
                 <!-- Legend & Statistics Section -->
-                <div class="sidebar-section">
+                <div class="sidebar-section" id="legendSection">
                     <h3 class="section-title">Plot Status\Legend</h3>
                     <div class="status-legend-list" id="statusLegendList">
                         <!-- Dynamic rendering by app.js -->
@@ -84,21 +94,20 @@
                     style="border-top: 1px solid var(--border-color); display: none;">
                     <div class="section-header">
                         <h3 class="section-title" style="color: var(--accent); margin-bottom: 0;"><i
-                                class="fa-solid fa-map-pin"></i> Coordinate Mapper</h3>
+                                class="fa-solid fa-map-pin"></i> Plot Button Aligner</h3>
                         <button class="filter-reset-btn" id="toggleMapperBtn">Start</button>
                     </div>
                     <div id="mapperPanel" style="display: none; margin-top: 12px;">
                         <p
                             style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.4; text-align: left;">
-                            Select a plot number below, then click on the map to place its marker. The active plot will
-                            auto-advance.
+                            Select a plot below or click its dot on the map, then click on the map anywhere to align its button. The active plot will auto-advance.
                         </p>
                         <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
                             <span style="font-size: 12px; font-weight: 600; color: var(--text-primary);">Active: Plot
                                 #</span>
                             <input type="number" id="mapperActivePlot"
                                 style="width: 70px; background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 4px 8px; border-radius: 6px;"
-                                value="1" min="1" max="206">
+                                value="1" min="1" max="328">
                         </div>
                         <div style="max-height: 150px; overflow-y: auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 6px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 12px;"
                             id="mapperPlotList">
@@ -175,7 +184,7 @@
                             <span class="layer-label">Regional Roads</span>
                         </label>
                         <label class="layer-toggle-item">
-                            <input type="checkbox" id="toggleLocalRoads">
+                            <input type="checkbox" id="toggleLocalRoads" checked>
                             <span class="custom-checkbox"></span>
                             <span class="layer-label">Road Connections</span>
                         </label>
@@ -184,6 +193,42 @@
                             <span class="custom-checkbox"></span>
                             <span class="layer-label">Project Markers</span>
                         </label>
+                    </div>
+                </div>
+
+                <!-- Project Details Card (slides in from right in Satellite View) -->
+                <div class="project-details-card" id="projectDetailsCard" style="display: none;">
+                    <div class="details-card-header">
+                        <h4 id="projDetailsTitle">Avatar 3</h4>
+                        <button class="details-card-close" id="projDetailsCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="details-card-body">
+                        <div class="details-row">
+                            <span class="details-label"><i class="fa-solid fa-location-dot"></i> Location</span>
+                            <span class="details-value" id="projDetailsLocation">-</span>
+                        </div>
+                        <div class="details-row">
+                            <span class="details-label"><i class="fa-solid fa-maximize"></i> Total Area</span>
+                            <span class="details-value" id="projDetailsArea">-</span>
+                        </div>
+                        <div class="details-row">
+                            <span class="details-label"><i class="fa-solid fa-thumbtack"></i> Total Plots</span>
+                            <span class="details-value" id="projDetailsPlots">-</span>
+                        </div>
+                        <div class="details-row">
+                            <span class="details-label"><i class="fa-solid fa-certificate"></i> LP Status</span>
+                            <span class="details-value" id="projDetailsLP">-</span>
+                        </div>
+                        <div class="details-row">
+                            <span class="details-label"><i class="fa-solid fa-circle-info"></i> Project Status</span>
+                            <span class="details-value" id="projDetailsStatus">-</span>
+                        </div>
+                        <div class="details-highlights">
+                            <span class="highlights-title">Location Highlights</span>
+                            <ul class="highlights-list" id="projDetailsHighlights">
+                                <!-- Location Highlights list goes here -->
+                            </ul>
+                        </div>
                     </div>
                 </div>
 
@@ -198,6 +243,12 @@
                 <!-- Zoom Instructions (fades out after drag/zoom) -->
                 <div class="map-tip" id="mapTip">
                     <i class="fa-solid fa-hand-pointer"></i> Drag to Pan &bull; Scroll or Pinch to Zoom
+                </div>
+
+                <!-- Sleek Layout Loader -->
+                <div class="layout-loader" id="layoutLoader">
+                    <div class="spinner"></div>
+                    <div>Loading Layout...</div>
                 </div>
 
                 <!-- Drag/Zoom Container -->
@@ -260,6 +311,11 @@
     <!-- Load Coordinate Script first, then main application -->
     <script src="plot_coords.js"></script>
     <script src="data.js"></script>
+    <script src="avatar2_plot_coords.js"></script>
+    <script src="avatar2_data.js"></script>
+    <script src="avatar1_plot_coords.js"></script>
+    <script src="avatar1_data.js"></script>
+    <script src="doc_kml.js"></script>
     <script src="app.js"></script>
 </body>
 

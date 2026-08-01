@@ -3,4 +3,7 @@
 .vs/
 .vscode/
 temp_xlsx/
-/avatar2_digi/
+node_modules/
+package.json
+package-lock.json
+
