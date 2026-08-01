@@ -147,9 +147,9 @@ function getStatusColor(status) {
 function renderPlotDots() {
     plotsOverlay.innerHTML = '';
     
-    // Scale factors: original coords are mapped to 2500x1579 background
+    // Scale factors: original coords are mapped to 2500x1406 background
     const scaleX = 1024 / 2500;
-    const scaleY = 576 / 1579;
+    const scaleY = 576 / 1406;
     
     // plotCoordinates is a global defined in plot_coords.js
     Object.keys(plotCoordinates).forEach(plotNo => {
@@ -453,16 +453,16 @@ function focusOnPlot(plotNo) {
         
         // Calculate Lat/Lng
         const width2D = 2500;
-        const height2D = 1579;
+        const height2D = 1406;
         const lng = siteBounds.west + (coords.left / width2D) * (siteBounds.east - siteBounds.west);
         const lat = siteBounds.north - (coords.top / height2D) * (siteBounds.north - siteBounds.south);
         
         leafletMap.setView([lat, lng], 19);
     }
     
-    // Scale factors: original coords are mapped to 2500x1579 background
+    // Scale factors: original coords are mapped to 2500x1406 background
     const scaleX = 1024 / 2500;
-    const scaleY = 576 / 1579;
+    const scaleY = 576 / 1406;
     
     // Zoom close and Center on coordinates
     zoomScale = 1.0; // close up zoom
@@ -869,9 +869,9 @@ function handleMapClick(e) {
     const clickX = (e.clientX - rect.left) / zoomScale;
     const clickY = (e.clientY - rect.top) / zoomScale;
     
-    // Scale factors: original coords map to 2500x1579 dimensions
+    // Scale factors: original coords map to 2500x1406 dimensions
     const scaleX = 1024 / 2500;
-    const scaleY = 576 / 1579;
+    const scaleY = 576 / 1406;
     
     // Convert current click coordinate back to original reference size
     const origLeft = Math.round(clickX / scaleX);
