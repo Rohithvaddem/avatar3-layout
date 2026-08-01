@@ -1051,18 +1051,6 @@ function exportPlotSpecSheet(plotNo) {
                         </tbody>
                     </table>
                 </div>
-
-                ${item.customer_name ? `
-                <div style="margin-top: 30px; border-top: 1px dashed #cbd5e1; padding-top: 20px;">
-                    <div class="spec-title" style="margin-bottom: 12px; color: #3b82f6;">CRM Lead Information (Confidential)</div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px;">
-                        <div><strong>Client Name:</strong> ${item.customer_name}</div>
-                        <div><strong>Phone:</strong> ${item.customer_phone || 'N/A'}</div>
-                        <div><strong>Email:</strong> ${item.customer_email || 'N/A'}</div>
-                        <div><strong>Pipeline Stage:</strong> ${item.pipeline_stage || 'N/A'}</div>
-                    </div>
-                </div>
-                ` : ''}
                 
                 <div class="footer">
                     <div>Generated on ${new Date().toLocaleDateString()}</div>
