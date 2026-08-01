@@ -1075,24 +1075,25 @@ function exportPlotSpecSheet(plotNo) {
                     <button class="btn-calc" onclick="calculatePriceAndPrint()"><i class="fa-solid fa-file-invoice-dollar"></i> Calculate &amp; Save as PDF</button>
                 </div>
                 ` : ''}
-                
-                <div class="grid-specs">
-                    <div class="spec-box">
-                        <div class="spec-title">Plot Number</div>
-                        <div class="spec-value" style="color: #3b82f6;"># ${item.plot_no}</div>
-                    </div>
-                    <div class="spec-box">
-                        <div class="spec-title">Plot Area</div>
-                        <div class="spec-value">${item.plot_size ? item.plot_size + ' Sq. Yards' : 'N/A'}</div>
-                    </div>
-                    <div class="spec-box">
-                        <div class="spec-title">Facing Direction</div>
-                        <div class="spec-value">${item.facing || 'N/A'}</div>
-                    </div>
-                    <div class="spec-box">
-                        <div class="spec-title">Status</div>
-                        <div class="spec-value" style="text-transform: uppercase;">${item.plot_status}</div>
-                    </div>
+                <!-- Plot Specifications Table (Invoice Style) -->
+                <div style="margin-bottom: 30px;">
+                    <div class="spec-title" style="margin-bottom: 12px; color: #3b82f6;">Plot Specifications</div>
+                    <table class="dim-table">
+                        <tbody>
+                            <tr>
+                                <td><strong>Plot Number</strong></td>
+                                <td style="color: #2563eb; font-weight: 700;"># ${item.plot_no}</td>
+                                <td><strong>Plot Area</strong></td>
+                                <td>${item.plot_size ? item.plot_size + ' Sq. Yards' : 'N/A'}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Facing Direction</strong></td>
+                                <td>${item.facing || 'N/A'}</td>
+                                <td><strong>Current Status</strong></td>
+                                <td style="font-weight: 700; text-transform: uppercase;">${item.plot_status}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
                 <!-- Venture Layout Details Table -->
