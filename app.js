@@ -2491,7 +2491,7 @@ function updateSidebarAndHeaderForProject(project) {
             if (project === 'avatar3') {
                 approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved (LP No. 224/2023/H)';
             } else if (project === 'avatar2') {
-                approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved';
+                approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved 28/2025/h &nbsp;|&nbsp; RERA Approved Po2400009896';
             } else {
                 approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved 224/2023/h &nbsp;|&nbsp; RERA Approved po2400007808';
             }
