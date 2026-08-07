@@ -1826,71 +1826,55 @@ input[type="radio"]:checked + .custom-radio::after {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.sat-cs-badge-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 22px rgba(249, 115, 22, 0.6);
-}
-
-/* Custom GIS Map Project Pin Markers */
+/* Custom GIS Map Markers for Satellite View */
 .custom-gis-marker {
-    position: relative;
+    background: transparent !important;
+    border: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gis-marker-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(10, 13, 20, 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1.5px solid rgba(59, 130, 246, 0.6);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75), 0 0 15px rgba(59, 130, 246, 0.35);
+    padding: 6px 14px;
+    border-radius: 20px;
     cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    white-space: nowrap;
+    pointer-events: auto;
 }
 
-.gis-marker-pulse {
-    position: absolute;
-    width: 28px;
-    height: 28px;
-    top: -4px;
-    left: -4px;
-    border-radius: 50%;
-    animation: markerPulse 2s infinite ease-out;
-}
-
-@keyframes markerPulse {
-    0% {
-        transform: scale(0.5);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(1.8);
-        opacity: 0;
-    }
+.gis-marker-wrapper:hover {
+    transform: scale(1.06);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.85), 0 0 22px rgba(59, 130, 246, 0.6);
+    border-color: #3b82f6;
 }
 
 .gis-marker-dot {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #ffffff;
+    width: 9px;
+    height: 9px;
+    background: #3b82f6;
     border-radius: 50%;
-    position: relative;
-    z-index: 2;
-    transition: transform 0.2s ease;
-}
-
-.custom-gis-marker:hover .gis-marker-dot {
-    transform: scale(1.25);
+    box-shadow: 0 0 10px #3b82f6;
+    flex-shrink: 0;
 }
 
 .gis-marker-label {
-    position: absolute;
-    top: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(10, 13, 20, 0.92);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
     font-family: var(--font-heading);
-    font-size: 11.5px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 12px;
-    white-space: nowrap;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
-    pointer-events: none;
-    z-index: 3;
+    font-size: 13px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 0.5px;
 }
+
 
 
 
