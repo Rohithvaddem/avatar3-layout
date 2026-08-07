@@ -3315,12 +3315,52 @@ function setupSiteVisitBooking() {
     }
 }
 
+function setupSidebarEmiCalculator() {
+    function updateSidebarEmi() {
+        const area = parseFloat(document.getElementById('sidebarEmiAreaRange')?.value) || 200;
+        const rate = parseFloat(document.getElementById('sidebarEmiRateRange')?.value) || 15000;
+        const downPct = parseFloat(document.getElementById('sidebarEmiDownRange')?.value) || 20;
+        const rateAnnual = parseFloat(document.getElementById('sidebarEmiInterestRange')?.value) || 8.5;
+        const tenureYears = parseInt(document.getElementById('sidebarEmiTenureRange')?.value) || 15;
+
+        if (document.getElementById('sidebarEmiAreaVal')) document.getElementById('sidebarEmiAreaVal').textContent = area + ' Sq.Yds';
+        if (document.getElementById('sidebarEmiRateVal')) document.getElementById('sidebarEmiRateVal').textContent = '₹ ' + rate.toLocaleString('en-IN');
+        if (document.getElementById('sidebarEmiDownVal')) document.getElementById('sidebarEmiDownVal').textContent = downPct + '%';
+        if (document.getElementById('sidebarEmiInterestVal')) document.getElementById('sidebarEmiInterestVal').textContent = rateAnnual + '%';
+        if (document.getElementById('sidebarEmiTenureVal')) document.getElementById('sidebarEmiTenureVal').textContent = tenureYears + ' Yrs';
+
+        const totalCost = area * rate;
+        const principal = totalCost * (1 - (downPct / 100));
+        const r = (rateAnnual / 12) / 100;
+        const n = tenureYears * 12;
+
+        let emi = 0;
+        if (r > 0 && n > 0) {
+            emi = (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+        }
+
+        const emiDisplay = document.getElementById('sidebarEmiMonthlyVal');
+        if (emiDisplay) {
+            emiDisplay.textContent = '₹ ' + Math.round(emi).toLocaleString('en-IN') + ' / mo';
+        }
+    }
+
+    ['sidebarEmiAreaRange', 'sidebarEmiRateRange', 'sidebarEmiDownRange', 'sidebarEmiInterestRange', 'sidebarEmiTenureRange'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateSidebarEmi);
+    });
+
+    updateSidebarEmi();
+}
+
 // Global DOM Ready initializer for Interactive Features
 document.addEventListener('DOMContentLoaded', () => {
     setupInterestModal();
     setupSiteVisitBooking();
+    setupSidebarEmiCalculator();
 });
 setupInterestModal();
 setupSiteVisitBooking();
+setupSidebarEmiCalculator();
 
 
