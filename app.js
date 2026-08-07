@@ -3333,6 +3333,40 @@ function setupCompareHandlers() {
     const compareModalBackdrop = document.getElementById('compareModalBackdrop');
     const compareModalCloseBtn = document.getElementById('compareModalCloseBtn');
 
+    const mapCompareQuickBtn = document.getElementById('mapCompareQuickBtn');
+    const mapEmiQuickBtn = document.getElementById('mapEmiQuickBtn');
+    const mapSizeFilterQuickBtn = document.getElementById('mapSizeFilterQuickBtn');
+
+    if (mapCompareQuickBtn) {
+        mapCompareQuickBtn.addEventListener('click', () => {
+            renderComparisonTable();
+            if (compareModalBackdrop) compareModalBackdrop.classList.add('show');
+        });
+    }
+
+    if (mapEmiQuickBtn) {
+        mapEmiQuickBtn.addEventListener('click', () => {
+            // Open active or default plot #1 modal to display EMI calculator immediately
+            openPlotModal(1);
+        });
+    }
+
+    if (mapSizeFilterQuickBtn) {
+        mapSizeFilterQuickBtn.addEventListener('click', () => {
+            const rangeFilterSection = document.getElementById('rangeFilterSection');
+            if (rangeFilterSection) {
+                rangeFilterSection.scrollIntoView({ behavior: 'smooth' });
+                rangeFilterSection.style.transition = 'box-shadow 0.3s ease';
+                rangeFilterSection.style.boxShadow = '0 0 15px rgba(56, 189, 248, 0.4)';
+                setTimeout(() => rangeFilterSection.style.boxShadow = 'none', 1500);
+            }
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar && !sidebar.classList.contains('show')) {
+                sidebar.classList.add('show');
+            }
+        });
+    }
+
     if (clearCompareBtn) {
         clearCompareBtn.addEventListener('click', () => {
             comparedPlots = [];

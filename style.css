@@ -557,6 +557,13 @@ body {
     z-index: 90;
 }
 
+.map-controls-divider {
+    width: 28px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15);
+    margin: 4px auto;
+}
+
 .map-btn {
     width: 44px;
     height: 44px;
