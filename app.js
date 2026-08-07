@@ -2,12 +2,8 @@
 let plotData = [];
 let activeFilters = {
     facing: null,
-    status: null,
-    maxSize: 600
+    status: null
 };
-
-let comparedPlots = [];
-let globalRatePerSqYd = 25000;
 
 // Layout management pools
 let currentProject = 'avatar1';
@@ -797,7 +793,6 @@ function applyFilters() {
         let matchesFacing = true;
         let matchesStatus = true;
         let matchesSearch = true;
-        let matchesSize = true;
         
         // 1. Check Search Filter
         if (activeSearchPlot) {
@@ -814,19 +809,8 @@ function applyFilters() {
             matchesStatus = String(status).toLowerCase().trim() === activeFilters.status.toLowerCase().trim();
         }
         
-        // 4. Check Size Filter
-        if (activeFilters.maxSize) {
-            const plotDetail = (avatarDataPool[currentProject] || []).find(p => String(p.plot_no) === String(plotNo));
-            if (plotDetail && plotDetail.plot_size) {
-                const sqyds = parseFloat(String(plotDetail.plot_size).replace(/[^0-9.]/g, '')) || 0;
-                if (sqyds > 0 && sqyds > activeFilters.maxSize) {
-                    matchesSize = false;
-                }
-            }
-        }
-        
         // Apply filtered visibility
-        if (matchesFacing && matchesStatus && matchesSearch && matchesSize) {
+        if (matchesFacing && matchesStatus && matchesSearch) {
             dot.classList.remove('filtered-out');
             dot.classList.remove('search-filtered');
         } else {
@@ -1386,53 +1370,8 @@ function openPlotModal(plotNo) {
         }
     }
     
-    const isCompared = comparedPlots.some(p => p.project === currentProject && String(p.plotNo) === String(plotNo));
-    
-    // Calculate EMI breakdown
-    const sqyds = parseFloat(String(item.plot_size).replace(/[^0-9.]/g, '')) || 0;
-    let emiHtml = '';
-    if (sqyds > 0) {
-        const rate = globalRatePerSqYd || 25000;
-        const baseLandCost = sqyds * rate;
-        const stampDuty = baseLandCost * 0.075;
-        const corpusFund = sqyds * 200;
-        const legalFee = 15000;
-        const totalCost = baseLandCost + stampDuty + corpusFund + legalFee;
-        
-        const downPayment = totalCost * 0.20;
-        const loanAmount = totalCost * 0.80;
-        
-        const r = 8.5 / 12 / 100;
-        const n = 15 * 12;
-        const emi = (loanAmount * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-        const fmt = (val) => '₹ ' + Math.round(val).toLocaleString('en-IN');
-        
-        emiHtml = `
-            <div class="emi-calc-box">
-                <div class="emi-calc-title">
-                    <i class="fa-solid fa-calculator"></i> Est. Loan &amp; Monthly EMI
-                </div>
-                <div class="emi-input-group">
-                    <div class="emi-row">
-                        <span>Est. Total Cost:</span>
-                        <strong style="color: #ffffff;">${fmt(totalCost)}</strong>
-                    </div>
-                    <div class="emi-row">
-                        <span>Down Payment (20%):</span>
-                        <strong>${fmt(downPayment)}</strong>
-                    </div>
-                    <div class="emi-row">
-                        <span>Loan Amount (80%):</span>
-                        <strong>${fmt(loanAmount)}</strong>
-                    </div>
-                    <div class="emi-result-box">
-                        <span style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Est. Monthly EMI (8.5% @ 15 yrs)</span>
-                        <div class="emi-result-val">${fmt(emi)} / mo</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
+    const plotAreaYds = parseFloat(String(item.plot_size || '').replace(/[^0-9.]/g, '')) || 200;
+    const sqYdRate = 15000; // Estimated baseline rate per sq. yard
 
     modalBody.innerHTML = `
         <div class="detail-card" style="display: flex; flex-direction: column; gap: 10px;">
@@ -1453,24 +1392,94 @@ function openPlotModal(plotNo) {
                 <span class="detail-label">Facing Direction</span>
                 <span class="detail-val">${item.facing || 'N/A'}</span>
             </div>
+
+            <!-- Interactive EMI & Loan Calculator -->
+            <div class="emi-calc-container">
+                <div class="emi-calc-header" id="emiCalcToggle">
+                    <span><i class="fa-solid fa-calculator"></i> Estimated EMI Calculator</span>
+                    <i class="fa-solid fa-chevron-down" id="emiChevron"></i>
+                </div>
+                <div id="emiCalcBody" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div class="emi-slider-row">
+                        <div class="emi-slider-label">
+                            <span>Down Payment</span>
+                            <strong id="emiDownVal">20%</strong>
+                        </div>
+                        <input type="range" id="emiDownRange" min="10" max="50" step="5" value="20" class="emi-slider-input">
+                    </div>
+                    <div class="emi-slider-row">
+                        <div class="emi-slider-label">
+                            <span>Interest Rate</span>
+                            <strong id="emiRateVal">8.5%</strong>
+                        </div>
+                        <input type="range" id="emiRateRange" min="6.5" max="14" step="0.25" value="8.5" class="emi-slider-input">
+                    </div>
+                    <div class="emi-slider-row">
+                        <div class="emi-slider-label">
+                            <span>Tenure</span>
+                            <strong id="emiTenureVal">15 Yrs</strong>
+                        </div>
+                        <input type="range" id="emiTenureRange" min="5" max="30" step="1" value="15" class="emi-slider-input">
+                    </div>
+                    <div class="emi-result-box">
+                        <span style="font-size: 11px; color: var(--text-secondary);">Est. Monthly EMI:</span>
+                        <strong id="emiMonthlyVal" style="font-size: 14px; color: #4ade80;">₹ 0 / mo</strong>
+                    </div>
+                </div>
+            </div>
+
             ${adminCrmHtml}
         </div>
-        ${emiHtml}
-        <button id="toggleCompareBtn" style="background: ${isCompared ? 'rgba(16, 185, 129, 0.2)' : 'rgba(56, 189, 248, 0.12)'}; color: ${isCompared ? '#34d399' : '#38bdf8'}; border: 1px solid ${isCompared ? 'rgba(16, 185, 129, 0.5)' : 'rgba(56, 189, 248, 0.4)'}; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; font-size: 13px; transition: all 0.2s;">
-            <i class="fa-solid fa-code-compare"></i> ${isCompared ? '✓ Added to Comparison' : '+ Add to Compare'}
-        </button>
         ${isAdminLoggedIn ? `
-        <button class="admin-login-btn" id="exportSpecSheetBtn" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border-color); font-weight: 700; width: 100%; margin-top: 8px; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; font-size: 13px;">
+        <button class="admin-login-btn" id="exportSpecSheetBtn" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border-color); font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px;">
             <i class="fa-solid fa-file-pdf"></i> Export Spec-Sheet / PDF
         </button>
         ` : ''}
         ${editButtonHtml}
     `;
-    
-    const toggleCompareBtn = document.getElementById('toggleCompareBtn');
-    if (toggleCompareBtn) {
-        toggleCompareBtn.addEventListener('click', () => {
-            toggleComparePlot(item);
+
+    // Initialize EMI Slider calculations
+    function calculateEmi() {
+        const totalPlotCost = plotAreaYds * sqYdRate;
+        const downPct = parseFloat(document.getElementById('emiDownRange')?.value) || 20;
+        const rateAnnual = parseFloat(document.getElementById('emiRateRange')?.value) || 8.5;
+        const tenureYears = parseInt(document.getElementById('emiTenureRange')?.value) || 15;
+
+        if (document.getElementById('emiDownVal')) document.getElementById('emiDownVal').textContent = downPct + '%';
+        if (document.getElementById('emiRateVal')) document.getElementById('emiRateVal').textContent = rateAnnual + '%';
+        if (document.getElementById('emiTenureVal')) document.getElementById('emiTenureVal').textContent = tenureYears + ' Yrs';
+
+        const principal = totalPlotCost * (1 - (downPct / 100));
+        const r = (rateAnnual / 12) / 100;
+        const n = tenureYears * 12;
+
+        let emi = 0;
+        if (r > 0 && n > 0) {
+            emi = (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+        }
+
+        const emiDisplay = document.getElementById('emiMonthlyVal');
+        if (emiDisplay) {
+            emiDisplay.textContent = '₹ ' + Math.round(emi).toLocaleString('en-IN') + ' / mo';
+        }
+    }
+
+    ['emiDownRange', 'emiRateRange', 'emiTenureRange'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', calculateEmi);
+    });
+
+    calculateEmi();
+
+    // Toggle EMI accordion
+    const toggleBtn = document.getElementById('emiCalcToggle');
+    const calcBody = document.getElementById('emiCalcBody');
+    const chevron = document.getElementById('emiChevron');
+    if (toggleBtn && calcBody) {
+        toggleBtn.addEventListener('click', () => {
+            const isHidden = calcBody.style.display === 'none';
+            calcBody.style.display = isHidden ? 'flex' : 'none';
+            if (chevron) chevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
         });
     }
     
@@ -3249,230 +3258,69 @@ function setupInterestModal() {
     }
 }
 
-// ----------------------------------------------------
-// Features 1, 2, and 3: Plot Compare & Size Range Filter Systems
-// ----------------------------------------------------
+function setupSiteVisitBooking() {
+    const floatBtn = document.getElementById('floatingSiteVisitBtn');
+    const backdrop = document.getElementById('siteVisitModalBackdrop');
+    const closeBtn = document.getElementById('siteVisitCloseBtn');
+    const form = document.getElementById('siteVisitForm');
+    const successMsg = document.getElementById('visitSuccessMsg');
 
-function setupRangeFilterHandlers() {
-    const sizeRangeInput = document.getElementById('sizeRangeInput');
-    const maxSizeVal = document.getElementById('maxSizeVal');
-    const globalRateInput = document.getElementById('globalRateInput');
-    const rateVal = document.getElementById('rateVal');
-    const rangeFilterResetBtn = document.getElementById('rangeFilterResetBtn');
-
-    if (sizeRangeInput) {
-        sizeRangeInput.addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value);
-            activeFilters.maxSize = val;
-            if (maxSizeVal) maxSizeVal.textContent = `${val} Sq.Yds`;
-            applyFilters();
-        });
-    }
-
-    if (globalRateInput) {
-        globalRateInput.addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value) || 25000;
-            globalRatePerSqYd = val;
-            if (rateVal) rateVal.textContent = `₹ ${val.toLocaleString('en-IN')}`;
-            applyFilters();
-        });
-    }
-
-    if (rangeFilterResetBtn) {
-        rangeFilterResetBtn.addEventListener('click', () => {
-            activeFilters.maxSize = 600;
-            globalRatePerSqYd = 25000;
-            if (sizeRangeInput) sizeRangeInput.value = 600;
-            if (maxSizeVal) maxSizeVal.textContent = '600 Sq.Yds';
-            if (globalRateInput) globalRateInput.value = 25000;
-            if (rateVal) rateVal.textContent = '₹ 25,000';
-            applyFilters();
-        });
-    }
-}
-
-function toggleComparePlot(item) {
-    const plotNo = item.plot_no;
-    const existingIdx = comparedPlots.findIndex(p => p.project === currentProject && String(p.plotNo) === String(plotNo));
-
-    if (existingIdx >= 0) {
-        comparedPlots.splice(existingIdx, 1);
-    } else {
-        if (comparedPlots.length >= 3) {
-            alert("You can compare up to 3 plots at a time. Please remove a plot to add another.");
-            return;
-        }
-        comparedPlots.push({
-            project: currentProject,
-            plotNo: plotNo,
-            detail: item
-        });
-    }
-
-    updateCompareBar();
-    openPlotModal(plotNo); // re-render modal with updated compare button status
-}
-
-function updateCompareBar() {
-    const compareBar = document.getElementById('plotCompareBar');
-    const compareCount = document.getElementById('compareCount');
-
-    if (!compareBar) return;
-
-    if (comparedPlots.length > 0) {
-        compareBar.style.display = 'flex';
-        if (compareCount) compareCount.textContent = comparedPlots.length;
-    } else {
-        compareBar.style.display = 'none';
-    }
-}
-
-function setupCompareHandlers() {
-    const clearCompareBtn = document.getElementById('clearCompareBtn');
-    const viewCompareBtn = document.getElementById('viewCompareBtn');
-    const compareModalBackdrop = document.getElementById('compareModalBackdrop');
-    const compareModalCloseBtn = document.getElementById('compareModalCloseBtn');
-
-    const mapCompareQuickBtn = document.getElementById('mapCompareQuickBtn');
-    const mapEmiQuickBtn = document.getElementById('mapEmiQuickBtn');
-    const mapSizeFilterQuickBtn = document.getElementById('mapSizeFilterQuickBtn');
-
-    if (mapCompareQuickBtn) {
-        mapCompareQuickBtn.addEventListener('click', () => {
-            renderComparisonTable();
-            if (compareModalBackdrop) compareModalBackdrop.classList.add('show');
-        });
-    }
-
-    if (mapEmiQuickBtn) {
-        mapEmiQuickBtn.addEventListener('click', () => {
-            // Open active or default plot #1 modal to display EMI calculator immediately
-            openPlotModal(1);
-        });
-    }
-
-    if (mapSizeFilterQuickBtn) {
-        mapSizeFilterQuickBtn.addEventListener('click', () => {
-            const rangeFilterSection = document.getElementById('rangeFilterSection');
-            if (rangeFilterSection) {
-                rangeFilterSection.scrollIntoView({ behavior: 'smooth' });
-                rangeFilterSection.style.transition = 'box-shadow 0.3s ease';
-                rangeFilterSection.style.boxShadow = '0 0 15px rgba(56, 189, 248, 0.4)';
-                setTimeout(() => rangeFilterSection.style.boxShadow = 'none', 1500);
-            }
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar && !sidebar.classList.contains('show')) {
-                sidebar.classList.add('show');
+    if (floatBtn && backdrop) {
+        floatBtn.addEventListener('click', () => {
+            backdrop.classList.add('show');
+            const dateInput = document.getElementById('visitDate');
+            if (dateInput) {
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.min = today;
+                if (!dateInput.value) dateInput.value = today;
             }
         });
     }
 
-    if (clearCompareBtn) {
-        clearCompareBtn.addEventListener('click', () => {
-            comparedPlots = [];
-            updateCompareBar();
-            closePlotModal();
+    if (closeBtn && backdrop) {
+        closeBtn.addEventListener('click', () => {
+            backdrop.classList.remove('show');
         });
     }
 
-    if (viewCompareBtn) {
-        viewCompareBtn.addEventListener('click', () => {
-            renderComparisonTable();
-            if (compareModalBackdrop) compareModalBackdrop.classList.add('show');
+    if (backdrop) {
+        backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) backdrop.classList.remove('show');
         });
     }
 
-    if (compareModalCloseBtn) {
-        compareModalCloseBtn.addEventListener('click', () => {
-            if (compareModalBackdrop) compareModalBackdrop.classList.remove('show');
-        });
-    }
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const project = document.getElementById('visitProjectSelect')?.value;
+            const date = document.getElementById('visitDate')?.value;
+            const time = document.getElementById('visitTimeSlot')?.value;
+            const name = document.getElementById('visitName')?.value;
+            const phone = document.getElementById('visitPhone')?.value;
+            const cab = document.getElementById('visitCabPickup')?.checked;
 
-    if (compareModalBackdrop) {
-        compareModalBackdrop.addEventListener('click', (e) => {
-            if (e.target === compareModalBackdrop) {
-                compareModalBackdrop.classList.remove('show');
+            console.log('Site Visit Booked:', { project, date, time, name, phone, cab });
+
+            if (successMsg) {
+                successMsg.style.display = 'block';
+                successMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> Thank you ${name}! Your site visit for ${project} on ${date} at ${time} is confirmed.`;
             }
+
+            setTimeout(() => {
+                if (successMsg) successMsg.style.display = 'none';
+                if (backdrop) backdrop.classList.remove('show');
+                form.reset();
+            }, 3000);
         });
     }
 }
 
-function renderComparisonTable() {
-    const container = document.getElementById('compareModalBody');
-    if (!container) return;
-
-    if (comparedPlots.length === 0) {
-        container.innerHTML = `<div style="text-align: center; padding: 30px; color: var(--text-secondary);">No plots selected for comparison.</div>`;
-        return;
-    }
-
-    let colsHeader = '';
-    comparedPlots.forEach(cp => {
-        const projName = cp.project === 'avatar1' ? 'Avatar 1' : cp.project === 'avatar2' ? 'Avatar 2' : 'Avatar 3';
-        colsHeader += `<th>Plot #${cp.plotNo} (${projName})</th>`;
-    });
-
-    const rows = [
-        { key: 'Status', fn: p => `<span style="font-weight: 700; color: ${getStatusColor(p.detail.plot_status)}">${p.detail.plot_status}</span>` },
-        { key: 'Plot Area', fn: p => p.detail.plot_size ? `${p.detail.plot_size} Sq. Yds` : 'N/A' },
-        { key: 'Facing', fn: p => p.detail.facing || 'N/A' },
-        { key: 'North Dim.', fn: p => p.detail.dim_north || 'N/A' },
-        { key: 'South Dim.', fn: p => p.detail.dim_south || 'N/A' },
-        { key: 'East Dim.', fn: p => p.detail.dim_east || 'N/A' },
-        { key: 'West Dim.', fn: p => p.detail.dim_west || 'N/A' },
-        { 
-            key: 'Est. Total Cost', 
-            fn: p => {
-                const sqyds = parseFloat(String(p.detail.plot_size).replace(/[^0-9.]/g, '')) || 0;
-                if (sqyds === 0) return 'N/A';
-                const rate = globalRatePerSqYd || 25000;
-                const baseLandCost = sqyds * rate;
-                const stampDuty = baseLandCost * 0.075;
-                const corpusFund = sqyds * 200;
-                const legalFee = 15000;
-                const total = baseLandCost + stampDuty + corpusFund + legalFee;
-                return `<strong style="color: #38bdf8;">₹ ${Math.round(total).toLocaleString('en-IN')}</strong>`;
-            } 
-        }
-    ];
-
-    let tbody = '';
-    rows.forEach(r => {
-        tbody += `<tr><td class="feature-label">${r.key}</td>`;
-        comparedPlots.forEach(cp => {
-            tbody += `<td>${r.fn(cp)}</td>`;
-        });
-        tbody += `</tr>`;
-    });
-
-    // Add Action row
-    tbody += `<tr><td class="feature-label">Action</td>`;
-    comparedPlots.forEach(cp => {
-        tbody += `<td>
-            <button onclick="document.getElementById('compareModalBackdrop').classList.remove('show'); openPlotModal('${cp.plotNo}');" style="background: var(--accent); color: #fff; border: none; font-weight: 700; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 11px;">
-                View Plot
-            </button>
-        </td>`;
-    });
-    tbody += `</tr>`;
-
-    container.innerHTML = `
-        <table class="compare-table">
-            <thead>
-                <tr>
-                    <th class="feature-label">Feature / Property</th>
-                    ${colsHeader}
-                </tr>
-            </thead>
-            <tbody>
-                ${tbody}
-            </tbody>
-        </table>
-    `;
-}
-
-// Initialize Range & Compare Handlers
-setupRangeFilterHandlers();
-setupCompareHandlers();
+// Global DOM Ready initializer for Interactive Features
+document.addEventListener('DOMContentLoaded', () => {
+    setupInterestModal();
+    setupSiteVisitBooking();
+});
+setupInterestModal();
+setupSiteVisitBooking();
 
 
