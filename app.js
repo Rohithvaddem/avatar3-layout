@@ -1209,12 +1209,20 @@ function exportPlotSpecSheet(plotNo) {
                     <table class="invoice-table">
                         <tbody>
                             <tr>
-                                <td style="width: 60%;"><strong>Base Price / Total Plot Price</strong> (Area &times; Rate per Sq. Yard)</td>
+                                <td style="width: 60%;"><strong>Base Land Cost</strong> (Area &times; Rate per Sq. Yard)</td>
                                 <td id="valBasePrice" style="width: 40%; text-align: right; font-weight: 600;">₹0.00</td>
                             </tr>
                             <tr>
-                                <td><strong>Estimated Registration &amp; GST</strong> (approx. 5%)</td>
-                                <td id="valTaxCharges" style="text-align: right; font-weight: 600;">₹0.00</td>
+                                <td><strong>Govt Stamp Duty &amp; Reg. (7.5% in Telangana)</strong></td>
+                                <td id="valStampDuty" style="text-align: right; font-weight: 600;">₹0.00</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Corpus Fund (₹200/yd)</strong></td>
+                                <td id="valCorpusFund" style="text-align: right; font-weight: 600;">₹0.00</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Legal Verification &amp; Document Fee</strong></td>
+                                <td id="valLegalFee" style="text-align: right; font-weight: 600;">₹15,000.00</td>
                             </tr>
                             <tr style="background: #eff6ff; font-weight: 800; font-size: 16px; color: #1e3a8a; border-top: 2px solid #2563eb;">
                                 <td>Grand Total (Estimated Quoted Price)</td>
@@ -1241,8 +1249,10 @@ function exportPlotSpecSheet(plotNo) {
                     }
                     
                     const basePrice = area * rate;
-                    const taxCharges = basePrice * 0.05;
-                    const grandTotal = basePrice + taxCharges;
+                    const stampDuty = basePrice * 0.075; // 7.5% Govt Stamp Duty & Registration in Telangana
+                    const corpusFund = area * 200; // ₹200 per sq. yard Corpus Fund
+                    const legalFee = 15000; // ₹15,000 Legal Verification & Document Fee
+                    const grandTotal = basePrice + stampDuty + corpusFund + legalFee;
                     
                     // Format currency
                     const fmt = (val) => '₹ ' + val.toLocaleString('en-IN', {
@@ -1251,7 +1261,9 @@ function exportPlotSpecSheet(plotNo) {
                     });
                     
                     document.getElementById('valBasePrice').textContent = fmt(basePrice);
-                    document.getElementById('valTaxCharges').textContent = fmt(taxCharges);
+                    document.getElementById('valStampDuty').textContent = fmt(stampDuty);
+                    document.getElementById('valCorpusFund').textContent = fmt(corpusFund);
+                    document.getElementById('valLegalFee').textContent = fmt(legalFee);
                     document.getElementById('valGrandTotal').textContent = fmt(grandTotal);
                     
                     // Show quotation table
