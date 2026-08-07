@@ -2654,18 +2654,11 @@ function initLeafletMap() {
                 }
             }
             
-            // Point (Markers)
+            // Point (Markers parsed from KML - skipped to use exact single project markers)
             const point = pmNode.getElementsByTagName('Point')[0];
             if (point) {
-                const coordsText = point.getElementsByTagName('coordinates')[0]?.textContent || '';
-                const coords = parseCoordinates(coordsText);
-                if (coords.length > 0) {
-                    const marker = L.marker(coords[0], {
-                        icon: createProjectMarkerIcon(name)
-                    }).bindPopup(`<b>${name}</b>`);
-                    
-                    projectMarkersGroup.addLayer(marker);
-                }
+                // Completely ignore any Avatar 3 point marker or duplicate KML point markers
+                continue;
             }
         }
     }
