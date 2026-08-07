@@ -1372,28 +1372,12 @@ function openPlotModal(plotNo) {
     
     const plotAreaYds = parseFloat(String(item.plot_size || '').replace(/[^0-9.]/g, '')) || 200;
     const sqYdRate = 15000; // Estimated baseline rate per sq. yard
+    const isAvailable = String(item.plot_status || '').toUpperCase() === 'AVAILABLE';
 
-    modalBody.innerHTML = `
-        <div class="detail-card" style="display: flex; flex-direction: column; gap: 10px;">
-            ${conflictWarningHtml}
-            <div class="detail-row">
-                <span class="detail-label">Plot Number</span>
-                <span class="detail-val" style="font-size: 18px; font-weight: 700; color: var(--accent)"># ${item.plot_no}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Status</span>
-                <span class="status-badge" style="--badge-color: ${color}; --badge-glow: ${color}">${item.plot_status}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Plot Area</span>
-                <span class="detail-val">${item.plot_size ? item.plot_size + ' Sq. Yards' : 'N/A'}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Facing Direction</span>
-                <span class="detail-val">${item.facing || 'N/A'}</span>
-            </div>
-
-            <!-- Interactive EMI & Loan Calculator -->
+    let emiHtml = '';
+    if (isAvailable) {
+        emiHtml = `
+            <!-- Interactive EMI & Loan Calculator (Only for Available Plots) -->
             <div class="emi-calc-container">
                 <div class="emi-calc-header" id="emiCalcToggle">
                     <span><i class="fa-solid fa-calculator"></i> Estimated EMI Calculator</span>
@@ -1427,7 +1411,30 @@ function openPlotModal(plotNo) {
                     </div>
                 </div>
             </div>
+        `;
+    }
 
+    modalBody.innerHTML = `
+        <div class="detail-card" style="display: flex; flex-direction: column; gap: 10px;">
+            ${conflictWarningHtml}
+            <div class="detail-row">
+                <span class="detail-label">Plot Number</span>
+                <span class="detail-val" style="font-size: 18px; font-weight: 700; color: var(--accent)"># ${item.plot_no}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Status</span>
+                <span class="status-badge" style="--badge-color: ${color}; --badge-glow: ${color}">${item.plot_status}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Plot Area</span>
+                <span class="detail-val">${item.plot_size ? item.plot_size + ' Sq. Yards' : 'N/A'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Facing Direction</span>
+                <span class="detail-val">${item.facing || 'N/A'}</span>
+            </div>
+
+            ${emiHtml}
             ${adminCrmHtml}
         </div>
         ${isAdminLoggedIn ? `
@@ -1438,49 +1445,51 @@ function openPlotModal(plotNo) {
         ${editButtonHtml}
     `;
 
-    // Initialize EMI Slider calculations
-    function calculateEmi() {
-        const totalPlotCost = plotAreaYds * sqYdRate;
-        const downPct = parseFloat(document.getElementById('emiDownRange')?.value) || 20;
-        const rateAnnual = parseFloat(document.getElementById('emiRateRange')?.value) || 8.5;
-        const tenureYears = parseInt(document.getElementById('emiTenureRange')?.value) || 15;
+    if (isAvailable) {
+        // Initialize EMI Slider calculations for available plots
+        function calculateEmi() {
+            const totalPlotCost = plotAreaYds * sqYdRate;
+            const downPct = parseFloat(document.getElementById('emiDownRange')?.value) || 20;
+            const rateAnnual = parseFloat(document.getElementById('emiRateRange')?.value) || 8.5;
+            const tenureYears = parseInt(document.getElementById('emiTenureRange')?.value) || 15;
 
-        if (document.getElementById('emiDownVal')) document.getElementById('emiDownVal').textContent = downPct + '%';
-        if (document.getElementById('emiRateVal')) document.getElementById('emiRateVal').textContent = rateAnnual + '%';
-        if (document.getElementById('emiTenureVal')) document.getElementById('emiTenureVal').textContent = tenureYears + ' Yrs';
+            if (document.getElementById('emiDownVal')) document.getElementById('emiDownVal').textContent = downPct + '%';
+            if (document.getElementById('emiRateVal')) document.getElementById('emiRateVal').textContent = rateAnnual + '%';
+            if (document.getElementById('emiTenureVal')) document.getElementById('emiTenureVal').textContent = tenureYears + ' Yrs';
 
-        const principal = totalPlotCost * (1 - (downPct / 100));
-        const r = (rateAnnual / 12) / 100;
-        const n = tenureYears * 12;
+            const principal = totalPlotCost * (1 - (downPct / 100));
+            const r = (rateAnnual / 12) / 100;
+            const n = tenureYears * 12;
 
-        let emi = 0;
-        if (r > 0 && n > 0) {
-            emi = (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+            let emi = 0;
+            if (r > 0 && n > 0) {
+                emi = (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+            }
+
+            const emiDisplay = document.getElementById('emiMonthlyVal');
+            if (emiDisplay) {
+                emiDisplay.textContent = '₹ ' + Math.round(emi).toLocaleString('en-IN') + ' / mo';
+            }
         }
 
-        const emiDisplay = document.getElementById('emiMonthlyVal');
-        if (emiDisplay) {
-            emiDisplay.textContent = '₹ ' + Math.round(emi).toLocaleString('en-IN') + ' / mo';
-        }
-    }
-
-    ['emiDownRange', 'emiRateRange', 'emiTenureRange'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('input', calculateEmi);
-    });
-
-    calculateEmi();
-
-    // Toggle EMI accordion
-    const toggleBtn = document.getElementById('emiCalcToggle');
-    const calcBody = document.getElementById('emiCalcBody');
-    const chevron = document.getElementById('emiChevron');
-    if (toggleBtn && calcBody) {
-        toggleBtn.addEventListener('click', () => {
-            const isHidden = calcBody.style.display === 'none';
-            calcBody.style.display = isHidden ? 'flex' : 'none';
-            if (chevron) chevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
+        ['emiDownRange', 'emiRateRange', 'emiTenureRange'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', calculateEmi);
         });
+
+        calculateEmi();
+
+        // Toggle EMI accordion
+        const toggleBtn = document.getElementById('emiCalcToggle');
+        const calcBody = document.getElementById('emiCalcBody');
+        const chevron = document.getElementById('emiChevron');
+        if (toggleBtn && calcBody) {
+            toggleBtn.addEventListener('click', () => {
+                const isHidden = calcBody.style.display === 'none';
+                calcBody.style.display = isHidden ? 'flex' : 'none';
+                if (chevron) chevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
+            });
+        }
     }
     
     const exportPdfBtn = document.getElementById('exportSpecSheetBtn');
