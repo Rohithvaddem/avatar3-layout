@@ -1831,5 +1831,66 @@ input[type="radio"]:checked + .custom-radio::after {
     box-shadow: 0 8px 22px rgba(249, 115, 22, 0.6);
 }
 
+/* Custom GIS Map Project Pin Markers */
+.custom-gis-marker {
+    position: relative;
+    cursor: pointer;
+}
+
+.gis-marker-pulse {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    top: -4px;
+    left: -4px;
+    border-radius: 50%;
+    animation: markerPulse 2s infinite ease-out;
+}
+
+@keyframes markerPulse {
+    0% {
+        transform: scale(0.5);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.8);
+        opacity: 0;
+    }
+}
+
+.gis-marker-dot {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    position: relative;
+    z-index: 2;
+    transition: transform 0.2s ease;
+}
+
+.custom-gis-marker:hover .gis-marker-dot {
+    transform: scale(1.25);
+}
+
+.gis-marker-label {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(10, 13, 20, 0.92);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-family: var(--font-heading);
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 12px;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+    z-index: 3;
+}
+
 
 

@@ -2602,13 +2602,13 @@ function initLeafletMap() {
         }
         
         // Customize marker icons
-        function createProjectMarkerIcon(name) {
+        function createProjectMarkerIcon(name, color = '#3b82f6') {
             return L.divIcon({
                 className: 'custom-gis-marker',
                 html: `
-                    <div class="gis-marker-pulse"></div>
-                    <div class="gis-marker-dot"></div>
-                    <div class="gis-marker-label">${name}</div>
+                    <div class="gis-marker-pulse" style="background: ${color}55;"></div>
+                    <div class="gis-marker-dot" style="background: ${color}; box-shadow: 0 0 12px ${color};"></div>
+                    <div class="gis-marker-label" style="border-color: ${color}aa;">${name}</div>
                 `,
                 iconSize: [20, 20],
                 iconAnchor: [10, 10]
@@ -2660,14 +2660,49 @@ function initLeafletMap() {
                 const coordsText = point.getElementsByTagName('coordinates')[0]?.textContent || '';
                 const coords = parseCoordinates(coordsText);
                 if (coords.length > 0) {
-                    const marker = L.marker(coords[0], {
-                        icon: createProjectMarkerIcon(name)
-                    }).bindPopup(`<b>${name}</b>`);
-                    
-                    projectMarkersGroup.addLayer(marker);
+                    // Filter out Avatar 3 project marker
+                    if (name.toLowerCase().includes('avatar 3') || name.toLowerCase().includes('avatar3')) {
+                        // Omit Avatar 3 marker
+                    } else {
+                        const marker = L.marker(coords[0], {
+                            icon: createProjectMarkerIcon(name, '#0ea5e9')
+                        }).bindPopup(`<b>${name}</b>`);
+                        
+                        projectMarkersGroup.addLayer(marker);
+                    }
                 }
             }
         }
+
+        // Add explicit project location markers for Avatar 1 and Avatar 2 on the layout map
+        setupProjectLocationMarkers();
+    }
+    
+    function setupProjectLocationMarkers() {
+        if (!projectMarkersGroup) return;
+        
+        // Avatar 1 Marker (Emerald)
+        const marker1 = L.marker([16.9498389, 78.4960974], {
+            icon: createProjectMarkerIcon('Aspirealty Avatar 1', '#10b981')
+        });
+        marker1.on('click', () => {
+            const btn = document.getElementById('navAvatar1');
+            if (btn) btn.click();
+        });
+        projectMarkersGroup.addLayer(marker1);
+
+        // Avatar 2 Marker (Sky Blue)
+        const marker2 = L.marker([16.9233266, 78.5325395], {
+            icon: createProjectMarkerIcon('Aspirealty Avatar 2', '#0ea5e9')
+        });
+        marker2.on('click', () => {
+            const btn = document.getElementById('navAvatar2');
+            if (btn) btn.click();
+        });
+        projectMarkersGroup.addLayer(marker2);
+
+        // Note: Avatar 3 marker is intentionally omitted as per user instructions
+    }
     }
     
     // Parse doc.kml file with local fallback to support offline/local file loads
