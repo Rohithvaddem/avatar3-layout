@@ -89,6 +89,30 @@
                     </div>
                 </div>
 
+                <!-- Size & Budget Filter Section -->
+                <div class="sidebar-section" id="rangeFilterSection">
+                    <div class="section-header">
+                        <h3 class="section-title"><i class="fa-solid fa-sliders"></i> Size &amp; Budget Filter</h3>
+                        <button class="filter-reset-btn" id="rangeFilterResetBtn">Reset</button>
+                    </div>
+                    <div class="range-filter-container">
+                        <div class="range-field">
+                            <div class="range-label-row">
+                                <span>Max Plot Size:</span>
+                                <strong id="maxSizeVal">600 Sq.Yds</strong>
+                            </div>
+                            <input type="range" id="sizeRangeInput" min="100" max="600" step="10" value="600" class="custom-range-slider">
+                        </div>
+                        <div class="range-field" style="margin-top: 10px;">
+                            <div class="range-label-row">
+                                <span>Est. Rate / Sq.Yd:</span>
+                                <strong id="rateVal">₹ 25,000</strong>
+                            </div>
+                            <input type="number" id="globalRateInput" value="25000" min="5000" max="100000" step="500" class="custom-number-input" placeholder="e.g. 25000">
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Legend & Statistics Section -->
                 <div class="sidebar-section" id="legendSection">
                     <h3 class="section-title">Plot Status\Legend</h3>
@@ -330,6 +354,31 @@
                         Login
                     </button>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Plot Comparison Action Bar -->
+    <div class="plot-compare-bar" id="plotCompareBar">
+        <div class="compare-bar-info">
+            <i class="fa-solid fa-code-compare" style="color: var(--accent); font-size: 16px;"></i>
+            <span><strong id="compareCount" style="color: #38bdf8;">0</strong> / 3 Plots Selected</span>
+        </div>
+        <div class="compare-bar-actions">
+            <button class="compare-btn-clear" id="clearCompareBtn">Clear</button>
+            <button class="compare-btn-view" id="viewCompareBtn"><i class="fa-solid fa-table-columns"></i> Compare Now</button>
+        </div>
+    </div>
+
+    <!-- Plot Comparison Modal -->
+    <div class="modal-backdrop" id="compareModalBackdrop">
+        <div class="custom-modal compare-modal" id="compareModal">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-code-compare" style="color: var(--accent);"></i> Side-by-Side Plot Comparison</h3>
+                <button class="modal-close" id="compareModalCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" id="compareModalBody">
+                <!-- Populated dynamically by app.js -->
             </div>
         </div>
     </div>

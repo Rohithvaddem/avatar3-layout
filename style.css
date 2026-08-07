@@ -1934,6 +1934,236 @@ input[type="radio"]:checked + .custom-radio::after {
     letter-spacing: 0.5px;
 }
 
+/* Size & Budget Filter Slider Controls */
+.range-filter-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.range-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.range-label-row strong {
+    color: var(--accent);
+    font-family: var(--font-heading);
+    font-size: 13px;
+}
+
+.custom-range-slider {
+    width: 100%;
+    accent-color: var(--accent);
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+}
+
+.custom-number-input {
+    width: 100%;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.custom-number-input:focus {
+    border-color: var(--accent);
+}
+
+/* Floating Plot Comparison Bar */
+.plot-compare-bar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(18, 24, 36, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(56, 189, 248, 0.5);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7), 0 0 20px rgba(56, 189, 248, 0.3);
+    border-radius: 30px;
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    z-index: 1000;
+    animation: slideUpFade 0.3s ease;
+}
+
+@keyframes slideUpFade {
+    from { opacity: 0; transform: translate(-50%, 20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.compare-bar-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.compare-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.compare-btn-clear {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 6px 12px;
+    transition: color 0.2s;
+}
+
+.compare-btn-clear:hover {
+    color: #ef4444;
+}
+
+.compare-btn-view {
+    background: linear-gradient(135deg, var(--accent) 0%, #2563eb 100%);
+    color: #ffffff;
+    border: none;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.compare-btn-view:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.6);
+}
+
+/* Side-by-Side Comparison Modal */
+.compare-modal {
+    max-width: 820px !important;
+    width: 95% !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    right: auto !important;
+    background: rgba(10, 14, 23, 0.96) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: 1px solid rgba(59, 130, 246, 0.4) !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9) !important;
+    border-radius: 20px !important;
+}
+
+#compareModalBackdrop.show .compare-modal {
+    transform: translate(-50%, -50%) !important;
+}
+
+.compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.compare-table th, .compare-table td {
+    padding: 12px 14px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 13px;
+}
+
+.compare-table th {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--accent);
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.compare-table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.compare-table .feature-label {
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    width: 180px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* EMI & Loan Calculator in Plot Modal */
+.emi-calc-box {
+    margin-top: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+
+.emi-calc-title {
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.emi-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.emi-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11.5px;
+}
+
+.emi-row span {
+    color: var(--text-secondary);
+}
+
+.emi-result-box {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.emi-result-val {
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 800;
+    color: #38bdf8;
+}
+
 
 
 
