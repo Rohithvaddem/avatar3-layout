@@ -1,3 +1,6 @@
+// Official Sales WhatsApp Lead Notification Number
+const COMPANY_SALES_WHATSAPP = '919100091540';
+
 // State management
 let plotData = [];
 let activeFilters = {
@@ -3326,8 +3329,8 @@ function setupSiteVisitBooking() {
 ------------------------------------
 _Sent via Aspirealty Interactive Viewer_`;
 
-            // Official Sales WhatsApp number (easily updated)
-            const salesNumber = (typeof COMPANY_SALES_WHATSAPP !== 'undefined') ? COMPANY_SALES_WHATSAPP : '919876543210';
+            // Official Sales WhatsApp number (9100091540)
+            const salesNumber = (typeof COMPANY_SALES_WHATSAPP !== 'undefined') ? COMPANY_SALES_WHATSAPP : '919100091540';
             const encodedMsg = encodeURIComponent(waMessage);
             const whatsappUrl = `https://api.whatsapp.com/send?phone=${salesNumber}&text=${encodedMsg}`;
 
