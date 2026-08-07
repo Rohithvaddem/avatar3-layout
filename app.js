@@ -3446,12 +3446,34 @@ function setupSidebarEmiCalculator() {
     updateSidebarEmi();
 }
 
+function setupWelcomeSplash() {
+    const splash = document.getElementById('welcomeSplashOverlay');
+    const progress = document.getElementById('splashProgressBar');
+    
+    if (splash && progress) {
+        // Animate progress bar fill
+        setTimeout(() => {
+            progress.style.width = '100%';
+        }, 80);
+        
+        // Hide splash after 1.8s
+        setTimeout(() => {
+            splash.classList.add('hide');
+            setTimeout(() => {
+                if (splash.parentNode) splash.parentNode.removeChild(splash);
+            }, 650);
+        }, 1800);
+    }
+}
+
 // Global DOM Ready initializer for Interactive Features
 document.addEventListener('DOMContentLoaded', () => {
+    setupWelcomeSplash();
     setupInterestModal();
     setupSiteVisitBooking();
     setupSidebarEmiCalculator();
 });
+setupWelcomeSplash();
 setupInterestModal();
 setupSiteVisitBooking();
 setupSidebarEmiCalculator();
