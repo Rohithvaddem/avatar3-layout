@@ -2341,7 +2341,8 @@ function initLeafletMap() {
         center: loc,
         zoom: 17,
         maxZoom: 21,
-        minZoom: 13
+        minZoom: 13,
+        inertia: false // Prevents map coasting/auto-adjusting after finger swipe
     });
     
     // Initialize LayerGroups and add them to map
@@ -2382,7 +2383,7 @@ function initLeafletMap() {
     // Initialize custom Mini-map Inset (Disabled)
     // setupMiniMap();
 
-    // Setup L.ImageOverlay.Rotated extension
+    // Setup L.ImageOverlay.Rotated extension (Optimized to prevent layout wobble/accumulation)
     if (!L.ImageOverlay.Rotated) {
         L.ImageOverlay.Rotated = L.ImageOverlay.extend({
             options: {
@@ -2391,15 +2392,18 @@ function initLeafletMap() {
             _reset: function() {
                 L.ImageOverlay.prototype._reset.call(this);
                 if (this.options.rotation && this._image) {
-                    this._image.style.transformOrigin = 'center center';
-                    this._image.style.transform += ` rotate(${-this.options.rotation}deg)`;
+                    this._image.style.transformOrigin = '50% 50%';
+                    let cleanTransform = this._image.style.transform.replace(/\s*rotate\([^)]*\)/gi, '');
+                    this._image.style.transform = `${cleanTransform} rotate(${-this.options.rotation}deg)`;
+                    this._image.style.willChange = 'transform';
                 }
             },
             _animateZoom: function(e) {
                 L.ImageOverlay.prototype._animateZoom.call(this, e);
                 if (this.options.rotation && this._image) {
-                    this._image.style.transformOrigin = 'center center';
-                    this._image.style.transform += ` rotate(${-this.options.rotation}deg)`;
+                    this._image.style.transformOrigin = '50% 50%';
+                    let cleanTransform = this._image.style.transform.replace(/\s*rotate\([^)]*\)/gi, '');
+                    this._image.style.transform = `${cleanTransform} rotate(${-this.options.rotation}deg)`;
                 }
             }
         });
