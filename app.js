@@ -2883,6 +2883,7 @@ function updateSidebarAndHeaderForProject(project) {
     const searchSection = document.getElementById('searchSection');
     const filtersSection = document.getElementById('filtersSection');
     const legendSection = document.getElementById('legendSection');
+    const sidebarEmiSection = document.getElementById('sidebarEmiSection');
     const sidebarComingSoonSection = document.getElementById('sidebarComingSoonSection');
     const headerStats = document.querySelector('.header-stats');
     const approvedBadge = document.querySelector('.approved-badge');
@@ -2894,6 +2895,7 @@ function updateSidebarAndHeaderForProject(project) {
         if (searchSection) searchSection.style.display = 'none';
         if (filtersSection) filtersSection.style.display = 'none';
         if (legendSection) legendSection.style.display = 'none';
+        if (sidebarEmiSection) sidebarEmiSection.style.display = 'none';
         if (headerStats) headerStats.style.display = 'none';
         if (sidebarComingSoonSection) sidebarComingSoonSection.style.display = isSatelliteActive ? 'none' : 'block';
         if (approvedBadge) {
@@ -2911,6 +2913,7 @@ function updateSidebarAndHeaderForProject(project) {
         if (searchSection) searchSection.style.display = 'block';
         if (filtersSection) filtersSection.style.display = 'block';
         if (legendSection) legendSection.style.display = 'block';
+        if (sidebarEmiSection) sidebarEmiSection.style.display = 'block';
         if (headerStats) headerStats.style.display = 'flex';
         if (sidebarComingSoonSection) sidebarComingSoonSection.style.display = 'none';
         if (comingSoonOverlay) comingSoonOverlay.style.display = 'none';
@@ -2931,6 +2934,7 @@ function updateSidebarAndHeaderForProject(project) {
         if (searchSection) searchSection.style.display = 'none';
         if (filtersSection) filtersSection.style.display = 'none';
         if (legendSection) legendSection.style.display = 'none';
+        if (sidebarEmiSection) sidebarEmiSection.style.display = 'none';
         if (headerStats) headerStats.style.display = 'none';
         if (sidebarComingSoonSection) sidebarComingSoonSection.style.display = 'none';
         if (comingSoonOverlay) comingSoonOverlay.style.display = 'none';
