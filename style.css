@@ -2367,6 +2367,22 @@ input[type="radio"]:checked + .custom-radio::after {
     gap: 6px;
 }
 
+/* Leaflet GIS Satellite Map Butter-Smooth 60FPS Optimization */
+#leafletMapContainer,
+.leaflet-tile-container,
+.leaflet-zoom-animated,
+.leaflet-map-pane,
+.leaflet-overlay-pane {
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.leaflet-tile {
+    will-change: transform, opacity;
+}
+
 
 
 

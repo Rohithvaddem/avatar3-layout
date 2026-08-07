@@ -2524,7 +2524,9 @@ function initLeafletMap() {
         zoom: 17,
         maxZoom: 20,
         minZoom: 13,
-        inertia: false // Prevents map coasting/auto-adjusting after finger swipe
+        inertia: false, // Prevents map coasting/auto-adjusting after finger swipe
+        preferCanvas: true, // Hardware-accelerated HTML5 Canvas vector rendering for 60FPS
+        wheelPxPerZoomLevel: 100 // Smooth wheel zoom
     });
     
     // Initialize LayerGroups and add them to map
@@ -2560,7 +2562,10 @@ function initLeafletMap() {
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS, AeroGRID, IGN, and the GIS User Community',
         maxNativeZoom: 18,
-        maxZoom: 20
+        maxZoom: 20,
+        keepBuffer: 4, // Preload surrounding satellite tiles for zero-lag panning
+        updateWhenIdle: true, // Optimize rendering performance during fast drags
+        updateWhenZooming: false
     }).addTo(leafletMap);
 
     // Initialize custom Mini-map Inset (Disabled)
