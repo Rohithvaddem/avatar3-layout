@@ -2173,11 +2173,24 @@ function savePlotEdits(plotNo) {
 // ----------------------------------------------------
 
 function setupSatelliteToggle() {
-    const toggleBtn = document.getElementById('toggleSatelliteBtn');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            isSatelliteActive = !isSatelliteActive;
-            toggleSatelliteView();
+    const btnSchematic = document.getElementById('btnSchematicView');
+    const btnSatellite = document.getElementById('btnSatelliteView');
+    
+    if (btnSchematic) {
+        btnSchematic.addEventListener('click', () => {
+            if (isSatelliteActive) {
+                isSatelliteActive = false;
+                toggleSatelliteView();
+            }
+        });
+    }
+    
+    if (btnSatellite) {
+        btnSatellite.addEventListener('click', () => {
+            if (!isSatelliteActive) {
+                isSatelliteActive = true;
+                toggleSatelliteView();
+            }
         });
     }
 }
@@ -2189,7 +2202,8 @@ let projectMarkersGroup = null;
 
 function toggleSatelliteView() {
     closePlotModal();
-    const toggleBtn = document.getElementById('toggleSatelliteBtn');
+    const btnSchematic = document.getElementById('btnSchematicView');
+    const btnSatellite = document.getElementById('btnSatelliteView');
     const leafletContainer = document.getElementById('leafletMapContainer');
     const layerControl = document.getElementById('gisLayerControl');
     const mapControls = document.querySelector('.map-controls');
@@ -2198,9 +2212,8 @@ function toggleSatelliteView() {
     if (projectNav) projectNav.style.display = 'block'; // Always show project nav
     
     if (isSatelliteActive) {
-        toggleBtn.classList.add('active');
-        toggleBtn.innerHTML = '<i class="fa-solid fa-map"></i> <span>Schematic View</span>';
-        toggleBtn.title = "Switch to 2D Schematic View";
+        if (btnSchematic) btnSchematic.classList.remove('active');
+        if (btnSatellite) btnSatellite.classList.add('active');
         
         // Hide 2D map & show Leaflet container
         mapContainer.style.display = 'none';
@@ -2226,9 +2239,8 @@ function toggleSatelliteView() {
         
         updateAvatar3SatelliteMask();
     } else {
-        toggleBtn.classList.remove('active');
-        toggleBtn.innerHTML = '<i class="fa-solid fa-earth-americas"></i> <span>Satellite View</span>';
-        toggleBtn.title = "Switch to Satellite Map View";
+        if (btnSchematic) btnSchematic.classList.add('active');
+        if (btnSatellite) btnSatellite.classList.remove('active');
         
         // Show 2D map & hide Leaflet container
         mapContainer.style.display = 'block';
