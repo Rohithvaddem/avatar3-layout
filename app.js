@@ -2383,7 +2383,7 @@ function initLeafletMap() {
     // Initialize custom Mini-map Inset (Disabled)
     // setupMiniMap();
 
-    // Setup L.ImageOverlay.Rotated extension (Locked to 0 0 transformOrigin to prevent zoom displacement)
+    // Setup L.ImageOverlay.Rotated extension (Centered at 50% 50% for accurate geographic positioning)
     if (!L.ImageOverlay.Rotated) {
         L.ImageOverlay.Rotated = L.ImageOverlay.extend({
             options: {
@@ -2392,23 +2392,20 @@ function initLeafletMap() {
             _reset: function() {
                 L.ImageOverlay.prototype._reset.call(this);
                 if (this._image) {
-                    this._image.style.transformOrigin = '0 0';
+                    this._image.style.transformOrigin = '50% 50%';
                     if (this.options.rotation) {
-                        let cleanTransform = this._image.style.transform.replace(/\s*rotate\([^)]*\)/gi, '');
+                        let cleanTransform = (this._image.style.transform || '').replace(/\s*rotate\([^)]*\)/gi, '');
                         this._image.style.transform = `${cleanTransform} rotate(${-this.options.rotation}deg)`;
                     }
                     this._image.style.willChange = 'transform';
                 }
             },
             _animateZoom: function(e) {
-                const scale = this._map.getZoomScale(e.zoom, this._map.getZoom());
-                const offset = this._map._latLngToNewLayerPoint(this._bounds.getNorthWest(), e.zoom, e.center);
-
-                L.DomUtil.setTransform(this._image, offset, scale);
+                L.ImageOverlay.prototype._animateZoom.call(this, e);
                 if (this._image) {
-                    this._image.style.transformOrigin = '0 0';
+                    this._image.style.transformOrigin = '50% 50%';
                     if (this.options.rotation) {
-                        let cleanTransform = this._image.style.transform.replace(/\s*rotate\([^)]*\)/gi, '');
+                        let cleanTransform = (this._image.style.transform || '').replace(/\s*rotate\([^)]*\)/gi, '');
                         this._image.style.transform = `${cleanTransform} rotate(${-this.options.rotation}deg)`;
                     }
                 }
