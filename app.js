@@ -2295,13 +2295,13 @@ function updateAvatar3SatelliteMask() {
         const badgeIcon = L.divIcon({
             className: 'satellite-cs-marker-wrapper',
             html: `
-                <div class="sat-cs-badge-card" style="text-align: center; padding: 36px 38px; width: 420px;">
-                    <h3 class="sat-cs-badge-title" style="font-size: 28px; font-weight: 800; color: #ffffff; margin-bottom: 14px; letter-spacing: -0.5px;">Aspirealty Avatar 3</h3>
-                    <div class="sat-cs-badge-pill" style="font-size: 15px; font-weight: 800; color: #f97316; letter-spacing: 2.5px; padding: 8px 24px; border-radius: 30px;"><i class="fa-solid fa-clock"></i> COMING SOON</div>
+                <div class="sat-cs-badge-card" style="text-align: center; padding: 48px 52px; width: 560px;">
+                    <h3 class="sat-cs-badge-title" style="font-size: 36px; font-weight: 800; color: #ffffff; margin-bottom: 18px; letter-spacing: -0.5px;">Aspirealty Avatar 3</h3>
+                    <div class="sat-cs-badge-pill" style="font-size: 17px; font-weight: 800; color: #f97316; letter-spacing: 3px; padding: 10px 28px; border-radius: 35px; box-shadow: 0 0 20px rgba(249, 115, 22, 0.25);"><i class="fa-solid fa-clock"></i> COMING SOON</div>
                 </div>
             `,
-            iconSize: [420, 160],
-            iconAnchor: [210, 80]
+            iconSize: [560, 200],
+            iconAnchor: [280, 100]
         });
         
         const badgeMarker = L.marker([16.9307952, 78.5382904], { icon: badgeIcon });
