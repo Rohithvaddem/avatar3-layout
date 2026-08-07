@@ -2159,21 +2159,6 @@ input[type="radio"]:checked + .custom-radio::after {
     }
 }
 
-/* 4. Smooth Morphing Viewport & Map Container Transitions */
-.map-viewport {
-    perspective: 1000px;
-}
-
-.map-container {
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, filter 0.35s ease;
-    will-change: transform, opacity, filter;
-}
-
-.map-container.morph-transition {
-    opacity: 0;
-    filter: blur(8px) scale(0.97);
-}
-
 /* 5. Interactive Floating Site Visit Button Shimmer & Car Drive Animation */
 .floating-site-visit-btn {
     position: fixed;

@@ -3006,9 +3006,8 @@ function updateSidebarAndHeaderForProject(project) {
 function changeLayoutImage(newSrc, containerWidth, containerHeight, imageWidth, imageHeight, onBeforeLoad) {
     const loader = document.getElementById('layoutLoader');
     
-    // Show loader and morph out old content
+    // Show loader and fade out old content
     if (loader) loader.classList.add('active');
-    if (mapContainer) mapContainer.classList.add('morph-transition');
     mapImage.classList.add('loading-layout');
     plotsOverlay.classList.add('loading-layout');
     
@@ -3037,9 +3036,6 @@ function changeLayoutImage(newSrc, containerWidth, containerHeight, imageWidth, 
         mapImage.classList.remove('loading-layout');
         plotsOverlay.classList.remove('loading-layout');
         if (loader) loader.classList.remove('active');
-        setTimeout(() => {
-            if (mapContainer) mapContainer.classList.remove('morph-transition');
-        }, 100);
     };
     
     if (currentCleanSrc === cleanSrc && mapImage.complete) {
