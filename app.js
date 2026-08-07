@@ -2352,7 +2352,7 @@ function initLeafletMap() {
         zoomControl: false, // Hiding default zoom to use our custom floating controls
         center: loc,
         zoom: 17,
-        maxZoom: 21,
+        maxZoom: 20,
         minZoom: 13,
         inertia: false // Prevents map coasting/auto-adjusting after finger swipe
     });
@@ -2386,10 +2386,11 @@ function initLeafletMap() {
         }
     });
     
-    // Satellite Layer (Esri World Imagery)
+    // Satellite Layer (Esri World Imagery with maxNativeZoom to auto-scale tiles when zooming close)
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS, AeroGRID, IGN, and the GIS User Community',
-        maxZoom: 21
+        maxNativeZoom: 18,
+        maxZoom: 20
     }).addTo(leafletMap);
 
     // Initialize custom Mini-map Inset (Disabled)
