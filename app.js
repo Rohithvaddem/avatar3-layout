@@ -312,6 +312,46 @@ function getStatusColor(status) {
     return 'var(--status-unknown)';
 }
 
+function showPlotHoverTooltip(e, plotNo) {
+    const tooltip = document.getElementById('plotHoverTooltip');
+    if (!tooltip) return;
+    
+    const dataSource = avatarDataPool[currentProject] || [];
+    const detail = dataSource.find(p => String(p.plot_no) === String(plotNo));
+    const status = detail ? detail.plot_status : 'AVAILABLE';
+    const facing = detail && detail.facing ? detail.facing : 'N/A';
+    const area = detail && detail.plot_size ? detail.plot_size + ' Sq. Yds' : 'N/A';
+    const color = getStatusColor(status);
+    
+    const hoverNo = document.getElementById('hoverPlotNo');
+    const hoverStatus = document.getElementById('hoverPlotStatus');
+    const hoverArea = document.getElementById('hoverPlotArea');
+    const hoverFacing = document.getElementById('hoverPlotFacing');
+    
+    if (hoverNo) hoverNo.textContent = `Plot #${plotNo}`;
+    if (hoverStatus) {
+        hoverStatus.textContent = status;
+        hoverStatus.style.setProperty('--badge-color', color);
+        hoverStatus.style.setProperty('--badge-glow', color);
+        hoverStatus.style.backgroundColor = color;
+    }
+    if (hoverArea) hoverArea.textContent = area;
+    if (hoverFacing) hoverFacing.textContent = facing;
+    
+    // Position tooltip near cursor with offset to avoid blocking cursor
+    const x = e.clientX + 15;
+    const y = e.clientY - 15;
+    
+    tooltip.style.left = `${Math.min(x, window.innerWidth - 170)}px`;
+    tooltip.style.top = `${Math.max(y, 10)}px`;
+    tooltip.classList.add('show');
+}
+
+function hidePlotHoverTooltip() {
+    const tooltip = document.getElementById('plotHoverTooltip');
+    if (tooltip) tooltip.classList.remove('show');
+}
+
 function renderPlotDots() {
     plotsOverlay.innerHTML = '';
     
@@ -360,8 +400,14 @@ function renderPlotDots() {
             dot.style.top = `${(coords.top * scaleY) - 7.5}px`;
             dot.textContent = plotNo;
             
+            // Hover Tooltip Listeners
+            dot.addEventListener('mouseenter', (e) => showPlotHoverTooltip(e, plotNo));
+            dot.addEventListener('mousemove', (e) => showPlotHoverTooltip(e, plotNo));
+            dot.addEventListener('mouseleave', () => hidePlotHoverTooltip());
+            
             dot.addEventListener('click', (e) => {
                 e.stopPropagation();
+                hidePlotHoverTooltip();
                 if (isMapperMode) {
                     activeMapperPlot = parseInt(plotNo) || plotNo;
                     if (mapperActivePlot) {
@@ -415,8 +461,14 @@ function renderPlotDots() {
             dot.style.top = `${coords.top - offset}px`;
             dot.textContent = plotNo;
             
+            // Hover Tooltip Listeners
+            dot.addEventListener('mouseenter', (e) => showPlotHoverTooltip(e, plotNo));
+            dot.addEventListener('mousemove', (e) => showPlotHoverTooltip(e, plotNo));
+            dot.addEventListener('mouseleave', () => hidePlotHoverTooltip());
+            
             dot.addEventListener('click', (e) => {
                 e.stopPropagation();
+                hidePlotHoverTooltip();
                 if (isMapperMode) {
                     activeMapperPlot = parseInt(plotNo) || plotNo;
                     if (mapperActivePlot) {

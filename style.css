@@ -2057,6 +2057,69 @@ input[type="radio"]:checked + .custom-radio::after {
     align-items: center;
 }
 
+/* Plot Hover Preview Tooltip */
+.plot-hover-tooltip {
+    position: fixed;
+    z-index: 1500;
+    background: rgba(13, 20, 36, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: #ffffff;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(6px) scale(0.95);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75), 0 0 18px rgba(14, 165, 233, 0.2);
+    min-width: 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.plot-hover-tooltip.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.tooltip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 6px;
+}
+
+.tooltip-title {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--accent);
+}
+
+.tooltip-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tooltip-row {
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tooltip-row i {
+    font-size: 10px;
+    color: var(--accent);
+    width: 12px;
+}
+
 
 
 
