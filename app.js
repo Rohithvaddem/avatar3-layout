@@ -312,39 +312,44 @@ function getStatusColor(status) {
     return 'var(--status-unknown)';
 }
 
+let tooltipRAF = null;
+
 function showPlotHoverTooltip(e, plotNo) {
-    const tooltip = document.getElementById('plotHoverTooltip');
-    if (!tooltip) return;
-    
-    const dataSource = avatarDataPool[currentProject] || [];
-    const detail = dataSource.find(p => String(p.plot_no) === String(plotNo));
-    const status = detail ? detail.plot_status : 'AVAILABLE';
-    const facing = detail && detail.facing ? detail.facing : 'N/A';
-    const area = detail && detail.plot_size ? detail.plot_size + ' Sq. Yds' : 'N/A';
-    const color = getStatusColor(status);
-    
-    const hoverNo = document.getElementById('hoverPlotNo');
-    const hoverStatus = document.getElementById('hoverPlotStatus');
-    const hoverArea = document.getElementById('hoverPlotArea');
-    const hoverFacing = document.getElementById('hoverPlotFacing');
-    
-    if (hoverNo) hoverNo.textContent = `Plot #${plotNo}`;
-    if (hoverStatus) {
-        hoverStatus.textContent = status;
-        hoverStatus.style.setProperty('--badge-color', color);
-        hoverStatus.style.setProperty('--badge-glow', color);
-        hoverStatus.style.backgroundColor = color;
-    }
-    if (hoverArea) hoverArea.textContent = area;
-    if (hoverFacing) hoverFacing.textContent = facing;
-    
-    // Position tooltip near cursor with offset to avoid blocking cursor
-    const x = e.clientX + 15;
-    const y = e.clientY - 15;
-    
-    tooltip.style.left = `${Math.min(x, window.innerWidth - 170)}px`;
-    tooltip.style.top = `${Math.max(y, 10)}px`;
-    tooltip.classList.add('show');
+    if (tooltipRAF) cancelAnimationFrame(tooltipRAF);
+    tooltipRAF = requestAnimationFrame(() => {
+        const tooltip = document.getElementById('plotHoverTooltip');
+        if (!tooltip) return;
+        
+        const dataSource = avatarDataPool[currentProject] || [];
+        const detail = dataSource.find(p => String(p.plot_no) === String(plotNo));
+        const status = detail ? detail.plot_status : 'AVAILABLE';
+        const facing = detail && detail.facing ? detail.facing : 'N/A';
+        const area = detail && detail.plot_size ? detail.plot_size + ' Sq. Yds' : 'N/A';
+        const color = getStatusColor(status);
+        
+        const hoverNo = document.getElementById('hoverPlotNo');
+        const hoverStatus = document.getElementById('hoverPlotStatus');
+        const hoverArea = document.getElementById('hoverPlotArea');
+        const hoverFacing = document.getElementById('hoverPlotFacing');
+        
+        if (hoverNo) hoverNo.textContent = `Plot #${plotNo}`;
+        if (hoverStatus) {
+            hoverStatus.textContent = status;
+            hoverStatus.style.setProperty('--badge-color', color);
+            hoverStatus.style.setProperty('--badge-glow', color);
+            hoverStatus.style.backgroundColor = color;
+        }
+        if (hoverArea) hoverArea.textContent = area;
+        if (hoverFacing) hoverFacing.textContent = facing;
+        
+        // Position tooltip near cursor with offset to avoid blocking cursor
+        const x = e.clientX + 15;
+        const y = e.clientY - 15;
+        
+        tooltip.style.left = `${Math.min(x, window.innerWidth - 170)}px`;
+        tooltip.style.top = `${Math.max(y, 10)}px`;
+        tooltip.classList.add('show');
+    });
 }
 
 function hidePlotHoverTooltip() {
@@ -639,13 +644,18 @@ function fitMapToViewport() {
     applyTransform();
 }
 
+let transformRAF = null;
+
 function applyTransform(noTransition = false) {
-    if (noTransition) {
-        mapContainer.style.transition = 'none';
-    } else {
-        mapContainer.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-    }
-    mapContainer.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+    if (transformRAF) cancelAnimationFrame(transformRAF);
+    transformRAF = requestAnimationFrame(() => {
+        if (noTransition) {
+            mapContainer.style.transition = 'none';
+        } else {
+            mapContainer.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        }
+        mapContainer.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${zoomScale})`;
+    });
 }
 
 function fadeMapTip() {

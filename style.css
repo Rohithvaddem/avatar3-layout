@@ -621,6 +621,9 @@ body {
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 .map-image {
@@ -710,6 +713,7 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     background-color: var(--plot-color);
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s, opacity 0.3s;
+    will-change: transform;
 }
 
 .plot-dot.avatar2-dot {
