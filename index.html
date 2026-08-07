@@ -46,9 +46,17 @@
                 <div class="sidebar-section" id="projectNavSection">
                     <h3 class="section-title">Project Selector</h3>
                     <div class="project-nav-grid">
-                        <button class="project-nav-btn" id="navAvatar1" data-project="avatar1">Avatar 1</button>
+                        <button class="project-nav-btn active" id="navAvatar1" data-project="avatar1">Avatar 1</button>
                         <button class="project-nav-btn" id="navAvatar2" data-project="avatar2">Avatar 2</button>
-                        <button class="project-nav-btn active" id="navAvatar3" data-project="avatar3">Avatar 3</button>
+                        <button class="project-nav-btn" id="navAvatar3" data-project="avatar3">Avatar 3 <span class="coming-soon-pill">Soon</span></button>
+                    </div>
+                </div>
+
+                <!-- Sidebar Coming Soon Info Box (shown when Avatar 3 active) -->
+                <div class="sidebar-section" id="sidebarComingSoonSection" style="display: none;">
+                    <div class="sidebar-cs-card" style="text-align: center; padding: 20px 16px;">
+                        <h4 class="sidebar-cs-title" style="font-size: 15px; font-weight: 800; color: #ffffff; margin-bottom: 6px;">Aspirealty Avatar 3</h4>
+                        <div class="sidebar-cs-badge" style="font-size: 11px; font-weight: 800; color: #f97316; letter-spacing: 1px;"><i class="fa-solid fa-clock"></i> COMING SOON</div>
                     </div>
                 </div>
 
@@ -245,6 +253,19 @@
                     <i class="fa-solid fa-hand-pointer"></i> Drag to Pan &bull; Scroll or Pinch to Zoom
                 </div>
 
+                <!-- Coming Soon Overlay for Unlaunched Projects (Avatar 3) -->
+                <div class="coming-soon-overlay" id="comingSoonOverlay" style="display: none;">
+                    <div class="coming-soon-card" style="max-width: 580px; padding: 54px 44px; text-align: center;">
+                        <div class="cs-brand-logo" style="margin-bottom: 24px;">
+                            <img src="aspirealty_label.png" alt="Aspirealty Logo" style="max-width: 300px; height: auto;">
+                        </div>
+                        <h2 class="coming-soon-title" style="font-size: 38px; font-weight: 800; color: #ffffff; margin-bottom: 20px; letter-spacing: -0.5px;">Aspirealty Avatar 3</h2>
+                        <div class="coming-soon-pill-badge" style="display: inline-flex; align-items: center; gap: 10px; background: rgba(249, 115, 22, 0.15); border: 1.5px solid rgba(249, 115, 22, 0.5); color: #f97316; font-weight: 800; font-size: 16px; padding: 12px 32px; border-radius: 40px; letter-spacing: 3px; text-transform: uppercase; box-shadow: 0 0 20px rgba(249, 115, 22, 0.25);">
+                            <i class="fa-solid fa-clock"></i> COMING SOON
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Sleek Layout Loader -->
                 <div class="layout-loader" id="layoutLoader">
                     <div class="spinner"></div>
@@ -253,7 +274,7 @@
 
                 <!-- Drag/Zoom Container -->
                 <div class="map-container" id="mapContainer">
-                    <img src="map_layout.png" alt="Aspirealty Avatar Project Layout" class="map-image" id="mapImage">
+                    <img src="avatar1_map_layout.jpg" alt="Aspirealty Avatar Project Layout" class="map-image" id="mapImage">
                     <!-- Dynamic overlay nodes go here -->
                     <div class="plots-overlay" id="plotsOverlay"></div>
                 </div>
@@ -302,6 +323,55 @@
                     <button type="submit" class="admin-login-btn"
                         style="background-color: var(--accent); color: #fff; border: none; font-weight: 700; padding: 12px; font-size: 14px; margin-top: 8px; cursor: pointer; border-radius: 8px;">
                         Login
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pre-Launch Interest Modal -->
+    <div class="modal-backdrop" id="interestModalBackdrop">
+        <div class="custom-modal login-modal" id="interestModal" style="max-width: 420px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-bell" style="color: var(--accent);"></i> Avatar 3 Pre-Launch Interest</h3>
+                <button class="modal-close" id="interestModalCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 20px 24px;">
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5; text-align: left;">
+                    Be among the first to receive exclusive pre-launch layout maps, plot inventory list, and early bird launch pricing for <strong>Avatar 3</strong>.
+                </p>
+                <form id="interestForm" style="display: flex; flex-direction: column; gap: 14px;">
+                    <div style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Full Name *</label>
+                        <input type="text" id="interestName" required
+                            style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 14px; outline: none;"
+                            placeholder="Enter your name">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Phone / WhatsApp Number *</label>
+                        <input type="tel" id="interestPhone" required
+                            style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 14px; outline: none;"
+                            placeholder="Enter mobile number">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Preferred Plot Facing</label>
+                        <select id="interestFacing"
+                            style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 14px; outline: none;">
+                            <option value="Any">Any Facing</option>
+                            <option value="East">East Facing</option>
+                            <option value="West">West Facing</option>
+                            <option value="North">North Facing</option>
+                            <option value="South">South Facing</option>
+                            <option value="Corner">Corner Plot</option>
+                        </select>
+                    </div>
+                    <div id="interestSuccess"
+                        style="color: #4ade80; font-size: 13px; text-align: center; display: none; font-weight: 600; padding: 10px; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px;">
+                        <i class="fa-solid fa-circle-check"></i> Thank you! Your pre-launch interest has been registered.
+                    </div>
+                    <button type="submit" class="admin-login-btn" id="interestSubmitBtn"
+                        style="background-color: var(--accent); color: #fff; border: none; font-weight: 700; padding: 12px; font-size: 14px; margin-top: 4px; cursor: pointer; border-radius: 8px;">
+                        Submit Pre-Launch Enquiry
                     </button>
                 </form>
             </div>

@@ -532,15 +532,6 @@ function openPlotModal(plotNo) {
                 <span class="detail-label">Facing Direction</span>
                 <span class="detail-val">${item.facing || 'N/A'}</span>
             </div>
-            <div class="detail-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
-                <span class="detail-label">Boundary Dimensions</span>
-                <div style="width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 10px; font-weight: 600; padding: 4px 6px; background: rgba(255,255,255,0.02); border-radius: 6px;">
-                    <div>North: ${item.dim_north || 'N/A'}</div>
-                    <div>South: ${item.dim_south || 'N/A'}</div>
-                    <div>East: ${item.dim_east || 'N/A'}</div>
-                    <div>West: ${item.dim_west || 'N/A'}</div>
-                </div>
-            </div>
             <div class="detail-row">
                 <span class="detail-label">Customer Name</span>
                 <span class="detail-val">${item.customer_name ? (isAdminLoggedIn ? item.customer_name : maskName(item.customer_name)) : 'N/A'}</span>

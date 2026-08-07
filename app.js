@@ -6,7 +6,7 @@ let activeFilters = {
 };
 
 // Layout management pools
-let currentProject = 'avatar3';
+let currentProject = 'avatar1';
 let avatarDataPool = {
     avatar1: [],
     avatar2: [],
@@ -60,17 +60,13 @@ const projectMetadata = {
     },
     avatar3: {
         title: "Aspirealty Avatar 3",
-        location: "Karkalapahd Srisailam Highway",
+        location: "Karkalapahad, Srisailam Highway, Hyderabad",
         area: "13 Acres",
-        plots: "206 Plots",
-        lpNumber: "LP No. 224/2023/H (DTCP Approved)",
-        status: "Active Bookings Open",
+        plots: "-",
+        lpNumber: "DTCP Approved",
+        status: "Coming Soon",
         highlights: [
-            "Immediate registration & spot construction ready",
-            "100% Vaastu compliant layouts & sizing",
-            "Grand entry archway with gated security portals",
-            "Children's play park & fully landscaped gardens",
-            "Surrounded by upcoming premium villa developments"
+            "Aspirealty Avatar 3 - Coming Soon"
         ]
     }
 };
@@ -140,6 +136,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setupAdmin();
     setupSatelliteToggle();
     setupProjectNavigation();
+    setupInterestModal();
 
     // Check URL parameters to initialize project and view
     const urlParams = new URLSearchParams(window.location.search);
@@ -278,6 +275,16 @@ function initApp() {
         // Set the active project plotData reference
         plotData = avatarDataPool[currentProject] || [];
         
+        updateSidebarAndHeaderForProject(currentProject);
+
+        if (currentProject === 'avatar1') {
+            mapContainer.style.width = '1024px';
+            mapContainer.style.height = '647px';
+            mapImage.style.width = '1024px';
+            mapImage.style.height = '647px';
+            mapImage.src = 'avatar1_map_layout.jpg';
+        }
+        
         // Render dots, stats and fit using fallback data
         renderPlotDots();
         updateStatistics();
@@ -305,10 +312,20 @@ function getStatusColor(status) {
 function renderPlotDots() {
     plotsOverlay.innerHTML = '';
     
+    const comingSoonOverlay = document.getElementById('comingSoonOverlay');
     const coordsSource = avatarCoordsPool[currentProject] || {};
     const dataSource = avatarDataPool[currentProject] || [];
     
     if (currentProject === 'avatar3') {
+        if (!isAdminLoggedIn) {
+            if (comingSoonOverlay) comingSoonOverlay.style.display = 'flex';
+            if (mapContainer) mapContainer.classList.add('blurred-layout');
+            return; // Restricted from public view
+        } else {
+            if (comingSoonOverlay) comingSoonOverlay.style.display = 'none';
+            if (mapContainer) mapContainer.classList.remove('blurred-layout');
+        }
+        
         const scaleX = 1024 / 2500;
         const scaleY = 576 / 1579;
         
@@ -355,7 +372,11 @@ function renderPlotDots() {
             
             plotsOverlay.appendChild(dot);
         });
-    } else if (currentProject === 'avatar2' || currentProject === 'avatar1') {
+    } else {
+        // Avatar 1 or Avatar 2
+        if (comingSoonOverlay) comingSoonOverlay.style.display = 'none';
+        if (mapContainer) mapContainer.classList.remove('blurred-layout');
+        
         Object.keys(coordsSource).forEach(plotNo => {
             const coords = coordsSource[plotNo];
             const detail = dataSource.find(p => String(p.plot_no) === String(plotNo));
@@ -627,6 +648,10 @@ function setupSearch() {
 }
 
 function renderSearchSuggestions(query) {
+    if (currentProject === 'avatar3' && !isAdminLoggedIn) {
+        searchSuggestions.style.display = 'none';
+        return;
+    }
     const coordsSource = avatarCoordsPool[currentProject] || {};
     const matches = Object.keys(coordsSource)
         .filter(no => no.toLowerCase().startsWith(query))
@@ -660,6 +685,9 @@ function renderSearchSuggestions(query) {
 }
 
 function focusOnPlot(plotNo) {
+    if (currentProject === 'avatar3' && !isAdminLoggedIn) {
+        return;
+    }
     const coordsSource = avatarCoordsPool[currentProject] || {};
     const coords = coordsSource[plotNo];
     if (!coords) return;
@@ -1242,6 +1270,9 @@ function exportPlotSpecSheet(plotNo) {
 }
 
 function openPlotModal(plotNo) {
+    if (currentProject === 'avatar3' && !isAdminLoggedIn) {
+        return; // Avatar 3 plot details restricted prior to public launch
+    }
     const item = plotData.find(p => String(p.plot_no) === String(plotNo)) || {
         plot_no: plotNo,
         plot_size: 'N/A',
@@ -1345,15 +1376,6 @@ function openPlotModal(plotNo) {
             <div class="detail-row">
                 <span class="detail-label">Facing Direction</span>
                 <span class="detail-val">${item.facing || 'N/A'}</span>
-            </div>
-            <div class="detail-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
-                <span class="detail-label">Boundary Dimensions</span>
-                <div style="width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 10px; font-weight: 600; padding: 6px; background: rgba(255,255,255,0.02); border-radius: 6px; border: 1px solid rgba(255,255,255,0.03);">
-                    <div>North: ${item.dim_north || 'N/A'}</div>
-                    <div>South: ${item.dim_south || 'N/A'}</div>
-                    <div>East: ${item.dim_east || 'N/A'}</div>
-                    <div>West: ${item.dim_west || 'N/A'}</div>
-                </div>
             </div>
             ${adminCrmHtml}
         </div>
@@ -2200,6 +2222,8 @@ function toggleSatelliteView() {
             const loc = getActiveProjectCenter();
             leafletMap.setView(loc, 17);
         }
+        
+        updateAvatar3SatelliteMask();
     } else {
         toggleBtn.classList.remove('active');
         toggleBtn.innerHTML = '<i class="fa-solid fa-earth-americas"></i> <span>Satellite View</span>';
@@ -2257,6 +2281,52 @@ function getActiveProjectCenter() {
     const activeProjectBtn = document.querySelector('.project-nav-btn.active');
     const project = activeProjectBtn ? activeProjectBtn.dataset.project : 'avatar3';
     return projectLocations[project] || projectLocations.avatar3;
+}
+
+let avatar3SatelliteMaskGroup = null;
+
+function updateAvatar3SatelliteMask() {
+    if (!leafletMap) return;
+    
+    if (!avatar3SatelliteMaskGroup) {
+        avatar3SatelliteMaskGroup = L.layerGroup();
+        
+        // Central Coming Soon Display Card Marker on Satellite Map
+        const badgeIcon = L.divIcon({
+            className: 'satellite-cs-marker-wrapper',
+            html: `
+                <div class="sat-cs-badge-card" style="text-align: center; padding: 36px 38px; width: 420px;">
+                    <h3 class="sat-cs-badge-title" style="font-size: 28px; font-weight: 800; color: #ffffff; margin-bottom: 14px; letter-spacing: -0.5px;">Aspirealty Avatar 3</h3>
+                    <div class="sat-cs-badge-pill" style="font-size: 15px; font-weight: 800; color: #f97316; letter-spacing: 2.5px; padding: 8px 24px; border-radius: 30px;"><i class="fa-solid fa-clock"></i> COMING SOON</div>
+                </div>
+            `,
+            iconSize: [420, 160],
+            iconAnchor: [210, 80]
+        });
+        
+        const badgeMarker = L.marker([16.9307952, 78.5382904], { icon: badgeIcon });
+        avatar3SatelliteMaskGroup.addLayer(badgeMarker);
+    }
+    
+    if (isSatelliteActive && currentProject === 'avatar3' && !isAdminLoggedIn) {
+        if (!leafletMap.hasLayer(avatar3SatelliteMaskGroup)) {
+            avatar3SatelliteMaskGroup.addTo(leafletMap);
+        }
+        setTimeout(() => {
+            const btn = document.getElementById('satInterestBtn');
+            if (btn) {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const interestModalBackdrop = document.getElementById('interestModalBackdrop');
+                    if (interestModalBackdrop) interestModalBackdrop.classList.add('active');
+                };
+            }
+        }, 100);
+    } else {
+        if (avatar3SatelliteMaskGroup && leafletMap.hasLayer(avatar3SatelliteMaskGroup)) {
+            leafletMap.removeLayer(avatar3SatelliteMaskGroup);
+        }
+    }
 }
 
 function initLeafletMap() {
@@ -2462,6 +2532,11 @@ function initLeafletMap() {
             
             // Only add GroundOverlays that are visible by default
             if (latLonBox && href && isVisible) {
+                // Hide Avatar 3 layout image overlay for public view prior to launch
+                if (!isAdminLoggedIn && (href.includes('map_layout.png') || name.toLowerCase().includes('avatar 3') || name.toLowerCase().includes('avatar3'))) {
+                    continue;
+                }
+
                 const north = parseFloat(latLonBox.getElementsByTagName('north')[0]?.textContent || '0');
                 const south = parseFloat(latLonBox.getElementsByTagName('south')[0]?.textContent || '0');
                 const east = parseFloat(latLonBox.getElementsByTagName('east')[0]?.textContent || '0');
@@ -2603,6 +2678,9 @@ function initLeafletMap() {
         
     // Setup Layer Checkbox Handlers
     setupLayerToggles();
+
+    // Update Avatar 3 Coming Soon mask overlay on satellite map
+    updateAvatar3SatelliteMask();
 }
 
 function setupLayerToggles() {
@@ -2652,25 +2730,45 @@ function updateSidebarAndHeaderForProject(project) {
     const searchSection = document.getElementById('searchSection');
     const filtersSection = document.getElementById('filtersSection');
     const legendSection = document.getElementById('legendSection');
+    const sidebarComingSoonSection = document.getElementById('sidebarComingSoonSection');
     const headerStats = document.querySelector('.header-stats');
     const approvedBadge = document.querySelector('.approved-badge');
     const projectNameEl = document.querySelector('.project-name');
+    const comingSoonOverlay = document.getElementById('comingSoonOverlay');
     
-    if (!isSatelliteActive && (project === 'avatar3' || project === 'avatar2' || project === 'avatar1')) {
+    if (project === 'avatar3') {
+        // Avatar 3 Coming Soon state
+        if (searchSection) searchSection.style.display = 'none';
+        if (filtersSection) filtersSection.style.display = 'none';
+        if (legendSection) legendSection.style.display = 'none';
+        if (headerStats) headerStats.style.display = 'none';
+        if (sidebarComingSoonSection) sidebarComingSoonSection.style.display = isSatelliteActive ? 'none' : 'block';
+        if (approvedBadge) {
+            approvedBadge.style.display = 'inline-flex';
+            approvedBadge.innerHTML = '<i class="fa-solid fa-clock"></i> Coming Soon';
+        }
+        if (projectNameEl) {
+            projectNameEl.textContent = isSatelliteActive ? 'Avatar 3' : 'Layout View (Avatar 3)';
+        }
+        if (!isSatelliteActive && !isAdminLoggedIn && comingSoonOverlay) {
+            comingSoonOverlay.style.display = 'flex';
+            if (mapContainer) mapContainer.classList.add('blurred-layout');
+        }
+    } else if (!isSatelliteActive && (project === 'avatar2' || project === 'avatar1')) {
         if (searchSection) searchSection.style.display = 'block';
         if (filtersSection) filtersSection.style.display = 'block';
         if (legendSection) legendSection.style.display = 'block';
         if (headerStats) headerStats.style.display = 'flex';
+        if (sidebarComingSoonSection) sidebarComingSoonSection.style.display = 'none';
+        if (comingSoonOverlay) comingSoonOverlay.style.display = 'none';
+        if (mapContainer) mapContainer.classList.remove('blurred-layout');
         if (approvedBadge) approvedBadge.style.display = 'inline-flex';
         if (projectNameEl) {
-            if (project === 'avatar3') projectNameEl.textContent = 'Layout View (Avatar 3)';
-            else if (project === 'avatar2') projectNameEl.textContent = 'Layout View (Avatar 2)';
+            if (project === 'avatar2') projectNameEl.textContent = 'Layout View (Avatar 2)';
             else projectNameEl.textContent = 'Layout View (Avatar 1)';
         }
         if (approvedBadge) {
-            if (project === 'avatar3') {
-                approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved 9/2024/h';
-            } else if (project === 'avatar2') {
+            if (project === 'avatar2') {
                 approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved 28/2025/h &nbsp;|&nbsp; RERA Approved Po2400009896';
             } else {
                 approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved 224/2023/h &nbsp;|&nbsp; RERA Approved po2400007808';
@@ -2681,11 +2779,14 @@ function updateSidebarAndHeaderForProject(project) {
         if (filtersSection) filtersSection.style.display = 'none';
         if (legendSection) legendSection.style.display = 'none';
         if (headerStats) headerStats.style.display = 'none';
+        if (sidebarComingSoonSection) sidebarComingSoonSection.style.display = 'none';
+        if (comingSoonOverlay) comingSoonOverlay.style.display = 'none';
+        if (mapContainer) mapContainer.classList.remove('blurred-layout');
         if (approvedBadge) approvedBadge.style.display = 'none';
         if (projectNameEl) {
             if (project === 'avatar1') projectNameEl.textContent = 'Avatar 1';
             else if (project === 'avatar2') projectNameEl.textContent = 'Avatar 2';
-            else projectNameEl.textContent = 'Avatar 3';
+            else projectNameEl.textContent = 'Avatar 3 (Coming Soon)';
         }
     }
 }
@@ -2788,6 +2889,9 @@ function setupProjectNavigation() {
             // Display Project Details Card on Map view
             showProjectDetailsCard(project);
 
+            // Update Satellite view Coming Soon overlay mask if active
+            updateAvatar3SatelliteMask();
+
             if (project === 'avatar1') {
                 if (isSatelliteActive) {
                     if (leafletMap) {
@@ -2862,8 +2966,8 @@ function showProjectDetailsCard(project) {
     
     if (!card) return;
     
-    // Hide details card for Avatar 3 when not in Satellite view or if not navigated
-    if (!isSatelliteActive) {
+    // Hide details card when not in Satellite view or if project is Avatar 3
+    if (!isSatelliteActive || project === 'avatar3') {
         card.style.display = 'none';
         return;
     }
@@ -2956,4 +3060,57 @@ function setupMiniMap() {
     // Initial sync
     syncMiniMap();
 }
+
+function setupInterestModal() {
+    const csInterestBtn = document.getElementById('csInterestBtn');
+    const sidebarInterestBtn = document.getElementById('sidebarInterestBtn');
+    const interestModalBackdrop = document.getElementById('interestModalBackdrop');
+    const interestModalCloseBtn = document.getElementById('interestModalCloseBtn');
+    const interestForm = document.getElementById('interestForm');
+    const interestSuccess = document.getElementById('interestSuccess');
+
+    function openInterestModal() {
+        if (interestModalBackdrop) {
+            interestModalBackdrop.classList.add('active');
+            if (interestSuccess) interestSuccess.style.display = 'none';
+        }
+    }
+
+    function closeInterestModal() {
+        if (interestModalBackdrop) {
+            interestModalBackdrop.classList.remove('active');
+        }
+    }
+
+    if (csInterestBtn) csInterestBtn.addEventListener('click', openInterestModal);
+    if (sidebarInterestBtn) sidebarInterestBtn.addEventListener('click', openInterestModal);
+    if (interestModalCloseBtn) interestModalCloseBtn.addEventListener('click', closeInterestModal);
+    if (interestModalBackdrop) {
+        interestModalBackdrop.addEventListener('click', (e) => {
+            if (e.target === interestModalBackdrop) closeInterestModal();
+        });
+    }
+
+    if (interestForm) {
+        interestForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('interestName').value;
+            const phone = document.getElementById('interestPhone').value;
+            const facing = document.getElementById('interestFacing').value;
+            
+            console.log('Avatar 3 Pre-Launch Interest Submitted:', { name, phone, facing, timestamp: new Date().toISOString() });
+            
+            if (interestSuccess) {
+                interestSuccess.style.display = 'block';
+                interestSuccess.innerHTML = `<i class="fa-solid fa-circle-check"></i> Thank you ${name}! Your pre-launch interest for ${facing} facing plots has been received.`;
+            }
+            
+            setTimeout(() => {
+                interestForm.reset();
+                closeInterestModal();
+            }, 2500);
+        });
+    }
+}
+
 
