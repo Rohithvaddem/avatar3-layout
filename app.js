@@ -2188,6 +2188,7 @@ let localRoadsGroup = null;
 let projectMarkersGroup = null;
 
 function toggleSatelliteView() {
+    closePlotModal();
     const toggleBtn = document.getElementById('toggleSatelliteBtn');
     const leafletContainer = document.getElementById('leafletMapContainer');
     const layerControl = document.getElementById('gisLayerControl');
@@ -2868,6 +2869,7 @@ function setupProjectNavigation() {
     navButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
+            closePlotModal();
             const project = btn.dataset.project;
 
             // Update active states for the nav buttons
