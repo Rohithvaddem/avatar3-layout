@@ -3312,18 +3312,42 @@ function setupSiteVisitBooking() {
             const phone = document.getElementById('visitPhone')?.value;
             const cab = document.getElementById('visitCabPickup')?.checked;
 
-            console.log('Site Visit Booked:', { project, date, time, name, phone, cab });
+            // Construct formatted WhatsApp message for instant sales notification
+            const cabText = cab ? 'YES (AC Cab Pick-up Required)' : 'NO (Self-Travel)';
+            const waMessage = 
+`🚗 *NEW SITE VISIT BOOKING REQUEST* 🚗
+------------------------------------
+• *Project:* ${project}
+• *Visit Date:* ${date}
+• *Time Slot:* ${time}
+• *Customer Name:* ${name}
+• *Phone Number:* ${phone}
+• *Cab Pick-up:* ${cabText}
+------------------------------------
+_Sent via Aspirealty Interactive Viewer_`;
+
+            // Official Sales WhatsApp number (easily updated)
+            const salesNumber = (typeof COMPANY_SALES_WHATSAPP !== 'undefined') ? COMPANY_SALES_WHATSAPP : '919876543210';
+            const encodedMsg = encodeURIComponent(waMessage);
+            const whatsappUrl = `https://api.whatsapp.com/send?phone=${salesNumber}&text=${encodedMsg}`;
+
+            console.log('Site Visit Booked:', { project, date, time, name, phone, cab, whatsappUrl });
 
             if (successMsg) {
                 successMsg.style.display = 'block';
-                successMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> Thank you ${name}! Your site visit for ${project} on ${date} at ${time} is confirmed.`;
+                successMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> Thank you ${name}! Opening WhatsApp to confirm your site visit for ${project}...`;
             }
+
+            // Open WhatsApp to send instant alert to sales team
+            setTimeout(() => {
+                window.open(whatsappUrl, '_blank');
+            }, 600);
 
             setTimeout(() => {
                 if (successMsg) successMsg.style.display = 'none';
                 if (backdrop) backdrop.classList.remove('show');
                 form.reset();
-            }, 3000);
+            }, 3500);
         });
     }
 }
