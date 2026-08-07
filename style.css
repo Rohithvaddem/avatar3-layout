@@ -2342,7 +2342,7 @@ input[type="radio"]:checked + .custom-radio::after {
     background: linear-gradient(90deg, #0284c7 0%, #38bdf8 50%, #2563eb 100%);
     border-radius: 4px;
     box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
-    transition: width 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: width 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .splash-badges {

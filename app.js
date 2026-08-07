@@ -3456,13 +3456,13 @@ function setupWelcomeSplash() {
             progress.style.width = '100%';
         }, 80);
         
-        // Hide splash after 1.8s
+        // Hide splash after 2.0s
         setTimeout(() => {
             splash.classList.add('hide');
             setTimeout(() => {
                 if (splash.parentNode) splash.parentNode.removeChild(splash);
             }, 650);
-        }, 1800);
+        }, 2000);
     }
 }
 
