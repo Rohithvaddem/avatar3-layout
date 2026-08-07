@@ -3006,7 +3006,7 @@ function updateSidebarAndHeaderForProject(project) {
 function changeLayoutImage(newSrc, containerWidth, containerHeight, imageWidth, imageHeight, onBeforeLoad) {
     const loader = document.getElementById('layoutLoader');
     
-    // Show loader and fade out old content
+    // Smoothly scale down & fade out current layout
     if (loader) loader.classList.add('active');
     mapImage.classList.add('loading-layout');
     plotsOverlay.classList.add('loading-layout');
@@ -3028,19 +3028,20 @@ function changeLayoutImage(newSrc, containerWidth, containerHeight, imageWidth, 
         
         if (onBeforeLoad) onBeforeLoad();
         
-        // Render and fit
+        // Render dots and auto-fit to viewport
         renderPlotDots();
         fitMapToViewport();
         
-        // Fade in
-        mapImage.classList.remove('loading-layout');
-        plotsOverlay.classList.remove('loading-layout');
-        if (loader) loader.classList.remove('active');
+        // Smoothly scale in & fade back in
+        setTimeout(() => {
+            mapImage.classList.remove('loading-layout');
+            plotsOverlay.classList.remove('loading-layout');
+            if (loader) loader.classList.remove('active');
+        }, 100);
     };
     
     if (currentCleanSrc === cleanSrc && mapImage.complete) {
-        // Already loaded the same image
-        transitionDone();
+        setTimeout(transitionDone, 150);
         return;
     }
     

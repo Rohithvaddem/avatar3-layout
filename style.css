@@ -2234,6 +2234,18 @@ input[type="radio"]:checked + .custom-radio::after {
     }
 }
 
+/* Schematic Layout Switch Smooth Fade & Scale Transition */
+#mapImage, #plotsOverlay {
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+}
+
+.loading-layout {
+    opacity: 0 !important;
+    transform: scale(0.96) !important;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
 
 
 
