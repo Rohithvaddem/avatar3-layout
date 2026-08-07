@@ -2711,8 +2711,8 @@ function initLeafletMap() {
         projectMarkersGroup.clearLayers();
         
         const markers = [
-            { name: 'Aspirealty Avatar 1', loc: [16.9498389, 78.4960974], projectKey: 'avatar1' },
-            { name: 'Aspirealty Avatar 2', loc: [16.9233266, 78.5325395], projectKey: 'avatar2' }
+            { name: 'Aspirealty Avatar 1', loc: [16.948861, 78.497542], projectKey: 'avatar1' },
+            { name: 'Aspirealty Avatar 2', loc: [16.925321, 78.532087], projectKey: 'avatar2' }
             // Avatar 3 marker omitted as per user request (covered by Coming Soon card)
         ];
         
