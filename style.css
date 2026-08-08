@@ -1602,8 +1602,8 @@ input[type="radio"]:checked + .custom-radio::after {
 }
 
 .blurred-layout {
-    filter: blur(6px) brightness(0.5);
-    opacity: 0.65;
+    filter: blur(8px) brightness(0.85);
+    opacity: 0.85;
     pointer-events: none;
     transition: filter 0.4s ease, opacity 0.4s ease;
 }
@@ -1620,16 +1620,17 @@ input[type="radio"]:checked + .custom-radio::after {
     justify-content: center;
     padding: 24px;
     pointer-events: auto;
-    background: #0a0d14;
-    background: radial-gradient(circle at center, #141c2c 0%, #0a0d14 75%);
+    background: rgba(10, 13, 20, 0.35);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .coming-soon-card {
-    background: rgba(18, 24, 36, 0.95);
+    background: rgba(18, 24, 36, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(249, 115, 22, 0.4);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(249, 115, 22, 0.2);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(249, 115, 22, 0.25);
     border-radius: 24px;
     padding: 36px 40px;
     max-width: 560px;
