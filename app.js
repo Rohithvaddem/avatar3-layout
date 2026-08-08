@@ -3466,18 +3466,26 @@ function setupWelcomeSplash() {
     const progress = document.getElementById('splashProgressBar');
     
     if (splash && progress) {
-        // Animate progress bar fill
+        // Animate progress bar fill smoothly
         setTimeout(() => {
             progress.style.width = '100%';
-        }, 80);
+        }, 100);
         
-        // Hide splash after 2.0s
-        setTimeout(() => {
+        let isDismissed = false;
+        const dismissSplash = () => {
+            if (isDismissed) return;
+            isDismissed = true;
             splash.classList.add('hide');
             setTimeout(() => {
-                if (splash.parentNode) splash.parentNode.removeChild(splash);
+                if (splash && splash.parentNode) {
+                    splash.parentNode.removeChild(splash);
+                }
             }, 650);
-        }, 2000);
+        };
+
+        // Click or tap anywhere on screen to open the webpage
+        splash.addEventListener('click', dismissSplash);
+        splash.addEventListener('touchstart', dismissSplash, { passive: true });
     }
 }
 
