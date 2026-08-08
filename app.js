@@ -3121,54 +3121,27 @@ function setupProjectNavigation() {
             // Update Satellite view Coming Soon overlay mask if active
             updateAvatar3SatelliteMask();
 
+            // Simultaneously update dataset, filters, search & statistics
+            plotData = avatarDataPool[project] || [];
+            activeSearchPlot = null;
+            if (searchInput) searchInput.value = '';
+            if (searchClearBtn) searchClearBtn.style.display = 'none';
+            if (searchSuggestions) searchSuggestions.style.display = 'none';
+            applyFilters();
+            updateStatistics();
+
+            // Simultaneously fly Satellite GIS map camera if active
+            if (isSatelliteActive && leafletMap) {
+                leafletMap.flyTo(projectLocations[project], 17, { duration: 1.2 });
+            }
+
+            // Simultaneously update Schematic 2D layout image & background dots
             if (project === 'avatar1') {
-                if (isSatelliteActive) {
-                    if (leafletMap) {
-                        leafletMap.flyTo(projectLocations[project], 17, { duration: 1.5 });
-                    }
-                } else {
-                    changeLayoutImage('avatar1_map_layout.jpg', '1024px', '647px', '1024px', '647px', () => {
-                        plotData = avatarDataPool.avatar1 || [];
-                        activeSearchPlot = null;
-                        if (searchInput) searchInput.value = '';
-                        if (searchClearBtn) searchClearBtn.style.display = 'none';
-                        if (searchSuggestions) searchSuggestions.style.display = 'none';
-                        applyFilters();
-                        updateStatistics();
-                    });
-                }
+                changeLayoutImage('avatar1_map_layout.jpg', '1024px', '647px', '1024px', '647px');
             } else if (project === 'avatar2') {
-                if (isSatelliteActive) {
-                    if (leafletMap) {
-                        leafletMap.flyTo(projectLocations[project], 17, { duration: 1.5 });
-                    }
-                } else {
-                    changeLayoutImage('avatar2_digi/map_layout.jpg', '1024px', '646px', '1024px', '646px', () => {
-                        plotData = avatarDataPool.avatar2 || [];
-                        activeSearchPlot = null;
-                        if (searchInput) searchInput.value = '';
-                        if (searchClearBtn) searchClearBtn.style.display = 'none';
-                        if (searchSuggestions) searchSuggestions.style.display = 'none';
-                        applyFilters();
-                        updateStatistics();
-                    });
-                }
+                changeLayoutImage('avatar2_digi/map_layout.jpg', '1024px', '646px', '1024px', '646px');
             } else if (project === 'avatar3') {
-                if (isSatelliteActive) {
-                    if (leafletMap) {
-                        leafletMap.flyTo(projectLocations[project], 17, { duration: 1.5 });
-                    }
-                } else {
-                    changeLayoutImage('map_layout.png', '1024px', '576px', '1024px', '576px', () => {
-                        plotData = avatarDataPool.avatar3 || [];
-                        activeSearchPlot = null;
-                        if (searchInput) searchInput.value = '';
-                        if (searchClearBtn) searchClearBtn.style.display = 'none';
-                        if (searchSuggestions) searchSuggestions.style.display = 'none';
-                        applyFilters();
-                        updateStatistics();
-                    });
-                }
+                changeLayoutImage('map_layout.png', '1024px', '576px', '1024px', '576px');
             }
         });
     });
