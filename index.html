@@ -182,27 +182,31 @@
         <main class="main-content">
             <!-- Top Dashboard Header -->
             <header class="dashboard-header">
-                <button class="sidebar-toggle" id="sidebarToggleBtn"><i class="fa-solid fa-bars"></i></button>
-                <div class="header-project-info">
-                    <h2 class="project-name">Layout View</h2>
-                    <span class="badge approved-badge">
-                        <i class="fa-solid fa-circle-check"></i> DTCP Approved (LP No. 224/2023/H)
-                    </span>
+                <div class="header-left">
+                    <button class="sidebar-toggle" id="sidebarToggleBtn"><i class="fa-solid fa-bars"></i></button>
+                    <div class="header-project-info">
+                        <h2 class="project-name">Layout View</h2>
+                        <span class="badge approved-badge">
+                            <i class="fa-solid fa-circle-check"></i> DTCP Approved (LP No. 224/2023/H)
+                        </span>
+                    </div>
                 </div>
 
-                <!-- Side-by-Side Schematic & Satellite View Switcher -->
-                <div class="view-switch-container" id="viewSwitchContainer">
-                    <button class="view-switch-btn active" id="btnSchematicView" title="Switch to 2D Schematic View">
-                        <i class="fa-solid fa-map"></i> <span>Schematic View</span>
-                    </button>
-                    <button class="view-switch-btn" id="btnSatelliteView" title="Switch to Satellite Map View">
-                        <i class="fa-solid fa-earth-americas"></i> <span>Satellite View</span>
+                <!-- Center Actions: View Switcher & Smart Finder -->
+                <div class="header-center-actions">
+                    <div class="view-switch-container" id="viewSwitchContainer">
+                        <button class="view-switch-btn active" id="btnSchematicView" title="Switch to 2D Schematic View">
+                            <i class="fa-solid fa-map"></i> <span>Schematic View</span>
+                        </button>
+                        <button class="view-switch-btn" id="btnSatelliteView" title="Switch to Satellite Map View">
+                            <i class="fa-solid fa-earth-americas"></i> <span>Satellite View</span>
+                        </button>
+                    </div>
+
+                    <button class="smart-finder-btn-header" id="openPlotFinderHeaderBtn" title="30-Second Smart Plot Finder Quiz">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> <span>Smart Finder</span>
                     </button>
                 </div>
-
-                <button class="smart-finder-btn-header" id="openPlotFinderHeaderBtn" title="30-Second Smart Plot Finder Quiz">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> <span>Smart Finder</span>
-                </button>
 
                 <div class="header-stats">
                     <div class="stat-card">

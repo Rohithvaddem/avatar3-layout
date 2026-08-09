@@ -400,17 +400,25 @@ body {
 /* Header */
 .dashboard-header {
     position: relative;
-    height: 68px;
-    background-color: rgba(18, 24, 36, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border-color);
+    min-height: 72px;
+    background-color: rgba(18, 24, 36, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 24px;
+    padding: 10px 24px;
+    gap: 20px;
     flex-shrink: 0;
     z-index: 95;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
 
 .sidebar-toggle {
@@ -425,41 +433,51 @@ body {
 .header-project-info {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
 }
 
 .project-name {
     font-family: var(--font-heading);
-    font-size: 22px;
+    font-size: 19px;
     font-weight: 700;
+    letter-spacing: -0.3px;
+    line-height: 1.2;
 }
 
 .badge {
-    padding: 4px 8px;
+    padding: 3px 8px;
     border-radius: 6px;
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
+    white-space: nowrap;
 }
 
 .approved-badge {
-    background-color: rgba(16, 185, 129, 0.1);
+    background-color: rgba(16, 185, 129, 0.12);
     color: #34d399;
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    max-width: max-content;
+}
+
+.header-center-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 /* Side-by-Side View Switcher Container */
 .view-switch-container {
     display: inline-flex;
     align-items: center;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    padding: 4px;
-    border-radius: 12px;
-    gap: 4px;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    background: rgba(10, 14, 23, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 3px;
+    border-radius: 10px;
+    gap: 3px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .view-switch-btn {
@@ -467,21 +485,21 @@ body {
     border: 1px solid transparent;
     color: var(--text-secondary);
     font-family: var(--font-body);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
-    padding: 8px 16px;
-    border-radius: 8px;
+    padding: 7px 14px;
+    border-radius: 7px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     white-space: nowrap;
 }
 
 .view-switch-btn:hover {
     color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .view-switch-btn.active {
@@ -493,22 +511,23 @@ body {
 
 .header-stats {
     display: flex;
-    gap: 16px;
+    gap: 10px;
+    align-items: center;
 }
 
 .stat-card {
-    background-color: rgba(27, 35, 54, 0.45);
+    background-color: rgba(22, 30, 46, 0.6);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--border-color);
-    padding: 6px 14px;
-    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 5px 12px;
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    min-width: 90px;
-    gap: 2px;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+    min-width: 82px;
+    gap: 1px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .stat-card:hover {
@@ -519,15 +538,16 @@ body {
 
 .stat-num {
     font-family: var(--font-heading);
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 700;
 }
 
 .stat-label {
-    font-size: 9px;
+    font-size: 8.5px;
     color: var(--text-muted);
     font-weight: 600;
     text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .text-success { color: var(--status-available); }
