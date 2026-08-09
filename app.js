@@ -404,7 +404,7 @@ function renderPlotDots() {
     
     if (currentProject === 'avatar3') {
         if (!isAdminLoggedIn) {
-            if (comingSoonOverlay) comingSoonOverlay.style.display = 'flex';
+            if (comingSoonOverlay) comingSoonOverlay.style.display = isSatelliteActive ? 'none' : 'flex';
             if (mapContainer) mapContainer.classList.add('blurred-layout');
             return; // Restricted from public view
         } else {
@@ -2994,9 +2994,11 @@ function updateSidebarAndHeaderForProject(project) {
         if (projectNameEl) {
             projectNameEl.textContent = isSatelliteActive ? 'Avatar 3' : 'Layout View (Avatar 3)';
         }
-        if (!isSatelliteActive && !isAdminLoggedIn && comingSoonOverlay) {
-            comingSoonOverlay.style.display = 'flex';
-            if (mapContainer) mapContainer.classList.add('blurred-layout');
+        if (comingSoonOverlay) {
+            comingSoonOverlay.style.display = (!isSatelliteActive && !isAdminLoggedIn) ? 'flex' : 'none';
+        }
+        if (!isSatelliteActive && !isAdminLoggedIn && mapContainer) {
+            mapContainer.classList.add('blurred-layout');
         }
     } else if (!isSatelliteActive && (project === 'avatar2' || project === 'avatar1')) {
         if (searchSection) searchSection.style.display = 'block';
