@@ -1432,7 +1432,13 @@ function openPlotModal(plotNo) {
     }
     
     const plotAreaYds = parseFloat(String(item.plot_size || '').replace(/[^0-9.]/g, '')) || 200;
-    const sqYdRate = 15000; // Estimated baseline rate per sq. yard
+    let sqYdRate = 15499; // Default rate per sq. yard (Avatar 2: 15,499)
+    if (currentProject === 'avatar1') {
+        sqYdRate = 23999; // Avatar 1 rate per sq. yard: 23,999
+    } else if (currentProject === 'avatar2') {
+        sqYdRate = 15499;
+    }
+    const estimatedPlotCost = plotAreaYds * sqYdRate;
     const isAvailable = String(item.plot_status || '').toUpperCase() === 'AVAILABLE';
 
     let emiHtml = '';
@@ -1445,6 +1451,10 @@ function openPlotModal(plotNo) {
                     <i class="fa-solid fa-chevron-down" id="emiChevron"></i>
                 </div>
                 <div id="emiCalcBody" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-secondary); background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <span>Rate: <strong style="color: var(--accent);">₹ ${sqYdRate.toLocaleString('en-IN')}</strong> / Sq.Yd</span>
+                        <span>Est. Cost: <strong style="color: #60a5fa;">₹ ${Math.round(estimatedPlotCost).toLocaleString('en-IN')}</strong></span>
+                    </div>
                     <div class="emi-slider-row">
                         <div class="emi-slider-label">
                             <span>Down Payment</span>
@@ -2962,6 +2972,11 @@ function updateSidebarAndHeaderForProject(project) {
                 approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved 224/2023/h &nbsp;|&nbsp; RERA Approved po2400007808';
             }
         }
+        const sidebarRateInput = document.getElementById('sidebarEmiRateRange');
+        if (sidebarRateInput) {
+            sidebarRateInput.value = project === 'avatar1' ? 23999 : 15499;
+            if (typeof window.updateSidebarEmi === 'function') window.updateSidebarEmi();
+        }
     } else {
         if (searchSection) searchSection.style.display = 'none';
         if (filtersSection) filtersSection.style.display = 'none';
@@ -3387,6 +3402,7 @@ function setupSidebarEmiCalculator() {
             emiDisplay.textContent = '₹ ' + Math.round(emi).toLocaleString('en-IN') + ' / mo';
         }
     }
+    window.updateSidebarEmi = updateSidebarEmi;
 
     ['sidebarEmiAreaRange', 'sidebarEmiRateRange', 'sidebarEmiDownRange', 'sidebarEmiInterestRange', 'sidebarEmiTenureRange'].forEach(id => {
         const el = document.getElementById(id);
