@@ -2191,24 +2191,7 @@ function openPlotEditForm(plotNo) {
                 </select>
             </div>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <label style="font-size: 11px; color: var(--text-secondary);">North Boundary</label>
-                    <input type="text" id="editNorth" value="${item.dim_north || '-'}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 12px; outline: none;">
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <label style="font-size: 11px; color: var(--text-secondary);">South Boundary</label>
-                    <input type="text" id="editSouth" value="${item.dim_south || '-'}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 12px; outline: none;">
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <label style="font-size: 11px; color: var(--text-secondary);">East Boundary</label>
-                    <input type="text" id="editEast" value="${item.dim_east || '-'}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 12px; outline: none;">
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <label style="font-size: 11px; color: var(--text-secondary);">West Boundary</label>
-                    <input type="text" id="editWest" value="${item.dim_west || '-'}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 12px; outline: none;">
-                </div>
-            </div>
+
 
             <!-- CRM Editing Fields -->
             <div style="font-weight: 700; color: var(--accent); font-size: 14px; margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 12px; display: flex; align-items: center; gap: 6px;">
@@ -2264,10 +2247,9 @@ function savePlotEdits(plotNo) {
     const editStatus = document.getElementById('editStatus').value;
     const editSize = document.getElementById('editSize').value.trim();
     const editFacing = document.getElementById('editFacing').value;
-    const editNorth = document.getElementById('editNorth').value.trim();
-    const editSouth = document.getElementById('editSouth').value.trim();
-    const editEast = document.getElementById('editEast').value.trim();
-    const editWest = document.getElementById('editWest').value.trim();
+
+    let idx = plotData.findIndex(p => String(p.plot_no) === String(plotNo));
+    const existingPlot = idx !== -1 ? plotData[idx] : {};
 
     // CRM fields
     const editCustomerName = document.getElementById('editCustomerName').value.trim();
@@ -2276,8 +2258,6 @@ function savePlotEdits(plotNo) {
     const editLeadSource = document.getElementById('editLeadSource').value;
     const editNewNoteText = document.getElementById('editNewNote').value.trim();
 
-    let idx = plotData.findIndex(p => String(p.plot_no) === String(plotNo));
-    
     // Fetch existing notes or initialize
     let crmNotes = [];
     if (idx !== -1 && Array.isArray(plotData[idx].crm_notes)) {
@@ -2295,10 +2275,10 @@ function savePlotEdits(plotNo) {
         plot_size: editSize,
         facing: editFacing,
         plot_status: editStatus,
-        dim_north: editNorth,
-        dim_south: editSouth,
-        dim_east: editEast,
-        dim_west: editWest,
+        dim_north: existingPlot.dim_north || '-',
+        dim_south: existingPlot.dim_south || '-',
+        dim_east: existingPlot.dim_east || '-',
+        dim_west: existingPlot.dim_west || '-',
         customer_name: editCustomerName,
         customer_phone: editCustomerPhone,
         customer_email: editCustomerEmail,
