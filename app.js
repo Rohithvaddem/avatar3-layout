@@ -2349,6 +2349,9 @@ function savePlotEdits(plotNo) {
     const storageKey = `aspire_${currentProject}_data`;
     localStorage.setItem(storageKey, JSON.stringify(plotData));
 
+    // Instant Realtime Cloud Database Sync for live customer visibility
+    syncRealtimePlotUpdate(currentProject, plotNo, updatedPlot);
+
     renderPlotDots();
     updateStatistics();
     openPlotModal(plotNo);
@@ -3611,6 +3614,76 @@ function setupSmartPlotFinder() {
     if (clearBannerBtn) clearBannerBtn.addEventListener('click', clearFinderMatches);
 }
 
+// ----------------------------------------------------
+// Realtime Database Cloud Synchronization Engine
+// ----------------------------------------------------
+const FIREBASE_DB_URL = 'https://aspirealty-avatar-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+function syncRealtimePlotUpdate(project, plotNo, plotObject) {
+    if (!FIREBASE_DB_URL) return;
+    const endpoint = `${FIREBASE_DB_URL}/plots/${project}/${plotNo}.json`;
+    fetch(endpoint, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(plotObject)
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log(`[Realtime Cloud Sync] Plot #${plotNo} synced to cloud for ${project}`);
+    })
+    .catch(err => console.warn('[Cloud Sync Warning] Saved locally (offline):', err));
+}
+
+function startRealtimeCloudSync() {
+    if (!FIREBASE_DB_URL) return;
+    
+    function fetchAndMergeCloudData() {
+        fetch(`${FIREBASE_DB_URL}/plots.json`)
+            .then(res => {
+                if (!res.ok) throw new Error('Cloud fetch error');
+                return res.json();
+            })
+            .then(cloudPlots => {
+                if (!cloudPlots) return;
+                let hasChanges = false;
+                
+                ['avatar1', 'avatar2', 'avatar3'].forEach(projKey => {
+                    const projectCloudData = cloudPlots[projKey];
+                    if (projectCloudData) {
+                        const localPool = avatarDataPool[projKey] || [];
+                        Object.keys(projectCloudData).forEach(plotNo => {
+                            const cloudItem = projectCloudData[plotNo];
+                            if (!cloudItem) return;
+                            
+                            let localItem = localPool.find(p => String(p.plot_no) === String(plotNo));
+                            if (localItem) {
+                                if (localItem.plot_status !== cloudItem.plot_status || 
+                                    localItem.customer_name !== cloudItem.customer_name ||
+                                    localItem.plot_size !== cloudItem.plot_size) {
+                                    Object.assign(localItem, cloudItem);
+                                    hasChanges = true;
+                                }
+                            } else {
+                                localPool.push(cloudItem);
+                                hasChanges = true;
+                            }
+                        });
+                    }
+                });
+
+                if (hasChanges) {
+                    plotData = avatarDataPool[currentProject] || [];
+                    renderPlotDots();
+                    updateStatistics();
+                }
+            })
+            .catch(() => {});
+    }
+
+    fetchAndMergeCloudData();
+    setInterval(fetchAndMergeCloudData, 4000);
+}
+
 // Global DOM Ready initializer for Interactive Features
 document.addEventListener('DOMContentLoaded', () => {
     setupWelcomeSplash();
@@ -3618,11 +3691,13 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSiteVisitBooking();
     setupSidebarEmiCalculator();
     setupSmartPlotFinder();
+    startRealtimeCloudSync();
 });
 setupWelcomeSplash();
 setupInterestModal();
 setupSiteVisitBooking();
 setupSidebarEmiCalculator();
 setupSmartPlotFinder();
+startRealtimeCloudSync();
 
 
