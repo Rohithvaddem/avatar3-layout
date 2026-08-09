@@ -1504,6 +1504,12 @@ function openPlotModal(plotNo) {
                 <span class="detail-label">Facing Direction</span>
                 <span class="detail-val">${item.facing || 'N/A'}</span>
             </div>
+            ${item.customer_name ? `
+            <div class="detail-row" style="padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.05);">
+                <span class="detail-label"><i class="fa-solid fa-user-check" style="color: #60a5fa; margin-right: 4px;"></i> Customer Name</span>
+                <span class="detail-val" style="font-weight: 700; color: #60a5fa;">${item.customer_name}</span>
+            </div>
+            ` : ''}
 
             ${emiHtml}
             ${adminCrmHtml}
