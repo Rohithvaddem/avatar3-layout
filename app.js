@@ -390,7 +390,7 @@ function renderPlotDots() {
             dot.dataset.status = status;
             
             dot.style.setProperty('--plot-color', getStatusColor(status));
-            if (isAdminLoggedIn && detail && (detail.customer_name || detail.pipeline_stage)) {
+            if (isAdminLoggedIn && detail && (detail.customer_name || detail.lead_source)) {
                 dot.style.boxShadow = '0 0 0 2px #3b82f6, 0 0 8px var(--plot-color)';
             }
             if (isAdminLoggedIn && simulatedLocks[plotNo]) {
@@ -451,7 +451,7 @@ function renderPlotDots() {
             dot.dataset.status = status;
             
             dot.style.setProperty('--plot-color', getStatusColor(status));
-            if (isAdminLoggedIn && detail && (detail.customer_name || detail.pipeline_stage)) {
+            if (isAdminLoggedIn && detail && (detail.customer_name || detail.lead_source)) {
                 dot.style.boxShadow = '0 0 0 2px #3b82f6, 0 0 8px var(--plot-color)';
             }
             if (isAdminLoggedIn && simulatedLocks[plotNo]) {
@@ -1408,10 +1408,6 @@ function openPlotModal(plotNo) {
                     <span class="detail-label" style="font-size: 11px;">Lead Source</span>
                     <span class="detail-val" style="font-size: 12px; font-weight: 600;">${item.lead_source || 'N/A'}</span>
                 </div>
-                <div class="detail-row" style="padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">
-                    <span class="detail-label" style="font-size: 11px;">Pipeline Stage</span>
-                    <span class="status-badge" style="--badge-color: #3b82f6; --badge-glow: rgba(59, 130, 246, 0.4); font-size: 10px; padding: 2px 8px; border-radius: 4px;">${(item.pipeline_stage || 'Inquiry').toUpperCase()}</span>
-                </div>
                 <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 4px;">
                     <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Recent Notes Log:</div>
                     <div style="background: rgba(0,0,0,0.25); padding: 8px; border-radius: 8px; font-size: 11px; max-height: 120px; overflow-y: auto; color: var(--text-secondary); line-height: 1.4; border: 1px solid var(--border-color);">
@@ -2237,22 +2233,10 @@ function openPlotEditForm(plotNo) {
             <div style="display: flex; flex-direction: column; gap: 4px;">
                 <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Lead Source</label>
                 <select id="editLeadSource" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none; width: 100%;">
+                    <option value="Channel Partner" ${item.lead_source === 'Channel Partner' ? 'selected' : ''}>Channel Partner</option>
                     <option value="Website" ${item.lead_source === 'Website' ? 'selected' : ''}>Website</option>
-                    <option value="Facebook" ${item.lead_source === 'Facebook' ? 'selected' : ''}>Facebook</option>
-                    <option value="Walk-in" ${item.lead_source === 'Walk-in' ? 'selected' : ''}>Walk-in</option>
+                    <option value="Office" ${item.lead_source === 'Office' ? 'selected' : ''}>Office</option>
                     <option value="Reference" ${item.lead_source === 'Reference' ? 'selected' : ''}>Reference</option>
-                    <option value="Other" ${item.lead_source === 'Other' ? 'selected' : ''}>Other</option>
-                </select>
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Pipeline Stage</label>
-                <select id="editPipelineStage" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none; width: 100%;">
-                    <option value="Inquiry" ${item.pipeline_stage === 'Inquiry' ? 'selected' : ''}>New Inquiry</option>
-                    <option value="Site Visit" ${item.pipeline_stage === 'Site Visit' ? 'selected' : ''}>Site Visit Scheduled</option>
-                    <option value="Negotiation" ${item.pipeline_stage === 'Negotiation' ? 'selected' : ''}>Negotiation</option>
-                    <option value="Token Paid" ${item.pipeline_stage === 'Token Paid' ? 'selected' : ''}>Token Advance Paid</option>
-                    <option value="Registered/Closed" ${item.pipeline_stage === 'Registered/Closed' ? 'selected' : ''}>Registered/Closed</option>
                 </select>
             </div>
 
@@ -2290,7 +2274,6 @@ function savePlotEdits(plotNo) {
     const editCustomerPhone = document.getElementById('editCustomerPhone').value.trim();
     const editCustomerEmail = document.getElementById('editCustomerEmail').value.trim();
     const editLeadSource = document.getElementById('editLeadSource').value;
-    const editPipelineStage = document.getElementById('editPipelineStage').value;
     const editNewNoteText = document.getElementById('editNewNote').value.trim();
 
     let idx = plotData.findIndex(p => String(p.plot_no) === String(plotNo));
@@ -2320,7 +2303,6 @@ function savePlotEdits(plotNo) {
         customer_phone: editCustomerPhone,
         customer_email: editCustomerEmail,
         lead_source: editLeadSource,
-        pipeline_stage: editPipelineStage,
         crm_notes: crmNotes
     };
 
