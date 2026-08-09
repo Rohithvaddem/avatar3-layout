@@ -1436,7 +1436,7 @@ function openPlotModal(plotNo) {
     const isAvailable = String(item.plot_status || '').toUpperCase() === 'AVAILABLE';
 
     let emiHtml = '';
-    if (isAvailable) {
+    if (isAvailable && !isAdminLoggedIn) {
         emiHtml = `
             <!-- Interactive EMI & Loan Calculator (Only for Available Plots) -->
             <div class="emi-calc-container">
@@ -1506,7 +1506,7 @@ function openPlotModal(plotNo) {
         ${editButtonHtml}
     `;
 
-    if (isAvailable) {
+    if (isAvailable && !isAdminLoggedIn) {
         // Initialize EMI Slider calculations for available plots
         function calculateEmi() {
             const totalPlotCost = plotAreaYds * sqYdRate;
