@@ -2423,6 +2423,9 @@ function toggleSatelliteView() {
             leafletMap.setView(loc, 17);
         }
         
+        // Immediately hide 2D map filters, search & legend sections in sidebar for Satellite view
+        updateSidebarAndHeaderForProject(currentProject);
+        
         updateAvatar3SatelliteMask();
     } else {
         if (btnSchematic) btnSchematic.classList.add('active');
