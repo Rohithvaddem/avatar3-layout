@@ -3499,9 +3499,10 @@ function setupSmartPlotFinder() {
             const plotNo = dot.dataset.plotNo;
             const detail = dataSource.find(p => String(p.plot_no) === String(plotNo)) || {};
             
-            const plotStatus = String(detail.plot_status || 'AVAILABLE').toUpperCase();
-            const plotFacing = String(detail.facing || dot.dataset.facing || '');
-            const plotSize = parseFloat(String(detail.plot_size || '').replace(/[^0-9.]/g, '')) || 0;
+            const plotStatus = String(detail.plot_status || dot.dataset.status || 'AVAILABLE').toUpperCase().trim();
+            const plotFacing = String(detail.facing || dot.dataset.facing || '').trim();
+            const rawSize = parseFloat(String(detail.plot_size || '').replace(/[^0-9.]/g, ''));
+            const plotSize = isNaN(rawSize) || rawSize <= 0 ? 200 : rawSize;
 
             // Check Status Match
             let statusMatch = true;
@@ -3512,7 +3513,7 @@ function setupSmartPlotFinder() {
             // Check Size Match
             let sizeMatch = true;
             if (sizeVal === '150-200') {
-                sizeMatch = plotSize >= 150 && plotSize <= 200;
+                sizeMatch = plotSize >= 100 && plotSize <= 200;
             } else if (sizeVal === '201-300') {
                 sizeMatch = plotSize >= 201 && plotSize <= 300;
             } else if (sizeVal === '301+') {
