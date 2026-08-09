@@ -3442,16 +3442,137 @@ function setupWelcomeSplash() {
     }
 }
 
+// ----------------------------------------------------
+// Smart Plot Finder Quiz Handler
+// ----------------------------------------------------
+function setupSmartPlotFinder() {
+    const backdrop = document.getElementById('smartFinderModalBackdrop');
+    const closeBtn = document.getElementById('smartFinderCloseBtn');
+    const headerBtn = document.getElementById('openPlotFinderHeaderBtn');
+    const sidebarBtn = document.getElementById('openPlotFinderSidebarBtn');
+    const runBtn = document.getElementById('runSmartFinderBtn');
+    const resultBanner = document.getElementById('finderResultBanner');
+    const matchedCountEl = document.getElementById('matchedPlotCount');
+    const clearBannerBtn = document.getElementById('clearFinderMatchBtn');
+
+    function openModal() {
+        if (backdrop) backdrop.classList.add('show');
+    }
+
+    function closeModal() {
+        if (backdrop) backdrop.classList.remove('show');
+    }
+
+    if (headerBtn) headerBtn.addEventListener('click', openModal);
+    if (sidebarBtn) sidebarBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (backdrop) {
+        backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) closeModal();
+        });
+    }
+
+    // Toggle chip selections in quiz modal
+    ['finderSizeOptions', 'finderFacingOptions', 'finderStatusOptions'].forEach(containerId => {
+        const container = document.getElementById(containerId);
+        if (container) {
+            const chips = container.querySelectorAll('.finder-chip');
+            chips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    chips.forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                });
+            });
+        }
+    });
+
+    function runFinderQuiz() {
+        const sizeVal = document.querySelector('#finderSizeOptions .finder-chip.active')?.dataset.value || 'all';
+        const facingVal = document.querySelector('#finderFacingOptions .finder-chip.active')?.dataset.value || 'all';
+        const statusVal = document.querySelector('#finderStatusOptions .finder-chip.active')?.dataset.value || 'AVAILABLE';
+
+        const dataSource = avatarDataPool[currentProject] || [];
+        const plotDots = document.querySelectorAll('.plot-dot');
+        let matchCount = 0;
+
+        plotDots.forEach(dot => {
+            const plotNo = dot.dataset.plotNo;
+            const detail = dataSource.find(p => String(p.plot_no) === String(plotNo)) || {};
+            
+            const plotStatus = String(detail.plot_status || 'AVAILABLE').toUpperCase();
+            const plotFacing = String(detail.facing || dot.dataset.facing || '');
+            const plotSize = parseFloat(String(detail.plot_size || '').replace(/[^0-9.]/g, '')) || 0;
+
+            // Check Status Match
+            let statusMatch = true;
+            if (statusVal === 'AVAILABLE') {
+                statusMatch = plotStatus === 'AVAILABLE';
+            }
+
+            // Check Size Match
+            let sizeMatch = true;
+            if (sizeVal === '150-200') {
+                sizeMatch = plotSize >= 150 && plotSize <= 200;
+            } else if (sizeVal === '201-300') {
+                sizeMatch = plotSize >= 201 && plotSize <= 300;
+            } else if (sizeVal === '301+') {
+                sizeMatch = plotSize >= 301;
+            }
+
+            // Check Facing Match
+            let facingMatch = true;
+            if (facingVal === 'East') {
+                facingMatch = plotFacing.toLowerCase().includes('east');
+            } else if (facingVal === 'West') {
+                facingMatch = plotFacing.toLowerCase().includes('west');
+            } else if (facingVal === 'North') {
+                facingMatch = plotFacing.toLowerCase().includes('north') || plotFacing.toLowerCase().includes('south');
+            } else if (facingVal === 'Corner') {
+                facingMatch = plotFacing.toLowerCase().includes('cross') || plotFacing.toLowerCase().includes('corner') || plotFacing.includes('-');
+            }
+
+            const isMatched = statusMatch && sizeMatch && facingMatch;
+
+            if (isMatched) {
+                dot.classList.add('matched-finder-dot');
+                dot.classList.remove('dimmed-finder-dot');
+                matchCount++;
+            } else {
+                dot.classList.remove('matched-finder-dot');
+                dot.classList.add('dimmed-finder-dot');
+            }
+        });
+
+        if (matchedCountEl) matchedCountEl.textContent = matchCount;
+        if (resultBanner) resultBanner.style.display = 'flex';
+        closeModal();
+    }
+
+    function clearFinderMatches() {
+        const plotDots = document.querySelectorAll('.plot-dot');
+        plotDots.forEach(dot => {
+            dot.classList.remove('matched-finder-dot');
+            dot.classList.remove('dimmed-finder-dot');
+        });
+        if (resultBanner) resultBanner.style.display = 'none';
+    }
+
+    if (runBtn) runBtn.addEventListener('click', runFinderQuiz);
+    if (clearBannerBtn) clearBannerBtn.addEventListener('click', clearFinderMatches);
+}
+
 // Global DOM Ready initializer for Interactive Features
 document.addEventListener('DOMContentLoaded', () => {
     setupWelcomeSplash();
     setupInterestModal();
     setupSiteVisitBooking();
     setupSidebarEmiCalculator();
+    setupSmartPlotFinder();
 });
 setupWelcomeSplash();
 setupInterestModal();
 setupSiteVisitBooking();
 setupSidebarEmiCalculator();
+setupSmartPlotFinder();
 
 
