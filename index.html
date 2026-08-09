@@ -510,6 +510,11 @@
                         <input type="tel" id="visitPhone" placeholder="Enter 10-digit mobile no." required pattern="[0-9]{10}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 9px 12px; border-radius: 8px; font-size: 12px; outline: none;">
                     </div>
 
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Plot / Facing Preferences <span style="font-size: 10px; color: var(--text-muted); font-weight: 400;">(Optional)</span></label>
+                        <textarea id="visitPreferences" placeholder="e.g. Prefer East facing, ~200 sq.yds, corner plot..." rows="2" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 12px; outline: none; resize: none; font-family: var(--font-body);"></textarea>
+                    </div>
+
                     <label style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-secondary); cursor: pointer; margin-top: 2px;">
                         <input type="checkbox" id="visitCabPickup" checked style="accent-color: var(--accent); width: 15px; height: 15px;">
                         <span>Request complimentary AC cab pick-up &amp; drop</span>

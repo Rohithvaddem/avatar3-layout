@@ -3331,10 +3331,12 @@ function setupSiteVisitBooking() {
             const time = document.getElementById('visitTimeSlot')?.value;
             const name = document.getElementById('visitName')?.value;
             const phone = document.getElementById('visitPhone')?.value;
+            const preferences = document.getElementById('visitPreferences')?.value?.trim();
             const cab = document.getElementById('visitCabPickup')?.checked;
 
             // Construct formatted WhatsApp message for instant sales notification
             const cabText = cab ? 'YES (AC Cab Pick-up Required)' : 'NO (Self-Travel)';
+            const preferencesText = preferences ? `\n• *Preferences:* ${preferences}` : '';
             const waMessage = 
 `🚗 *NEW SITE VISIT BOOKING REQUEST* 🚗
 ------------------------------------
@@ -3342,7 +3344,7 @@ function setupSiteVisitBooking() {
 • *Visit Date:* ${date}
 • *Time Slot:* ${time}
 • *Customer Name:* ${name}
-• *Phone Number:* ${phone}
+• *Phone Number:* ${phone}${preferencesText}
 • *Cab Pick-up:* ${cabText}
 ------------------------------------
 _Sent via Aspirealty Interactive Viewer_`;
@@ -3352,7 +3354,7 @@ _Sent via Aspirealty Interactive Viewer_`;
             const encodedMsg = encodeURIComponent(waMessage);
             const whatsappUrl = `https://api.whatsapp.com/send?phone=${salesNumber}&text=${encodedMsg}`;
 
-            console.log('Site Visit Booked:', { project, date, time, name, phone, cab, whatsappUrl });
+            console.log('Site Visit Booked:', { project, date, time, name, phone, preferences, cab, whatsappUrl });
 
             if (successMsg) {
                 successMsg.style.display = 'block';
