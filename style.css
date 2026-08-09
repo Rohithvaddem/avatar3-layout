@@ -525,7 +525,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    min-width: 82px;
+    min-width: max-content;
     gap: 1px;
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -543,11 +543,12 @@ body {
 }
 
 .stat-label {
-    font-size: 8.5px;
+    font-size: 9px;
     color: var(--text-muted);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.3px;
+    white-space: nowrap;
 }
 
 .text-success { color: var(--status-available); }
