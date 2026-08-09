@@ -261,14 +261,33 @@ function initApp() {
             return response.json();
         })
         .then(data => {
+            const freshData = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
             if (!avatarDataPool.avatar1.length) {
-                avatarDataPool.avatar1 = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+                avatarDataPool.avatar1 = freshData;
+            } else {
+                freshData.forEach(item => {
+                    let existing = avatarDataPool.avatar1.find(p => String(p.plot_no) === String(item.plot_no));
+                    if (existing) {
+                        if (item.customer_name) existing.customer_name = item.customer_name;
+                        if (item.plot_status) existing.plot_status = item.plot_status;
+                    } else {
+                        avatarDataPool.avatar1.push(item);
+                    }
+                });
             }
         })
         .catch(err => {
             console.warn('CORS or network error. Falling back to offline dataset (avatar1_data.js) for Avatar 1:', err);
-            if (typeof plotDataRawAvatar1 !== 'undefined' && !avatarDataPool.avatar1.length) {
-                avatarDataPool.avatar1 = plotDataRawAvatar1.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+            if (typeof plotDataRawAvatar1 !== 'undefined') {
+                const fallbackData = plotDataRawAvatar1.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+                if (!avatarDataPool.avatar1.length) {
+                    avatarDataPool.avatar1 = fallbackData;
+                } else {
+                    fallbackData.forEach(item => {
+                        let existing = avatarDataPool.avatar1.find(p => String(p.plot_no) === String(item.plot_no));
+                        if (existing && item.customer_name) existing.customer_name = item.customer_name;
+                    });
+                }
             }
         });
 
