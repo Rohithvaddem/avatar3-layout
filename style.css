@@ -463,9 +463,13 @@ body {
 }
 
 .header-center-actions {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     align-items: center;
     gap: 12px;
+    z-index: 5;
 }
 
 /* Side-by-Side View Switcher Container */
