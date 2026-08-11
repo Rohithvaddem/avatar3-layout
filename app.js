@@ -1053,21 +1053,52 @@ function exportPriceQuote(plotNo) {
                     cursor: pointer;
                 }
                 .btn-print-quote {
-                    background: #0f172a;
+                    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
                     color: #ffffff;
                     border: none;
-                    padding: 12px 24px;
-                    font-size: 14px;
+                    padding: 14px 32px;
+                    font-size: 15px;
                     font-weight: 800;
                     border-radius: 8px;
                     cursor: pointer;
                     display: inline-flex;
                     align-items: center;
-                    gap: 8px;
-                    margin-top: 15px;
-                    transition: background 0.2s;
+                    gap: 10px;
+                    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25);
+                    transition: transform 0.2s, box-shadow 0.2s;
                 }
-                .btn-print-quote:hover { background: #1e293b; }
+                .btn-print-quote:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.35);
+                }
+
+                .edit-hint {
+                    background: #fef3c7;
+                    border: 1px solid #f59e0b;
+                    color: #92400e;
+                    padding: 8px 14px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    font-weight: 700;
+                    margin-bottom: 15px;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                [contenteditable="true"] {
+                    transition: background 0.15s, outline 0.15s;
+                    border-radius: 3px;
+                }
+                [contenteditable="true"]:hover {
+                    outline: 1.5px dashed #2563eb !important;
+                    background-color: rgba(37, 99, 235, 0.08) !important;
+                    cursor: text;
+                }
+                [contenteditable="true"]:focus {
+                    outline: 2px solid #1d4ed8 !important;
+                    background-color: #ffffff !important;
+                }
 
                 .quote-container {
                     max-width: 850px;
@@ -1137,12 +1168,15 @@ function exportPriceQuote(plotNo) {
                     .no-print { display: none !important; }
                     body { background: #ffffff !important; padding: 0 !important; }
                     .quote-container { border: none !important; padding: 0 !important; max-width: 100% !important; box-shadow: none !important; }
+                    [contenteditable="true"] { outline: none !important; background: transparent !important; }
                 }
             </style>
         </head>
         <body>
             <div class="no-print">
-                <div class="controls-title"><i class="fa-solid fa-sliders"></i> Price Quote Calculator &amp; Generator</div>
+                <div class="controls-title"><i class="fa-solid fa-sliders"></i> Price Quote Calculator &amp; Auto Preset</div>
+                <div class="edit-hint"><i class="fa-solid fa-pen-to-square"></i> Live Edit Mode: Click on ANY single cell, title, number, or note anywhere on the page below to edit directly!</div>
+                
                 <div class="control-grid">
                     <div class="control-group">
                         <label>Client Name</label>
@@ -1176,25 +1210,23 @@ function exportPriceQuote(plotNo) {
                     <label class="checkbox-item"><input type="checkbox" id="chkMortgage" onchange="recalculateQuote()"> Mortgage Plot (+ ₹300/yd)</label>
                     <label class="checkbox-item"><input type="checkbox" id="chkBankLoan" onchange="recalculateQuote()"> Bank Loan (+ ₹300/yd)</label>
                 </div>
-
-                <button class="btn-print-quote" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / Save Official Price Quote PDF</button>
             </div>
 
             <div class="quote-container">
                 <div class="quote-banner">
-                    Price Quote
-                    <span class="quote-date">DATE: <span id="lblDate">${todayStr}</span></span>
+                    <span contenteditable="true">Price Quote</span>
+                    <span class="quote-date">DATE: <span id="lblDate" contenteditable="true">${todayStr}</span></span>
                 </div>
 
                 <!-- Client Info Table -->
                 <table class="q-table">
                     <tr>
-                        <td style="width: 20%; font-weight: 700; background: #f8fafc;">Client Name</td>
-                        <td style="width: 80%; font-weight: 700;" id="lblClientName">${customerName || '-'}</td>
+                        <td style="width: 20%; font-weight: 700; background: #f8fafc;" contenteditable="true">Client Name</td>
+                        <td style="width: 80%; font-weight: 700;" id="lblClientName" contenteditable="true">${customerName || '-'}</td>
                     </tr>
                     <tr>
-                        <td style="font-weight: 700; background: #f8fafc;">Address</td>
-                        <td id="lblAddress">-</td>
+                        <td style="font-weight: 700; background: #f8fafc;" contenteditable="true">Address</td>
+                        <td id="lblAddress" contenteditable="true">-</td>
                     </tr>
                 </table>
 
@@ -1202,154 +1234,159 @@ function exportPriceQuote(plotNo) {
                 <table class="q-table">
                     <thead>
                         <tr>
-                            <th style="width: 35%;">Project Name</th>
-                            <th style="width: 20%;">Plot No.</th>
-                            <th style="width: 20%;">Facing</th>
-                            <th style="width: 25%;">Closing Price</th>
+                            <th style="width: 35%;" contenteditable="true">Project Name</th>
+                            <th style="width: 20%; text-align: center;" contenteditable="true">Plot No.</th>
+                            <th style="width: 20%; text-align: center;" contenteditable="true">Facing</th>
+                            <th style="width: 25%; text-align: right;" contenteditable="true">Closing Price</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td style="font-weight: 800;">${projectMeta.title}</td>
-                            <td style="font-weight: 700; text-align: center;">${item.plot_no}</td>
-                            <td style="font-weight: 700; text-align: center; text-transform: uppercase;">${facingStr}</td>
-                            <td class="bg-yellow" style="text-align: right;" id="lblClosingPrice">₹ 15,499</td>
+                            <td style="font-weight: 800;" contenteditable="true">${projectMeta.title}</td>
+                            <td style="font-weight: 700; text-align: center;" contenteditable="true">${item.plot_no}</td>
+                            <td style="font-weight: 700; text-align: center; text-transform: uppercase;" contenteditable="true">${facingStr}</td>
+                            <td class="bg-yellow" style="text-align: right;" id="lblClosingPrice" contenteditable="true">₹ 15,499</td>
                         </tr>
                     </tbody>
                 </table>
 
                 <!-- Price Quotation Table -->
-                <div style="background: #f1f5f9; border: 1.5px solid #0f172a; padding: 4px 12px; font-weight: 800; border-top: none; border-bottom: none; text-align: center;">Price Quotation</div>
+                <div style="background: #f1f5f9; border: 1.5px solid #0f172a; padding: 4px 12px; font-weight: 800; border-top: none; border-bottom: none; text-align: center;" contenteditable="true">Price Quotation</div>
                 <table class="q-table">
                     <thead>
                         <tr>
-                            <th style="width: 30%;">Total sq.yds</th>
-                            <th style="width: 35%;">Per sq.yd.</th>
-                            <th style="width: 35%;">Total Amount</th>
+                            <th style="width: 30%; text-align: center;" contenteditable="true">Total sq.yds</th>
+                            <th style="width: 35%; text-align: right;" contenteditable="true">Per sq.yd.</th>
+                            <th style="width: 35%; text-align: right;" contenteditable="true">Total Amount</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="bg-yellow" style="text-align: center;" id="lblPlotArea">${plotAreaYds}</td>
-                            <td style="text-align: right;" id="lblPerSqYd">₹ 15,499</td>
-                            <td class="bg-green" style="text-align: right;" id="lblTotalAmount">₹ 30,99,800</td>
+                            <td class="bg-yellow" style="text-align: center;" id="lblPlotArea" contenteditable="true">${plotAreaYds}</td>
+                            <td style="text-align: right;" id="lblPerSqYd" contenteditable="true">₹ 15,499</td>
+                            <td class="bg-green" style="text-align: right;" id="lblTotalAmount" contenteditable="true">₹ 30,99,800</td>
                         </tr>
                     </tbody>
                 </table>
 
                 <!-- Payment Structure Table -->
-                <div style="background: #f1f5f9; border: 1.5px solid #0f172a; padding: 4px 12px; font-weight: 800; border-top: none; border-bottom: none; text-align: center;">Payment Structure</div>
+                <div style="background: #f1f5f9; border: 1.5px solid #0f172a; padding: 4px 12px; font-weight: 800; border-top: none; border-bottom: none; text-align: center;" contenteditable="true">Payment Structure</div>
                 <table class="q-table">
                     <thead>
                         <tr>
-                            <th style="width: 30%;">Payment Mode</th>
-                            <th style="width: 25%;">Total sq.yd</th>
-                            <th style="width: 25%;">Per sq.yd.</th>
-                            <th style="width: 20%;">Total</th>
+                            <th style="width: 30%;" contenteditable="true">Payment Mode</th>
+                            <th style="width: 25%; text-align: center;" contenteditable="true">Total sq.yd</th>
+                            <th style="width: 25%; text-align: right;" contenteditable="true">Per sq.yd.</th>
+                            <th style="width: 20%; text-align: right;" contenteditable="true">Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>By A/C Transfer</strong></td>
-                            <td style="text-align: center;" id="lblBankSqYd">${plotAreaYds}</td>
-                            <td class="bg-yellow" style="text-align: right;" id="lblBankRate">₹ 3,000</td>
-                            <td style="text-align: right;" id="lblBankTotal">₹ 6,00,000</td>
+                            <td><strong contenteditable="true">By A/C Transfer</strong></td>
+                            <td style="text-align: center;" id="lblBankSqYd" contenteditable="true">${plotAreaYds}</td>
+                            <td class="bg-yellow" style="text-align: right;" id="lblBankRate" contenteditable="true">₹ 3,000</td>
+                            <td style="text-align: right;" id="lblBankTotal" contenteditable="true">₹ 6,00,000</td>
                         </tr>
                         <tr>
-                            <td><strong>By Cash</strong></td>
-                            <td style="text-align: center;" id="lblCashSqYd">${plotAreaYds}</td>
-                            <td class="bg-yellow" style="text-align: right;" id="lblCashRate">₹ 12,499</td>
-                            <td style="text-align: right;" id="lblCashTotal">₹ 24,99,800</td>
+                            <td><strong contenteditable="true">By Cash</strong></td>
+                            <td style="text-align: center;" id="lblCashSqYd" contenteditable="true">${plotAreaYds}</td>
+                            <td class="bg-yellow" style="text-align: right;" id="lblCashRate" contenteditable="true">₹ 12,499</td>
+                            <td style="text-align: right;" id="lblCashTotal" contenteditable="true">₹ 24,99,800</td>
                         </tr>
                         <tr class="bg-green">
-                            <td colspan="3" style="text-align: right; font-weight: 800;">Total</td>
-                            <td style="text-align: right;" id="lblStructTotal">₹ 30,99,800</td>
+                            <td colspan="3" style="text-align: right; font-weight: 800;" contenteditable="true">Total</td>
+                            <td style="text-align: right;" id="lblStructTotal" contenteditable="true">₹ 30,99,800</td>
                         </tr>
                     </tbody>
                 </table>
 
                 <!-- Payment Schedule Table -->
-                <div style="background: #f1f5f9; border: 1.5px solid #0f172a; padding: 4px 12px; font-weight: 800; border-top: none; border-bottom: none; text-align: center;">Payment Schedule</div>
+                <div style="background: #f1f5f9; border: 1.5px solid #0f172a; padding: 4px 12px; font-weight: 800; border-top: none; border-bottom: none; text-align: center;" contenteditable="true">Payment Schedule</div>
                 <table class="q-table">
                     <thead>
                         <tr>
-                            <th style="width: 25%;">Date</th>
-                            <th style="width: 35%;">Particulars</th>
-                            <th style="width: 20%;">Percentage (%)</th>
-                            <th style="width: 20%;">Amount</th>
+                            <th style="width: 25%;" contenteditable="true">Date</th>
+                            <th style="width: 35%;" contenteditable="true">Particulars</th>
+                            <th style="width: 20%; text-align: center;" contenteditable="true">Percentage (%)</th>
+                            <th style="width: 20%; text-align: right;" contenteditable="true">Amount</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td id="lblDateBooking">${todayStr}</td>
-                            <td><strong>BOOKING AMOUNT</strong></td>
-                            <td style="text-align: center;">-</td>
-                            <td style="text-align: right;">₹ 1,00,000</td>
+                            <td id="lblDateBooking" contenteditable="true">${todayStr}</td>
+                            <td><strong contenteditable="true">BOOKING AMOUNT</strong></td>
+                            <td style="text-align: center;" contenteditable="true">-</td>
+                            <td style="text-align: right;" contenteditable="true">₹ 1,00,000</td>
                         </tr>
                         <tr>
-                            <td id="lblDatePart2">-</td>
-                            <td><strong id="lblScheduleLabel1">WITHIN 15 DAYS</strong></td>
-                            <td style="text-align: center;" id="lblPct1">25%</td>
-                            <td style="text-align: right;" id="lblAmt1">₹ 7,49,950</td>
+                            <td id="lblDatePart2" contenteditable="true">-</td>
+                            <td><strong id="lblScheduleLabel1" contenteditable="true">WITHIN 15 DAYS</strong></td>
+                            <td style="text-align: center;" id="lblPct1" contenteditable="true">25%</td>
+                            <td style="text-align: right;" id="lblAmt1" contenteditable="true">₹ 7,49,950</td>
                         </tr>
                         <tr>
-                            <td id="lblDatePart3">-</td>
-                            <td><strong id="lblScheduleLabel2">WITHIN 45 DAYS</strong></td>
-                            <td style="text-align: center;">100%</td>
-                            <td style="text-align: right;" id="lblAmt2">₹ 22,49,850</td>
+                            <td id="lblDatePart3" contenteditable="true">-</td>
+                            <td><strong id="lblScheduleLabel2" contenteditable="true">WITHIN 45 DAYS</strong></td>
+                            <td style="text-align: center;" contenteditable="true">100%</td>
+                            <td style="text-align: right;" id="lblAmt2" contenteditable="true">₹ 22,49,850</td>
                         </tr>
                         <tr class="bg-green">
-                            <td colspan="3" style="text-align: right; font-weight: 800;">TOTAL</td>
-                            <td style="text-align: right;" id="lblScheduleTotal">₹ 30,99,800</td>
+                            <td colspan="3" style="text-align: right; font-weight: 800;" contenteditable="true">TOTAL</td>
+                            <td style="text-align: right;" id="lblScheduleTotal" contenteditable="true">₹ 30,99,800</td>
                         </tr>
                     </tbody>
                 </table>
 
                 <!-- Standard Notes -->
                 <div class="notes-block">
-                    <div class="notes-title">NOTE 1 : EXTRA CORPUS FUND 200/- Rs Per SQ Yd ( Not Included In Plot Cost )</div>
-                    <div class="notes-title">NOTE 2 : Documentation Charges 5,000 and Registration Charges - 7.6% on Sale Deed Value, these charges are not included in the Price Quotation</div>
-                    <div class="notes-title">NOTE 3: IN CASE OF PLOT CANCEL AFTER 15 DAYS FROM THE BOOKING DATE, A CHARGE OF RS.50000/- WILL APPLY.</div>
+                    <div class="notes-title" contenteditable="true">NOTE 1 : EXTRA CORPUS FUND 200/- Rs Per SQ Yd ( Not Included In Plot Cost )</div>
+                    <div class="notes-title" contenteditable="true">NOTE 2 : Documentation Charges 5,000 and Registration Charges - 7.6% on Sale Deed Value, these charges are not included in the Price Quotation</div>
+                    <div class="notes-title" contenteditable="true">NOTE 3: IN CASE OF PLOT CANCEL AFTER 15 DAYS FROM THE BOOKING DATE, A CHARGE OF RS.50000/- WILL APPLY.</div>
                 </div>
 
                 <!-- Registration Charges Table -->
                 <table class="q-table" style="margin-top: 10px;">
                     <tbody>
                         <tr>
-                            <td style="width: 65%;" class="red-heading">REGISTRATION CHARGES: 7.5% ON TOTAL BANK AMOUNT</td>
-                            <td style="width: 35%; text-align: right; font-weight: 700;" id="lblReg75">₹ 45,000</td>
+                            <td style="width: 65%;" class="red-heading" contenteditable="true">REGISTRATION CHARGES: 7.5% ON TOTAL BANK AMOUNT</td>
+                            <td style="width: 35%; text-align: right; font-weight: 700;" id="lblReg75" contenteditable="true">₹ 45,000</td>
                         </tr>
                         <tr>
-                            <td>USER CHARGES</td>
-                            <td style="text-align: right; font-weight: 700;">1000</td>
+                            <td contenteditable="true">USER CHARGES</td>
+                            <td style="text-align: right; font-weight: 700;" contenteditable="true">1000</td>
                         </tr>
                         <tr>
-                            <td>STAMP</td>
-                            <td style="text-align: right; font-weight: 700;">100</td>
+                            <td contenteditable="true">STAMP</td>
+                            <td style="text-align: right; font-weight: 700;" contenteditable="true">100</td>
                         </tr>
                         <tr>
-                            <td>HARITHA HARAM</td>
-                            <td style="text-align: right; font-weight: 700;">50</td>
+                            <td contenteditable="true">HARITHA HARAM</td>
+                            <td style="text-align: right; font-weight: 700;" contenteditable="true">50</td>
                         </tr>
                         <tr>
-                            <td>DOCUMENTATION CHARGES</td>
-                            <td style="text-align: right; font-weight: 700;">5000</td>
+                            <td contenteditable="true">DOCUMENTATION CHARGES</td>
+                            <td style="text-align: right; font-weight: 700;" contenteditable="true">5000</td>
                         </tr>
                         <tr>
-                            <td>MUTATION 0.1%</td>
-                            <td style="text-align: right; font-weight: 700;" id="lblMutation">800</td>
+                            <td contenteditable="true">MUTATION 0.1%</td>
+                            <td style="text-align: right; font-weight: 700;" id="lblMutation" contenteditable="true">800</td>
                         </tr>
                         <tr class="bg-green">
-                            <td style="font-weight: 800;">TOTAL REGISTRATION CHARGES</td>
-                            <td style="text-align: right;" id="lblRegTotal">₹ 51,950</td>
+                            <td style="font-weight: 800;" contenteditable="true">TOTAL REGISTRATION CHARGES</td>
+                            <td style="text-align: right;" id="lblRegTotal" contenteditable="true">₹ 51,950</td>
                         </tr>
                     </tbody>
                 </table>
 
                 <div class="sig-row">
-                    <div>CUSTOMER SIGN :</div>
-                    <div>AUTHORISED SIGN :</div>
+                    <div contenteditable="true">CUSTOMER SIGN :</div>
+                    <div contenteditable="true">AUTHORISED SIGN :</div>
                 </div>
+            </div>
+
+            <!-- Print / Save as PDF Button placed at the DOWN of the page -->
+            <div class="no-print" style="text-align: center; margin-top: 30px; margin-bottom: 40px;">
+                <button class="btn-print-quote" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / Save Official Price Quote PDF</button>
             </div>
 
             <script>
