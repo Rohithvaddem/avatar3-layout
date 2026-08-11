@@ -2558,22 +2558,21 @@ function initLeafletMap() {
             },
             _reset: function() {
                 L.ImageOverlay.prototype._reset.call(this);
-                if (this._image) {
+                if (this._image && this.options.rotation) {
                     this._image.style.transformOrigin = '50% 50%';
-                    if (this.options.rotation) {
-                        let cleanTransform = (this._image.style.transform || '').replace(/\s*rotate\([^)]*\)/gi, '');
-                        this._image.style.transform = `${cleanTransform} rotate(${-this.options.rotation}deg)`;
+                    let transformStr = this._image.style.transform || '';
+                    if (!transformStr.includes('rotate(')) {
+                        this._image.style.transform = `${transformStr} rotate(${-this.options.rotation}deg)`;
                     }
-                    this._image.style.willChange = 'transform';
                 }
             },
             _animateZoom: function(e) {
                 L.ImageOverlay.prototype._animateZoom.call(this, e);
-                if (this._image) {
+                if (this._image && this.options.rotation) {
                     this._image.style.transformOrigin = '50% 50%';
-                    if (this.options.rotation) {
-                        let cleanTransform = (this._image.style.transform || '').replace(/\s*rotate\([^)]*\)/gi, '');
-                        this._image.style.transform = `${cleanTransform} rotate(${-this.options.rotation}deg)`;
+                    let transformStr = this._image.style.transform || '';
+                    if (!transformStr.includes('rotate(')) {
+                        this._image.style.transform = `${transformStr} rotate(${-this.options.rotation}deg)`;
                     }
                 }
             }
@@ -2733,10 +2732,19 @@ function initLeafletMap() {
                     overlayOpacity = parsedColor.opacity;
                 }
 
-                const leafletOverlay = L.imageOverlay.rotated(href, bounds, {
-                    rotation: rotation,
-                    opacity: overlayOpacity
-                });
+                let leafletOverlay;
+                if (rotation && Math.abs(rotation) > 0.001) {
+                    leafletOverlay = L.imageOverlay.rotated(href, bounds, {
+                        rotation: rotation,
+                        opacity: overlayOpacity,
+                        interactive: false
+                    });
+                } else {
+                    leafletOverlay = L.imageOverlay(href, bounds, {
+                        opacity: overlayOpacity,
+                        interactive: false
+                    });
+                }
                 layoutsGroup.addLayer(leafletOverlay);
             }
         }
