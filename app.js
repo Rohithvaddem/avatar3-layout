@@ -1142,6 +1142,16 @@ function exportPriceQuote(plotNo) {
                 }
                 .notes-title { color: #0f172a; font-weight: 800; }
                 .red-heading { color: #dc2626; font-weight: 800; font-size: 12px; }
+                .reg-table {
+                    width: 75% !important;
+                }
+                .reg-table th, .reg-table td {
+                    padding: 4px 8px !important;
+                    font-size: 9.5px !important;
+                }
+                .reg-table .red-heading {
+                    font-size: 9.5px !important;
+                }
                 .sig-row {
                     display: flex;
                     justify-content: space-between;
@@ -1336,8 +1346,8 @@ function exportPriceQuote(plotNo) {
                     <div class="notes-title" contenteditable="true">NOTE 3: IN CASE OF PLOT CANCEL AFTER 15 DAYS FROM THE BOOKING DATE, A CHARGE OF RS.50000/- WILL APPLY.</div>
                 </div>
 
-                <!-- Registration Charges Table -->
-                <table class="q-table" style="margin-top: 10px;">
+                <!-- Registration Charges Table (25% Size Reduction) -->
+                <table class="q-table reg-table" style="margin-top: 10px;">
                     <tbody>
                         <tr>
                             <td style="width: 65%;" class="red-heading" contenteditable="true">REGISTRATION CHARGES: 7.5% ON TOTAL BANK AMOUNT</td>
@@ -1663,7 +1673,7 @@ function openPlotModal(plotNo) {
             ${emiHtml}
             ${adminCrmHtml}
         </div>
-        <button class="admin-login-btn" id="exportPriceQuoteBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; border-radius: 8px; display: ${new URLSearchParams(window.location.search).get('share') === 'true' ? 'none' : 'flex'}; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+        <button class="admin-login-btn" id="exportPriceQuoteBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; border-radius: 8px; display: ${isAdminLoggedIn ? 'flex' : 'none'}; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
             <i class="fa-solid fa-file-invoice-dollar"></i> Generate Price Quote / PDF
         </button>
         ${editButtonHtml}
