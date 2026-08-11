@@ -154,97 +154,184 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // Main App Initialization
 function initApp() {
-    // Populate coordinates synchronously from loaded scripts
-    if (typeof plotCoordinates !== 'undefined') avatarCoordsPool.avatar3 = plotCoordinates;
-    if (typeof plotCoordinatesAvatar2 !== 'undefined') avatarCoordsPool.avatar2 = plotCoordinatesAvatar2;
-    if (typeof plotCoordinatesAvatar1 !== 'undefined') avatarCoordsPool.avatar1 = plotCoordinatesAvatar1;
-
-    // Populate plot datasets synchronously from loaded scripts
-    if (typeof plotDataRawAvatar1 !== 'undefined' && !avatarDataPool.avatar1.length) {
-        avatarDataPool.avatar1 = plotDataRawAvatar1.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-    }
-    if (typeof plotDataRawAvatar2 !== 'undefined' && !avatarDataPool.avatar2.length) {
-        avatarDataPool.avatar2 = plotDataRawAvatar2.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-    }
-    if (typeof plotDataRaw !== 'undefined' && !avatarDataPool.avatar3.length) {
-        avatarDataPool.avatar3 = plotDataRaw.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+    // Populate Avatar 3 coordinates from global variable loaded by plot_coords.js
+    if (typeof plotCoordinates !== 'undefined') {
+        avatarCoordsPool.avatar3 = plotCoordinates;
     }
 
-    // Override with localStorage if present
-    ['avatar1', 'avatar2', 'avatar3'].forEach(proj => {
-        const local = localStorage.getItem(`aspire_${proj}_data`);
-        if (local) {
-            try {
-                const parsed = JSON.parse(local).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-                if (parsed.length) avatarDataPool[proj] = parsed;
-            } catch (e) {}
+    // Populate Avatar 2 coordinates from global variable loaded by avatar2_plot_coords.js
+    if (typeof plotCoordinatesAvatar2 !== 'undefined') {
+        avatarCoordsPool.avatar2 = plotCoordinatesAvatar2;
+    }
+
+    // Populate Avatar 1 coordinates from global variable loaded by avatar1_plot_coords.js
+    if (typeof plotCoordinatesAvatar1 !== 'undefined') {
+        avatarCoordsPool.avatar1 = plotCoordinatesAvatar1;
+    }
+
+    // Load Avatar 3 data from local storage if exists
+    const localDataAvatar3 = localStorage.getItem('aspire_avatar3_data');
+    if (localDataAvatar3) {
+        try {
+            avatarDataPool.avatar3 = JSON.parse(localDataAvatar3).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+        } catch (e) {
+            console.error('Error parsing local storage Avatar 3 data', e);
         }
-    });
-
-    // INSTANT SYNCHRONOUS RENDER: Show dots and layout immediately!
-    plotData = avatarDataPool[currentProject] || [];
-    updateSidebarAndHeaderForProject(currentProject);
-
-    if (currentProject === 'avatar1') {
-        mapContainer.style.width = '1024px';
-        mapContainer.style.height = '647px';
-        mapImage.style.width = '1024px';
-        mapImage.style.height = '647px';
-        mapImage.src = 'avatar1_map_layout.jpg';
-    } else if (currentProject === 'avatar2') {
-        mapContainer.style.width = '1600px';
-        mapContainer.style.height = '900px';
-        mapImage.style.width = '1600px';
-        mapImage.style.height = '900px';
-        mapImage.src = 'avatar2_digi/map_layout.png';
+    }
+    
+    // Load Avatar 2 data from local storage if exists
+    const localDataAvatar2 = localStorage.getItem('aspire_avatar2_data');
+    if (localDataAvatar2) {
+        try {
+            avatarDataPool.avatar2 = JSON.parse(localDataAvatar2).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+        } catch (e) {
+            console.error('Error parsing local storage Avatar 2 data', e);
+        }
     }
 
-    renderPlotDots();
-    updateStatistics();
-    setTimeout(fitMapToViewport, 50);
-    setupAdminState();
+    // Load Avatar 1 data from local storage if exists
+    const localDataAvatar1 = localStorage.getItem('aspire_avatar1_data');
+    if (localDataAvatar1) {
+        try {
+            avatarDataPool.avatar1 = JSON.parse(localDataAvatar1).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+        } catch (e) {
+            console.error('Error parsing local storage Avatar 1 data', e);
+        }
+    }
 
-    // Background Async Refresh for Fresh Server JSON Datasets
-    fetch('data.json')
-        .then(res => res.ok ? res.json() : null)
+    // Fetch Avatar 3 JSON
+    const fetch3 = fetch('data.json')
+        .then(response => {
+            if (!response.ok) throw new Error('Data fetch failed');
+            return response.json();
+        })
         .then(data => {
-            if (data && Array.isArray(data)) {
+            if (!avatarDataPool.avatar3.length) {
                 avatarDataPool.avatar3 = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-                if (currentProject === 'avatar3') {
-                    plotData = avatarDataPool.avatar3;
-                    renderPlotDots();
-                    updateStatistics();
-                }
             }
-        }).catch(() => {});
+        })
+        .catch(err => {
+            console.warn('CORS or network error. Falling back to offline dataset (data.js) for Avatar 3:', err);
+            if (typeof plotDataRaw !== 'undefined' && !avatarDataPool.avatar3.length) {
+                avatarDataPool.avatar3 = plotDataRaw.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+            }
+        });
 
-    fetch('avatar2_digi/data.json')
-        .then(res => res.ok ? res.json() : null)
+    // Fetch Avatar 2 JSON
+    const fetch2 = fetch('avatar2_digi/data.json')
+        .then(response => {
+            if (!response.ok) throw new Error('Data fetch failed');
+            return response.json();
+        })
         .then(data => {
-            if (data && Array.isArray(data)) {
-                const fresh = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-                avatarDataPool.avatar2 = fresh;
-                if (currentProject === 'avatar2') {
-                    plotData = avatarDataPool.avatar2;
-                    renderPlotDots();
-                    updateStatistics();
+            const freshData = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+            if (!avatarDataPool.avatar2.length) {
+                avatarDataPool.avatar2 = freshData;
+            } else {
+                freshData.forEach(item => {
+                    let existing = avatarDataPool.avatar2.find(p => String(p.plot_no) === String(item.plot_no));
+                    if (existing) {
+                        if (item.customer_name) existing.customer_name = item.customer_name;
+                        if (item.plot_status) existing.plot_status = item.plot_status;
+                    } else {
+                        avatarDataPool.avatar2.push(item);
+                    }
+                });
+            }
+        })
+        .catch(err => {
+            console.warn('CORS or network error. Falling back to offline dataset (avatar2_data.js) for Avatar 2:', err);
+            if (typeof plotDataRawAvatar2 !== 'undefined') {
+                const fallbackData = plotDataRawAvatar2.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+                if (!avatarDataPool.avatar2.length) {
+                    avatarDataPool.avatar2 = fallbackData;
+                } else {
+                    fallbackData.forEach(item => {
+                        let existing = avatarDataPool.avatar2.find(p => String(p.plot_no) === String(item.plot_no));
+                        if (existing && item.customer_name) existing.customer_name = item.customer_name;
+                    });
                 }
             }
-        }).catch(() => {});
+        });
 
-    fetch('avatar1_data.json')
-        .then(res => res.ok ? res.json() : null)
+    // Fetch Avatar 1 JSON
+    const fetch1 = fetch('avatar1_data.json')
+        .then(response => {
+            if (!response.ok) throw new Error('Data fetch failed');
+            return response.json();
+        })
         .then(data => {
-            if (data && Array.isArray(data)) {
-                const fresh = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-                avatarDataPool.avatar1 = fresh;
-                if (currentProject === 'avatar1') {
-                    plotData = avatarDataPool.avatar1;
-                    renderPlotDots();
-                    updateStatistics();
+            const freshData = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+            if (!avatarDataPool.avatar1.length) {
+                avatarDataPool.avatar1 = freshData;
+            } else {
+                freshData.forEach(item => {
+                    let existing = avatarDataPool.avatar1.find(p => String(p.plot_no) === String(item.plot_no));
+                    if (existing) {
+                        if (item.customer_name) existing.customer_name = item.customer_name;
+                        if (item.plot_status) existing.plot_status = item.plot_status;
+                    } else {
+                        avatarDataPool.avatar1.push(item);
+                    }
+                });
+            }
+        })
+        .catch(err => {
+            console.warn('CORS or network error. Falling back to offline dataset (avatar1_data.js) for Avatar 1:', err);
+            if (typeof plotDataRawAvatar1 !== 'undefined') {
+                const fallbackData = plotDataRawAvatar1.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+                if (!avatarDataPool.avatar1.length) {
+                    avatarDataPool.avatar1 = fallbackData;
+                } else {
+                    fallbackData.forEach(item => {
+                        let existing = avatarDataPool.avatar1.find(p => String(p.plot_no) === String(item.plot_no));
+                        if (existing && item.customer_name) existing.customer_name = item.customer_name;
+                    });
                 }
             }
-        }).catch(() => {});
+        });
+
+    // Fallback coordinates fetch in case script load failed but json works
+    let fetchCoordsPromise = Promise.resolve();
+    if (!avatarCoordsPool.avatar2 || !Object.keys(avatarCoordsPool.avatar2).length) {
+        fetchCoordsPromise = fetch('avatar2_plot_coords.json')
+            .then(res => res.json())
+            .then(coords => {
+                avatarCoordsPool.avatar2 = coords;
+            })
+            .catch(err => console.error('Failed to load Avatar 2 coordinates from JSON fallback:', err));
+    }
+
+    let fetchCoordsPromise1 = Promise.resolve();
+    if (!avatarCoordsPool.avatar1 || !Object.keys(avatarCoordsPool.avatar1).length) {
+        fetchCoordsPromise1 = fetch('avatar1_plot_coords.json')
+            .then(res => res.json())
+            .then(coords => {
+                avatarCoordsPool.avatar1 = coords;
+            })
+            .catch(err => console.error('Failed to load Avatar 1 coordinates from JSON fallback:', err));
+    }
+
+    Promise.all([fetchCoordsPromise, fetchCoordsPromise1, fetch3, fetch2, fetch1]).finally(() => {
+        // Set the active project plotData reference
+        plotData = avatarDataPool[currentProject] || [];
+        
+        updateSidebarAndHeaderForProject(currentProject);
+
+        if (currentProject === 'avatar1') {
+            mapContainer.style.width = '1024px';
+            mapContainer.style.height = '647px';
+            mapImage.style.width = '1024px';
+            mapImage.style.height = '647px';
+            mapImage.src = 'avatar1_map_layout.jpg';
+        }
+        
+        // Render dots, stats and fit using fallback data
+        renderPlotDots();
+        updateStatistics();
+        setTimeout(fitMapToViewport, 100);
+        setupAdminState();
+    });
 }
 
 // ----------------------------------------------------
@@ -574,27 +661,23 @@ function adjustZoom(factor) {
 }
 
 function fitMapToViewport() {
-    const vWidth = mapViewport ? mapViewport.clientWidth : 0;
-    const vHeight = mapViewport ? mapViewport.clientHeight : 0;
-
-    const effectiveWidth = (vWidth && vWidth > 100) ? vWidth : (window.innerWidth > 300 ? window.innerWidth - 280 : window.innerWidth);
-    const effectiveHeight = (vHeight && vHeight > 100) ? vHeight : (window.innerHeight > 100 ? window.innerHeight - 72 : window.innerHeight);
+    const vWidth = mapViewport.clientWidth;
+    const vHeight = mapViewport.clientHeight;
     
-    let width = 1024;
     let height = 576;
     if (currentProject === 'avatar2') {
-        width = 1600;
-        height = 900;
+        height = 646;
     } else if (currentProject === 'avatar1') {
-        width = 1024;
         height = 647;
     }
     
-    const fitScale = Math.min(effectiveWidth / width, effectiveHeight / height) * 0.96;
-    zoomScale = Math.max(fitScale, 0.4);
+    // Background original dims: width: 1024, height: dynamic
+    const fitScale = Math.min(vWidth / 1024, vHeight / height) * 0.95; // 5% margins
+    zoomScale = Math.max(fitScale, 0.1);
     
-    panX = (effectiveWidth - width * zoomScale) / 2;
-    panY = (effectiveHeight - height * zoomScale) / 2;
+    // Centering calculations
+    panX = (vWidth - 1024 * zoomScale) / 2;
+    panY = (vHeight - height * zoomScale) / 2;
     
     applyTransform();
 }
@@ -1396,6 +1479,8 @@ function openPlotModal(plotNo) {
     const estimatedPlotCost = plotAreaYds * sqYdRate;
     const isAvailable = String(item.plot_status || '').toUpperCase() === 'AVAILABLE';
 
+    let emiHtml = '';
+
     modalBody.innerHTML = `
         <div class="detail-card" style="display: flex; flex-direction: column; gap: 10px;">
             ${conflictWarningHtml}
@@ -1422,6 +1507,7 @@ function openPlotModal(plotNo) {
             </div>
             ` : ''}
 
+            ${emiHtml}
             ${adminCrmHtml}
         </div>
         ${isAdminLoggedIn ? `
@@ -1431,6 +1517,53 @@ function openPlotModal(plotNo) {
         ` : ''}
         ${editButtonHtml}
     `;
+
+    if (isAvailable && !isAdminLoggedIn) {
+        // Initialize EMI Slider calculations for available plots
+        function calculateEmi() {
+            const totalPlotCost = plotAreaYds * sqYdRate;
+            const downPct = parseFloat(document.getElementById('emiDownRange')?.value) || 20;
+            const rateAnnual = parseFloat(document.getElementById('emiRateRange')?.value) || 8.5;
+            const tenureYears = parseInt(document.getElementById('emiTenureRange')?.value) || 15;
+
+            if (document.getElementById('emiDownVal')) document.getElementById('emiDownVal').textContent = downPct + '%';
+            if (document.getElementById('emiRateVal')) document.getElementById('emiRateVal').textContent = rateAnnual + '%';
+            if (document.getElementById('emiTenureVal')) document.getElementById('emiTenureVal').textContent = tenureYears + ' Yrs';
+
+            const principal = totalPlotCost * (1 - (downPct / 100));
+            const r = (rateAnnual / 12) / 100;
+            const n = tenureYears * 12;
+
+            let emi = 0;
+            if (r > 0 && n > 0) {
+                emi = (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+            }
+
+            const emiDisplay = document.getElementById('emiMonthlyVal');
+            if (emiDisplay) {
+                emiDisplay.textContent = '₹ ' + Math.round(emi).toLocaleString('en-IN') + ' / mo';
+            }
+        }
+
+        ['emiDownRange', 'emiRateRange', 'emiTenureRange'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', calculateEmi);
+        });
+
+        calculateEmi();
+
+        // Toggle EMI accordion
+        const toggleBtn = document.getElementById('emiCalcToggle');
+        const calcBody = document.getElementById('emiCalcBody');
+        const chevron = document.getElementById('emiChevron');
+        if (toggleBtn && calcBody) {
+            toggleBtn.addEventListener('click', () => {
+                const isHidden = calcBody.style.display === 'none';
+                calcBody.style.display = isHidden ? 'flex' : 'none';
+                if (chevron) chevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
+            });
+        }
+    }
     
     const exportPdfBtn = document.getElementById('exportSpecSheetBtn');
     if (exportPdfBtn) {
@@ -2805,11 +2938,14 @@ function updateSidebarAndHeaderForProject(project) {
     const headerStats = document.querySelector('.header-stats');
     const approvedBadge = document.querySelector('.approved-badge');
     const projectNameEl = document.querySelector('.project-name');
-    const comingSoonOverlay = document.getElementById('    if (project === 'avatar3') {
+    const comingSoonOverlay = document.getElementById('comingSoonOverlay');
+    
+    if (project === 'avatar3') {
         // Avatar 3 Coming Soon state
         if (searchSection) searchSection.style.display = 'none';
         if (filtersSection) filtersSection.style.display = 'none';
         if (legendSection) legendSection.style.display = 'none';
+        if (sidebarEmiSection) sidebarEmiSection.style.display = 'none';
         if (headerStats) headerStats.style.display = 'none';
         if (sidebarComingSoonSection) sidebarComingSoonSection.style.display = isSatelliteActive ? 'none' : 'block';
         if (approvedBadge) {
@@ -2829,6 +2965,7 @@ function updateSidebarAndHeaderForProject(project) {
         if (searchSection) searchSection.style.display = 'block';
         if (filtersSection) filtersSection.style.display = 'block';
         if (legendSection) legendSection.style.display = 'block';
+        if (sidebarEmiSection) sidebarEmiSection.style.display = 'block';
         if (headerStats) headerStats.style.display = 'flex';
         if (sidebarComingSoonSection) sidebarComingSoonSection.style.display = 'none';
         if (comingSoonOverlay) comingSoonOverlay.style.display = 'none';
@@ -2845,10 +2982,16 @@ function updateSidebarAndHeaderForProject(project) {
                 approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved 224/2023/h &nbsp;|&nbsp; RERA Approved po2400007808';
             }
         }
+        const sidebarRateInput = document.getElementById('sidebarEmiRateRange');
+        if (sidebarRateInput) {
+            sidebarRateInput.value = project === 'avatar1' ? 23999 : 15499;
+            if (typeof window.updateSidebarEmi === 'function') window.updateSidebarEmi();
+        }
     } else {
         if (searchSection) searchSection.style.display = 'none';
         if (filtersSection) filtersSection.style.display = 'none';
         if (legendSection) legendSection.style.display = 'none';
+        if (sidebarEmiSection) sidebarEmiSection.style.display = 'none';
         if (headerStats) headerStats.style.display = 'none';
         if (sidebarComingSoonSection) sidebarComingSoonSection.style.display = 'none';
         if (comingSoonOverlay) comingSoonOverlay.style.display = 'none';
@@ -3242,33 +3385,71 @@ _Sent via Aspirealty Interactive Viewer_`;
     }
 }
 
-function setupProTipsBanner() {
-    const banner = document.getElementById('floatingProTipsBanner');
-    const closeBtn = document.getElementById('closeProTipsBtn');
-    if (!banner) return;
+function setupSidebarEmiCalculator() {
+    function updateSidebarEmi() {
+        const area = parseFloat(document.getElementById('sidebarEmiAreaRange')?.value) || 200;
+        const rate = parseFloat(document.getElementById('sidebarEmiRateRange')?.value) || 15000;
+        const downPct = parseFloat(document.getElementById('sidebarEmiDownRange')?.value) || 20;
+        const rateAnnual = parseFloat(document.getElementById('sidebarEmiInterestRange')?.value) || 8.5;
+        const tenureYears = parseInt(document.getElementById('sidebarEmiTenureRange')?.value) || 15;
 
-    let timer = setTimeout(() => {
-        banner.classList.add('hide-tips');
-    }, 10000); // Automatically disappears after 10 seconds
+        if (document.getElementById('sidebarEmiAreaVal')) document.getElementById('sidebarEmiAreaVal').textContent = area + ' Sq.Yds';
+        if (document.getElementById('sidebarEmiRateVal')) document.getElementById('sidebarEmiRateVal').textContent = '₹ ' + rate.toLocaleString('en-IN');
+        if (document.getElementById('sidebarEmiDownVal')) document.getElementById('sidebarEmiDownVal').textContent = downPct + '%';
+        if (document.getElementById('sidebarEmiInterestVal')) document.getElementById('sidebarEmiInterestVal').textContent = rateAnnual + '%';
+        if (document.getElementById('sidebarEmiTenureVal')) document.getElementById('sidebarEmiTenureVal').textContent = tenureYears + ' Yrs';
 
-    function dismissBanner() {
-        if (timer) clearTimeout(timer);
-        banner.classList.add('hide-tips');
-    }
+        const totalCost = area * rate;
+        const principal = totalCost * (1 - (downPct / 100));
+        const r = (rateAnnual / 12) / 100;
+        const n = tenureYears * 12;
 
-    if (closeBtn) {
-        closeBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            dismissBanner();
-        });
-    }
-
-    // Dismiss on first click anywhere outside the tips card
-    document.addEventListener('click', (e) => {
-        if (!banner.contains(e.target)) {
-            dismissBanner();
+        let emi = 0;
+        if (r > 0 && n > 0) {
+            emi = (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
         }
-    }, { once: true });
+
+        const emiDisplay = document.getElementById('sidebarEmiMonthlyVal');
+        if (emiDisplay) {
+            emiDisplay.textContent = '₹ ' + Math.round(emi).toLocaleString('en-IN') + ' / mo';
+        }
+    }
+    window.updateSidebarEmi = updateSidebarEmi;
+
+    ['sidebarEmiAreaRange', 'sidebarEmiRateRange', 'sidebarEmiDownRange', 'sidebarEmiInterestRange', 'sidebarEmiTenureRange'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateSidebarEmi);
+    });
+
+    updateSidebarEmi();
+}
+
+function setupWelcomeSplash() {
+    const splash = document.getElementById('welcomeSplashOverlay');
+    const progress = document.getElementById('splashProgressBar');
+    
+    if (splash && progress) {
+        // Animate progress bar fill smoothly
+        setTimeout(() => {
+            progress.style.width = '100%';
+        }, 100);
+        
+        let isDismissed = false;
+        const dismissSplash = () => {
+            if (isDismissed) return;
+            isDismissed = true;
+            splash.classList.add('hide');
+            setTimeout(() => {
+                if (splash && splash.parentNode) {
+                    splash.parentNode.removeChild(splash);
+                }
+            }, 650);
+        };
+
+        // Click or tap anywhere on screen to open the webpage
+        splash.addEventListener('click', dismissSplash);
+        splash.addEventListener('touchstart', dismissSplash, { passive: true });
+    }
 }
 
 // ----------------------------------------------------
@@ -3302,82 +3483,78 @@ function setupSmartPlotFinder() {
     }
 
     // Toggle chip selections in quiz modal
-    const chips = document.querySelectorAll('.chip');
-    chips.forEach(chip => {
-        chip.addEventListener('click', () => {
-            const parent = chip.parentElement;
-            if (parent) {
-                const isMulti = parent.dataset.multi === 'true';
-                if (!isMulti) {
-                    parent.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    ['finderSizeOptions', 'finderFacingOptions', 'finderStatusOptions'].forEach(containerId => {
+        const container = document.getElementById(containerId);
+        if (container) {
+            const chips = container.querySelectorAll('.finder-chip');
+            chips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    chips.forEach(c => c.classList.remove('active'));
                     chip.classList.add('active');
-                } else {
-                    chip.classList.toggle('active');
-                }
-            }
-        });
+                });
+            });
+        }
     });
 
     function runFinderQuiz() {
-        const activeFacingChips = document.querySelectorAll('#facingGroup .chip.active');
-        const selectedFacings = Array.from(activeFacingChips).map(c => c.dataset.val);
+        const sizeVal = document.querySelector('#finderSizeOptions .finder-chip.active')?.dataset.value || 'all';
+        const facingVal = document.querySelector('#finderFacingOptions .finder-chip.active')?.dataset.value || 'all';
+        const statusVal = document.querySelector('#finderStatusOptions .finder-chip.active')?.dataset.value || 'AVAILABLE';
 
-        const activeSizeChips = document.querySelectorAll('#sizeGroup .chip.active');
-        const selectedSizes = Array.from(activeSizeChips).map(c => c.dataset.val);
-
-        const activeBudgetChips = document.querySelectorAll('#budgetGroup .chip.active');
-        const selectedBudgets = Array.from(activeBudgetChips).map(c => c.dataset.val);
-
-        let count = 0;
+        const dataSource = avatarDataPool[currentProject] || [];
         const plotDots = document.querySelectorAll('.plot-dot');
+        let matchCount = 0;
 
         plotDots.forEach(dot => {
-            const pNo = dot.dataset.plotNo;
-            const item = plotData.find(p => String(p.plot_no) === String(pNo));
-            if (!item) return;
+            const plotNo = dot.dataset.plotNo;
+            const detail = dataSource.find(p => String(p.plot_no) === String(plotNo)) || {};
+            
+            const plotStatus = String(detail.plot_status || dot.dataset.status || 'AVAILABLE').toUpperCase().trim();
+            const plotFacing = String(detail.facing || dot.dataset.facing || '').trim();
+            const rawSize = parseFloat(String(detail.plot_size || '').replace(/[^0-9.]/g, ''));
+            const plotSize = isNaN(rawSize) || rawSize <= 0 ? 200 : rawSize;
 
-            let matchesFacing = true;
-            if (selectedFacings.length > 0) {
-                matchesFacing = selectedFacings.some(f => (item.facing || '').toLowerCase().includes(f.toLowerCase()));
+            // Check Status Match
+            let statusMatch = true;
+            if (statusVal === 'AVAILABLE') {
+                statusMatch = plotStatus === 'AVAILABLE';
             }
 
-            let matchesSize = true;
-            const sizeYds = parseFloat(item.plot_size) || 0;
-            if (selectedSizes.length > 0 && sizeYds > 0) {
-                matchesSize = selectedSizes.some(s => {
-                    if (s === 'small') return sizeYds < 180;
-                    if (s === 'medium') return sizeYds >= 180 && sizeYds <= 250;
-                    if (s === 'large') return sizeYds > 250;
-                    return true;
-                });
+            // Check Size Match
+            let sizeMatch = true;
+            if (sizeVal === '150-200') {
+                sizeMatch = plotSize >= 100 && plotSize <= 200;
+            } else if (sizeVal === '201-300') {
+                sizeMatch = plotSize >= 201 && plotSize <= 300;
+            } else if (sizeVal === '301+') {
+                sizeMatch = plotSize >= 301;
             }
 
-            let matchesBudget = true;
-            let sqYdRate = 15000;
-            if (currentProject === 'avatar1') sqYdRate = 23999;
-            else if (currentProject === 'avatar2') sqYdRate = 15499;
-
-            const totalCostLakhs = (sizeYds * sqYdRate) / 100000;
-            if (selectedBudgets.length > 0 && totalCostLakhs > 0) {
-                matchesBudget = selectedBudgets.some(b => {
-                    if (b === 'under30') return totalCostLakhs < 30;
-                    if (b === '30to50') return totalCostLakhs >= 30 && totalCostLakhs <= 50;
-                    if (b === 'above50') return totalCostLakhs > 50;
-                    return true;
-                });
+            // Check Facing Match
+            let facingMatch = true;
+            if (facingVal === 'East') {
+                facingMatch = plotFacing.toLowerCase().includes('east');
+            } else if (facingVal === 'West') {
+                facingMatch = plotFacing.toLowerCase().includes('west');
+            } else if (facingVal === 'North') {
+                facingMatch = plotFacing.toLowerCase().includes('north') || plotFacing.toLowerCase().includes('south');
+            } else if (facingVal === 'Corner') {
+                facingMatch = plotFacing.toLowerCase().includes('cross') || plotFacing.toLowerCase().includes('corner') || plotFacing.includes('-');
             }
 
-            if (matchesFacing && matchesSize && matchesBudget) {
+            const isMatched = statusMatch && sizeMatch && facingMatch;
+
+            if (isMatched) {
                 dot.classList.add('matched-finder-dot');
                 dot.classList.remove('dimmed-finder-dot');
-                count++;
+                matchCount++;
             } else {
                 dot.classList.remove('matched-finder-dot');
                 dot.classList.add('dimmed-finder-dot');
             }
         });
 
-        if (matchedCountEl) matchedCountEl.textContent = count;
+        if (matchedCountEl) matchedCountEl.textContent = matchCount;
         if (resultBanner) resultBanner.style.display = 'flex';
         closeModal();
     }
@@ -3467,9 +3644,18 @@ function startRealtimeCloudSync() {
 
 // Global DOM Ready initializer for Interactive Features
 document.addEventListener('DOMContentLoaded', () => {
-    setupProTipsBanner();
+    setupWelcomeSplash();
     setupInterestModal();
     setupSiteVisitBooking();
+    setupSidebarEmiCalculator();
     setupSmartPlotFinder();
     startRealtimeCloudSync();
 });
+setupWelcomeSplash();
+setupInterestModal();
+setupSiteVisitBooking();
+setupSidebarEmiCalculator();
+setupSmartPlotFinder();
+startRealtimeCloudSync();
+
+
