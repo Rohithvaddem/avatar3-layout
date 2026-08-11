@@ -2392,7 +2392,7 @@ function showShareModal(projName, shareUrl) {
             <div style="margin-bottom: 14px;">
                 <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: block;">Shareable Link</label>
                 <div style="background: #0f172a; border: 1.5px solid #334155; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 10px;">
-                    <a href="${shareUrl}" target="_blank" id="shareUrlLink" style="flex: 1; color: #38bdf8; font-size: 12.5px; font-weight: 600; text-decoration: none; word-break: break-all; line-height: 1.5; transition: color 0.15s;" onmouseover="this.style.color='#7dd3fc'" onmouseout="this.style.color='#38bdf8'">${shareUrl}</a>
+                    <div id="shareUrlLinkContainer" style="flex: 1; word-break: break-all; line-height: 1.5;"></div>
                     <button id="btnOpenLink" title="Open in new tab" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #94a3b8; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; transition: all 0.15s;">
                         <i class="fa-solid fa-arrow-up-right-from-square"></i>
                     </button>
@@ -2416,6 +2416,20 @@ function showShareModal(projName, shareUrl) {
         </div>
     `;
     document.body.appendChild(backdrop);
+
+    // Programmatically create the clickable link (avoids innerHTML escaping issues)
+    const linkContainer = document.getElementById('shareUrlLinkContainer');
+    if (linkContainer) {
+        const linkEl = document.createElement('a');
+        linkEl.href = shareUrl;
+        linkEl.target = '_blank';
+        linkEl.rel = 'noopener noreferrer';
+        linkEl.textContent = shareUrl;
+        linkEl.style.cssText = 'color: #38bdf8; font-size: 12.5px; font-weight: 600; text-decoration: underline; text-decoration-color: rgba(56, 189, 248, 0.4); text-underline-offset: 3px; cursor: pointer; display: block;';
+        linkEl.addEventListener('mouseenter', () => { linkEl.style.color = '#7dd3fc'; linkEl.style.textDecorationColor = '#7dd3fc'; });
+        linkEl.addEventListener('mouseleave', () => { linkEl.style.color = '#38bdf8'; linkEl.style.textDecorationColor = 'rgba(56, 189, 248, 0.4)'; });
+        linkContainer.appendChild(linkEl);
+    }
 
     // Close button
     document.getElementById('closeShareModalBtn').addEventListener('click', () => {
