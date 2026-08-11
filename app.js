@@ -1479,50 +1479,6 @@ function openPlotModal(plotNo) {
     const estimatedPlotCost = plotAreaYds * sqYdRate;
     const isAvailable = String(item.plot_status || '').toUpperCase() === 'AVAILABLE';
 
-    let emiHtml = '';
-    if (isAvailable && !isAdminLoggedIn) {
-        emiHtml = `
-            <!-- Interactive EMI & Loan Calculator (Only for Available Plots) -->
-            <div class="emi-calc-container">
-                <div class="emi-calc-header" id="emiCalcToggle">
-                    <span><i class="fa-solid fa-calculator"></i> Estimated EMI Calculator</span>
-                    <i class="fa-solid fa-chevron-down" id="emiChevron"></i>
-                </div>
-                <div id="emiCalcBody" style="display: flex; flex-direction: column; gap: 8px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-secondary); background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
-                        <span>Rate: <strong style="color: var(--accent);">₹ ${sqYdRate.toLocaleString('en-IN')}</strong> / Sq.Yd</span>
-                        <span>Est. Cost: <strong style="color: #60a5fa;">₹ ${Math.round(estimatedPlotCost).toLocaleString('en-IN')}</strong></span>
-                    </div>
-                    <div class="emi-slider-row">
-                        <div class="emi-slider-label">
-                            <span>Down Payment</span>
-                            <strong id="emiDownVal">20%</strong>
-                        </div>
-                        <input type="range" id="emiDownRange" min="10" max="50" step="5" value="20" class="emi-slider-input">
-                    </div>
-                    <div class="emi-slider-row">
-                        <div class="emi-slider-label">
-                            <span>Interest Rate</span>
-                            <strong id="emiRateVal">8.5%</strong>
-                        </div>
-                        <input type="range" id="emiRateRange" min="6.5" max="14" step="0.25" value="8.5" class="emi-slider-input">
-                    </div>
-                    <div class="emi-slider-row">
-                        <div class="emi-slider-label">
-                            <span>Tenure</span>
-                            <strong id="emiTenureVal">15 Yrs</strong>
-                        </div>
-                        <input type="range" id="emiTenureRange" min="5" max="30" step="1" value="15" class="emi-slider-input">
-                    </div>
-                    <div class="emi-result-box">
-                        <span style="font-size: 11px; color: var(--text-secondary);">Est. Monthly EMI:</span>
-                        <strong id="emiMonthlyVal" style="font-size: 14px; color: #4ade80;">₹ 0 / mo</strong>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
     modalBody.innerHTML = `
         <div class="detail-card" style="display: flex; flex-direction: column; gap: 10px;">
             ${conflictWarningHtml}
@@ -1549,7 +1505,6 @@ function openPlotModal(plotNo) {
             </div>
             ` : ''}
 
-            ${emiHtml}
             ${adminCrmHtml}
         </div>
         ${isAdminLoggedIn ? `
@@ -1559,53 +1514,6 @@ function openPlotModal(plotNo) {
         ` : ''}
         ${editButtonHtml}
     `;
-
-    if (isAvailable && !isAdminLoggedIn) {
-        // Initialize EMI Slider calculations for available plots
-        function calculateEmi() {
-            const totalPlotCost = plotAreaYds * sqYdRate;
-            const downPct = parseFloat(document.getElementById('emiDownRange')?.value) || 20;
-            const rateAnnual = parseFloat(document.getElementById('emiRateRange')?.value) || 8.5;
-            const tenureYears = parseInt(document.getElementById('emiTenureRange')?.value) || 15;
-
-            if (document.getElementById('emiDownVal')) document.getElementById('emiDownVal').textContent = downPct + '%';
-            if (document.getElementById('emiRateVal')) document.getElementById('emiRateVal').textContent = rateAnnual + '%';
-            if (document.getElementById('emiTenureVal')) document.getElementById('emiTenureVal').textContent = tenureYears + ' Yrs';
-
-            const principal = totalPlotCost * (1 - (downPct / 100));
-            const r = (rateAnnual / 12) / 100;
-            const n = tenureYears * 12;
-
-            let emi = 0;
-            if (r > 0 && n > 0) {
-                emi = (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-            }
-
-            const emiDisplay = document.getElementById('emiMonthlyVal');
-            if (emiDisplay) {
-                emiDisplay.textContent = '₹ ' + Math.round(emi).toLocaleString('en-IN') + ' / mo';
-            }
-        }
-
-        ['emiDownRange', 'emiRateRange', 'emiTenureRange'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('input', calculateEmi);
-        });
-
-        calculateEmi();
-
-        // Toggle EMI accordion
-        const toggleBtn = document.getElementById('emiCalcToggle');
-        const calcBody = document.getElementById('emiCalcBody');
-        const chevron = document.getElementById('emiChevron');
-        if (toggleBtn && calcBody) {
-            toggleBtn.addEventListener('click', () => {
-                const isHidden = calcBody.style.display === 'none';
-                calcBody.style.display = isHidden ? 'flex' : 'none';
-                if (chevron) chevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
-            });
-        }
-    }
     
     const exportPdfBtn = document.getElementById('exportSpecSheetBtn');
     if (exportPdfBtn) {
@@ -2980,14 +2888,11 @@ function updateSidebarAndHeaderForProject(project) {
     const headerStats = document.querySelector('.header-stats');
     const approvedBadge = document.querySelector('.approved-badge');
     const projectNameEl = document.querySelector('.project-name');
-    const comingSoonOverlay = document.getElementById('comingSoonOverlay');
-    
-    if (project === 'avatar3') {
+    const comingSoonOverlay = document.getElementById('    if (project === 'avatar3') {
         // Avatar 3 Coming Soon state
         if (searchSection) searchSection.style.display = 'none';
         if (filtersSection) filtersSection.style.display = 'none';
         if (legendSection) legendSection.style.display = 'none';
-        if (sidebarEmiSection) sidebarEmiSection.style.display = 'none';
         if (headerStats) headerStats.style.display = 'none';
         if (sidebarComingSoonSection) sidebarComingSoonSection.style.display = isSatelliteActive ? 'none' : 'block';
         if (approvedBadge) {
@@ -3007,7 +2912,6 @@ function updateSidebarAndHeaderForProject(project) {
         if (searchSection) searchSection.style.display = 'block';
         if (filtersSection) filtersSection.style.display = 'block';
         if (legendSection) legendSection.style.display = 'block';
-        if (sidebarEmiSection) sidebarEmiSection.style.display = 'block';
         if (headerStats) headerStats.style.display = 'flex';
         if (sidebarComingSoonSection) sidebarComingSoonSection.style.display = 'none';
         if (comingSoonOverlay) comingSoonOverlay.style.display = 'none';
@@ -3024,16 +2928,10 @@ function updateSidebarAndHeaderForProject(project) {
                 approvedBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> DTCP Approved 224/2023/h &nbsp;|&nbsp; RERA Approved po2400007808';
             }
         }
-        const sidebarRateInput = document.getElementById('sidebarEmiRateRange');
-        if (sidebarRateInput) {
-            sidebarRateInput.value = project === 'avatar1' ? 23999 : 15499;
-            if (typeof window.updateSidebarEmi === 'function') window.updateSidebarEmi();
-        }
     } else {
         if (searchSection) searchSection.style.display = 'none';
         if (filtersSection) filtersSection.style.display = 'none';
         if (legendSection) legendSection.style.display = 'none';
-        if (sidebarEmiSection) sidebarEmiSection.style.display = 'none';
         if (headerStats) headerStats.style.display = 'none';
         if (sidebarComingSoonSection) sidebarComingSoonSection.style.display = 'none';
         if (comingSoonOverlay) comingSoonOverlay.style.display = 'none';
@@ -3427,44 +3325,7 @@ _Sent via Aspirealty Interactive Viewer_`;
     }
 }
 
-function setupSidebarEmiCalculator() {
-    function updateSidebarEmi() {
-        const area = parseFloat(document.getElementById('sidebarEmiAreaRange')?.value) || 200;
-        const rate = parseFloat(document.getElementById('sidebarEmiRateRange')?.value) || 15000;
-        const downPct = parseFloat(document.getElementById('sidebarEmiDownRange')?.value) || 20;
-        const rateAnnual = parseFloat(document.getElementById('sidebarEmiInterestRange')?.value) || 8.5;
-        const tenureYears = parseInt(document.getElementById('sidebarEmiTenureRange')?.value) || 15;
 
-        if (document.getElementById('sidebarEmiAreaVal')) document.getElementById('sidebarEmiAreaVal').textContent = area + ' Sq.Yds';
-        if (document.getElementById('sidebarEmiRateVal')) document.getElementById('sidebarEmiRateVal').textContent = '₹ ' + rate.toLocaleString('en-IN');
-        if (document.getElementById('sidebarEmiDownVal')) document.getElementById('sidebarEmiDownVal').textContent = downPct + '%';
-        if (document.getElementById('sidebarEmiInterestVal')) document.getElementById('sidebarEmiInterestVal').textContent = rateAnnual + '%';
-        if (document.getElementById('sidebarEmiTenureVal')) document.getElementById('sidebarEmiTenureVal').textContent = tenureYears + ' Yrs';
-
-        const totalCost = area * rate;
-        const principal = totalCost * (1 - (downPct / 100));
-        const r = (rateAnnual / 12) / 100;
-        const n = tenureYears * 12;
-
-        let emi = 0;
-        if (r > 0 && n > 0) {
-            emi = (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-        }
-
-        const emiDisplay = document.getElementById('sidebarEmiMonthlyVal');
-        if (emiDisplay) {
-            emiDisplay.textContent = '₹ ' + Math.round(emi).toLocaleString('en-IN') + ' / mo';
-        }
-    }
-    window.updateSidebarEmi = updateSidebarEmi;
-
-    ['sidebarEmiAreaRange', 'sidebarEmiRateRange', 'sidebarEmiDownRange', 'sidebarEmiInterestRange', 'sidebarEmiTenureRange'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('input', updateSidebarEmi);
-    });
-
-    updateSidebarEmi();
-}
 
 function setupWelcomeSplash() {
     const splash = document.getElementById('welcomeSplashOverlay');
@@ -3689,14 +3550,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setupWelcomeSplash();
     setupInterestModal();
     setupSiteVisitBooking();
-    setupSidebarEmiCalculator();
     setupSmartPlotFinder();
     startRealtimeCloudSync();
 });
 setupWelcomeSplash();
 setupInterestModal();
 setupSiteVisitBooking();
-setupSidebarEmiCalculator();
 setupSmartPlotFinder();
 startRealtimeCloudSync();
 
