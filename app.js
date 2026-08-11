@@ -2180,17 +2180,17 @@ function setupAdminState() {
         if (mapperSection) mapperSection.style.display = 'block';
         
         sidebarFooter.innerHTML = `
-            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; padding: 0 4px;">
-                <button class="admin-login-btn" id="sidebarShareBtn" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 13px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%;">
+                <button class="admin-login-btn" id="sidebarShareBtn" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 8px 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; grid-column: span 2;">
                     <i class="fa-solid fa-share-nodes"></i> Share Current Layout Link
                 </button>
-                <button class="admin-login-btn" id="exportDbBtn" style="background-color: var(--accent); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 13px;">
-                    <i class="fa-solid fa-download"></i> Export data.json
+                <button class="admin-login-btn" id="exportDbBtn" style="background-color: var(--accent); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 8px 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px;">
+                    <i class="fa-solid fa-download"></i> Export Data
                 </button>
-                <button class="admin-login-btn" id="resetDbBtn" style="background-color: rgba(255,255,255,0.05); color: var(--text-secondary); border: 1px solid var(--border-color); font-weight: 600; cursor: pointer; padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; font-size: 11px;">
-                    <i class="fa-solid fa-rotate-left"></i> Reset to Default
+                <button class="admin-login-btn" id="resetDbBtn" style="background-color: rgba(255,255,255,0.05); color: var(--text-secondary); border: 1px solid var(--border-color); font-weight: 600; cursor: pointer; padding: 8px 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px;">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
                 </button>
-                <button class="admin-login-btn" id="logoutBtn" style="background-color: var(--status-registered); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 13px;">
+                <button class="admin-login-btn" id="logoutBtn" style="background-color: var(--status-registered); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 8px 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; grid-column: span 2;">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i> Admin Logout
                 </button>
             </div>
