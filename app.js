@@ -1181,7 +1181,7 @@ function exportPriceQuote(plotNo) {
                         <tr>
                             <td class="bg-yellow" style="text-align: center;" id="lblPlotArea" contenteditable="true">${plotAreaYds}</td>
                             <td style="text-align: right;" id="lblClosingPrice" contenteditable="true">${fmt(defaultBaseRate)}</td>
-                            <td class="bg-green" style="text-align: right;" id="lblTotalAmount" contenteditable="true">${fmt(initialTotalAmount)}</td>
+                            <td class="bg-yellow" style="text-align: right;" id="lblTotalAmount" contenteditable="true">${fmt(Math.round(plotAreaYds * defaultBaseRate))}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1217,8 +1217,13 @@ function exportPriceQuote(plotNo) {
                             <td style="text-align: center;" id="lblBankLoanRate" contenteditable="true">₹ 0</td>
                             <td style="text-align: right;" id="lblBankLoanTotal" contenteditable="true">₹ 0</td>
                         </tr>
+                        <tr class="bg-green">
+                            <td style="font-weight: 800;" contenteditable="true">TOTAL PLOT VALUE (WITH ADD-ONS)</td>
+                            <td style="text-align: center; font-weight: 800;" id="lblTotalValueRate" contenteditable="true">${fmt(initialEffectiveRate)}</td>
+                            <td style="text-align: right; font-weight: 800;" id="lblTotalValueTotal" contenteditable="true">${fmt(initialTotalAmount)}</td>
+                        </tr>
                         <tr>
-                            <td contenteditable="true">Extra Corpus Fund (Not in Plot Cost)</td>
+                            <td contenteditable="true">Extra Corpus Fund (Not Included in Plot Cost)</td>
                             <td style="text-align: center;" id="lblCorpusRate" contenteditable="true">₹ 200</td>
                             <td style="text-align: right;" id="lblCorpusTotal" contenteditable="true">${fmt(plotAreaYds * 200)}</td>
                         </tr>
@@ -1379,25 +1384,35 @@ function exportPriceQuote(plotNo) {
                         const bankLoanRate = parseNum(bankLoanRateEl ? bankLoanRateEl.innerText : '0');
                         const corpusRate = parseNum(corpusRateEl ? corpusRateEl.innerText : '200');
 
+                        // Base plot cost without add-ons
+                        const baseTotalAmount = Math.round(plotArea * baseClosingPrice);
+
+                        // Individual extra totals
                         const eastTotal = Math.round(plotArea * eastRate);
                         const cornerTotal = Math.round(plotArea * cornerRate);
                         const mortgageTotal = Math.round(plotArea * mortgageRate);
                         const bankLoanTotal = Math.round(plotArea * bankLoanRate);
                         const corpusTotal = Math.round(plotArea * corpusRate);
 
+                        // Total Plot Value including particulars/add-ons (excluding Corpus Fund)
                         const effectiveRate = baseClosingPrice + eastRate + cornerRate + mortgageRate + bankLoanRate;
-                        const totalAmount = Math.round(plotArea * effectiveRate);
+                        const totalValueAmount = Math.round(plotArea * effectiveRate);
+
                         const bankTotal = Math.round(plotArea * bankRate);
-                        const cashTotal = Math.max(0, totalAmount - bankTotal);
+                        const cashTotal = Math.max(0, totalValueAmount - bankTotal);
                         const cashRate = Math.max(0, effectiveRate - bankRate);
 
                         const bookingAmt = 100000;
-                        const amt1 = Math.round(totalAmount * 0.25);
-                        const amt2 = Math.max(0, totalAmount - bookingAmt - amt1);
+                        const amt1 = Math.round(totalValueAmount * 0.25);
+                        const amt2 = Math.max(0, totalValueAmount - bookingAmt - amt1);
 
                         const reg75 = Math.round(bankTotal * 0.075);
                         const mutation = Math.max(800, Math.round(bankTotal * 0.001));
                         const totalRegCharges = reg75 + 1000 + 100 + 50 + 5000 + mutation;
+
+                        // Update Base Total Amount in Price Quotation table
+                        const totalAmtEl = document.getElementById('lblTotalAmount');
+                        if (totalAmtEl && totalAmtEl !== active) totalAmtEl.innerText = fmt(baseTotalAmount);
 
                         // Update Extras totals
                         const eastTotalEl = document.getElementById('lblEastTotal');
@@ -1412,12 +1427,18 @@ function exportPriceQuote(plotNo) {
                         const bankLoanTotalEl = document.getElementById('lblBankLoanTotal');
                         if (bankLoanTotalEl && bankLoanTotalEl !== active) bankLoanTotalEl.innerText = fmt(bankLoanTotal);
 
+                        // Update Total Plot Value (With Add-ons) box
+                        const totalValueRateEl = document.getElementById('lblTotalValueRate');
+                        if (totalValueRateEl && totalValueRateEl !== active) totalValueRateEl.innerText = fmt(effectiveRate);
+
+                        const totalValueTotalEl = document.getElementById('lblTotalValueTotal');
+                        if (totalValueTotalEl && totalValueTotalEl !== active) totalValueTotalEl.innerText = fmt(totalValueAmount);
+
+                        // Update Corpus Fund total (not added into plot total value)
                         const corpusTotalEl = document.getElementById('lblCorpusTotal');
                         if (corpusTotalEl && corpusTotalEl !== active) corpusTotalEl.innerText = fmt(corpusTotal);
 
-                        const totalAmtEl = document.getElementById('lblTotalAmount');
-                        if (totalAmtEl && totalAmtEl !== active) totalAmtEl.innerText = fmt(totalAmount);
-
+                        // Update Payment Structure & Schedule
                         const bankTotalEl = document.getElementById('lblBankTotal');
                         if (bankTotalEl && bankTotalEl !== active) bankTotalEl.innerText = fmt(bankTotal);
 
@@ -1428,7 +1449,7 @@ function exportPriceQuote(plotNo) {
                         if (cashTotalEl && cashTotalEl !== active) cashTotalEl.innerText = fmt(cashTotal);
 
                         const structTotalEl = document.getElementById('lblStructTotal');
-                        if (structTotalEl && structTotalEl !== active) structTotalEl.innerText = fmt(totalAmount);
+                        if (structTotalEl && structTotalEl !== active) structTotalEl.innerText = fmt(totalValueAmount);
 
                         const amt1El = document.getElementById('lblAmt1');
                         if (amt1El && amt1El !== active) amt1El.innerText = fmt(amt1);
@@ -1437,7 +1458,7 @@ function exportPriceQuote(plotNo) {
                         if (amt2El && amt2El !== active) amt2El.innerText = fmt(amt2);
 
                         const scheduleTotalEl = document.getElementById('lblScheduleTotal');
-                        if (scheduleTotalEl && scheduleTotalEl !== active) scheduleTotalEl.innerText = fmt(totalAmount);
+                        if (scheduleTotalEl && scheduleTotalEl !== active) scheduleTotalEl.innerText = fmt(totalValueAmount);
 
                         const reg75El = document.getElementById('lblReg75');
                         if (reg75El && reg75El !== active) reg75El.innerText = fmt(reg75);
