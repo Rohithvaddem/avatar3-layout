@@ -1153,7 +1153,7 @@ function exportPriceQuote(plotNo) {
                             <td style="font-weight: 800;" contenteditable="true">${projectMeta.title}</td>
                             <td style="font-weight: 700; text-align: center;" contenteditable="true">${item.plot_no}</td>
                             <td style="font-weight: 700; text-align: center; text-transform: uppercase;" contenteditable="true">${facingStr}</td>
-                            <td class="bg-yellow" style="text-align: right;" id="lblClosingPrice" contenteditable="true">${fmt(defaultBaseRate)}</td>
+                            <td class="bg-yellow" style="text-align: right;" id="lblPerSqYd" contenteditable="true">${fmt(defaultBaseRate)}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1171,7 +1171,7 @@ function exportPriceQuote(plotNo) {
                     <tbody>
                         <tr>
                             <td class="bg-yellow" style="text-align: center;" id="lblPlotArea" contenteditable="true">${plotAreaYds}</td>
-                            <td style="text-align: right;" id="lblPerSqYd" contenteditable="true">${fmt(defaultBaseRate)}</td>
+                            <td style="text-align: right;" id="lblClosingPrice" contenteditable="true">${fmt(defaultBaseRate)}</td>
                             <td class="bg-green" style="text-align: right;" id="lblTotalAmount" contenteditable="true">${fmt(initialTotalAmount)}</td>
                         </tr>
                     </tbody>
@@ -1313,12 +1313,10 @@ function exportPriceQuote(plotNo) {
                         const active = document.activeElement;
                         const areaEl = document.getElementById('lblPlotArea');
                         const closingPriceEl = document.getElementById('lblClosingPrice');
-                        const perSqYdEl = document.getElementById('lblPerSqYd');
                         const bankRateEl = document.getElementById('lblBankRate');
 
                         const plotArea = parseNum(areaEl ? areaEl.innerText : '200');
-                        
-                        let closingPrice = parseNum(closingPriceEl ? closingPriceEl.innerText : (perSqYdEl ? perSqYdEl.innerText : '15499'));
+                        const closingPrice = parseNum(closingPriceEl ? closingPriceEl.innerText : '15499');
                         const bankRate = parseNum(bankRateEl ? bankRateEl.innerText : '3000');
 
                         const totalAmount = Math.round(plotArea * closingPrice);
