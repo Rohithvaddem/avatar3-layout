@@ -1145,7 +1145,7 @@ function exportPriceQuote(plotNo) {
                             <th style="width: 35%;" contenteditable="true">Project Name</th>
                             <th style="width: 20%; text-align: center;" contenteditable="true">Plot No.</th>
                             <th style="width: 20%; text-align: center;" contenteditable="true">Facing</th>
-                            <th style="width: 25%; text-align: right;" contenteditable="true">Closing Price</th>
+                            <th style="width: 25%; text-align: right;" contenteditable="true">Per sq.yd.</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1164,7 +1164,7 @@ function exportPriceQuote(plotNo) {
                     <thead>
                         <tr>
                             <th style="width: 30%; text-align: center;" contenteditable="true">Total sq.yds</th>
-                            <th style="width: 35%; text-align: right;" contenteditable="true">Per sq.yd.</th>
+                            <th style="width: 35%; text-align: right;" contenteditable="true">Closing Price</th>
                             <th style="width: 35%; text-align: right;" contenteditable="true">Total Amount</th>
                         </tr>
                     </thead>
