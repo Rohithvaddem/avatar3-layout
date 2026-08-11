@@ -1177,6 +1177,45 @@ function exportPriceQuote(plotNo) {
                     </tbody>
                 </table>
 
+                <!-- Extras & Additional Charges Table -->
+                <div style="background: #f1f5f9; border: 1.5px solid #0f172a; padding: 4px 12px; font-weight: 800; border-top: none; border-bottom: none; text-align: center;" contenteditable="true">Extras &amp; Premium Charges (If Applicable)</div>
+                <table class="q-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45%;" contenteditable="true">Particulars / Add-on</th>
+                            <th style="width: 25%; text-align: center;" contenteditable="true">Rate / Sq.yd</th>
+                            <th style="width: 30%; text-align: right;" contenteditable="true">Total Extra Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td contenteditable="true">East Plot Premium</td>
+                            <td style="text-align: center;" id="lblEastRate" contenteditable="true">${isEast ? '₹ 200' : '₹ 0'}</td>
+                            <td style="text-align: right;" id="lblEastTotal" contenteditable="true">${fmt(isEast ? plotAreaYds * 200 : 0)}</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Corner Plot Premium</td>
+                            <td style="text-align: center;" id="lblCornerRate" contenteditable="true">₹ 0</td>
+                            <td style="text-align: right;" id="lblCornerTotal" contenteditable="true">₹ 0</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Mortgage Plot Charge</td>
+                            <td style="text-align: center;" id="lblMortgageRate" contenteditable="true">₹ 0</td>
+                            <td style="text-align: right;" id="lblMortgageTotal" contenteditable="true">₹ 0</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Bank Loan Processing Extra</td>
+                            <td style="text-align: center;" id="lblBankLoanRate" contenteditable="true">₹ 0</td>
+                            <td style="text-align: right;" id="lblBankLoanTotal" contenteditable="true">₹ 0</td>
+                        </tr>
+                        <tr>
+                            <td contenteditable="true">Extra Corpus Fund (Not in Plot Cost)</td>
+                            <td style="text-align: center;" id="lblCorpusRate" contenteditable="true">₹ 200</td>
+                            <td style="text-align: right;" id="lblCorpusTotal" contenteditable="true">${fmt(plotAreaYds * 200)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
                 <!-- Payment Structure Table -->
                 <div style="background: #f1f5f9; border: 1.5px solid #0f172a; padding: 4px 12px; font-weight: 800; border-top: none; border-bottom: none; text-align: center;" contenteditable="true">Payment Structure</div>
                 <table class="q-table">
@@ -1315,14 +1354,33 @@ function exportPriceQuote(plotNo) {
                         const closingPriceEl = document.getElementById('lblClosingPrice');
                         const bankRateEl = document.getElementById('lblBankRate');
 
+                        const eastRateEl = document.getElementById('lblEastRate');
+                        const cornerRateEl = document.getElementById('lblCornerRate');
+                        const mortgageRateEl = document.getElementById('lblMortgageRate');
+                        const bankLoanRateEl = document.getElementById('lblBankLoanRate');
+                        const corpusRateEl = document.getElementById('lblCorpusRate');
+
                         const plotArea = parseNum(areaEl ? areaEl.innerText : '200');
-                        const closingPrice = parseNum(closingPriceEl ? closingPriceEl.innerText : '15499');
+                        const baseClosingPrice = parseNum(closingPriceEl ? closingPriceEl.innerText : '15499');
                         const bankRate = parseNum(bankRateEl ? bankRateEl.innerText : '3000');
 
-                        const totalAmount = Math.round(plotArea * closingPrice);
+                        const eastRate = parseNum(eastRateEl ? eastRateEl.innerText : '0');
+                        const cornerRate = parseNum(cornerRateEl ? cornerRateEl.innerText : '0');
+                        const mortgageRate = parseNum(mortgageRateEl ? mortgageRateEl.innerText : '0');
+                        const bankLoanRate = parseNum(bankLoanRateEl ? bankLoanRateEl.innerText : '0');
+                        const corpusRate = parseNum(corpusRateEl ? corpusRateEl.innerText : '200');
+
+                        const eastTotal = Math.round(plotArea * eastRate);
+                        const cornerTotal = Math.round(plotArea * cornerRate);
+                        const mortgageTotal = Math.round(plotArea * mortgageRate);
+                        const bankLoanTotal = Math.round(plotArea * bankLoanRate);
+                        const corpusTotal = Math.round(plotArea * corpusRate);
+
+                        const effectiveRate = baseClosingPrice + eastRate + cornerRate + mortgageRate + bankLoanRate;
+                        const totalAmount = Math.round(plotArea * effectiveRate);
                         const bankTotal = Math.round(plotArea * bankRate);
                         const cashTotal = Math.max(0, totalAmount - bankTotal);
-                        const cashRate = Math.max(0, closingPrice - bankRate);
+                        const cashRate = Math.max(0, effectiveRate - bankRate);
 
                         const bookingAmt = 100000;
                         const amt1 = Math.round(totalAmount * 0.25);
@@ -1331,6 +1389,22 @@ function exportPriceQuote(plotNo) {
                         const reg75 = Math.round(bankTotal * 0.075);
                         const mutation = Math.max(800, Math.round(bankTotal * 0.001));
                         const totalRegCharges = reg75 + 1000 + 100 + 50 + 5000 + mutation;
+
+                        // Update Extras totals
+                        const eastTotalEl = document.getElementById('lblEastTotal');
+                        if (eastTotalEl && eastTotalEl !== active) eastTotalEl.innerText = fmt(eastTotal);
+
+                        const cornerTotalEl = document.getElementById('lblCornerTotal');
+                        if (cornerTotalEl && cornerTotalEl !== active) cornerTotalEl.innerText = fmt(cornerTotal);
+
+                        const mortgageTotalEl = document.getElementById('lblMortgageTotal');
+                        if (mortgageTotalEl && mortgageTotalEl !== active) mortgageTotalEl.innerText = fmt(mortgageTotal);
+
+                        const bankLoanTotalEl = document.getElementById('lblBankLoanTotal');
+                        if (bankLoanTotalEl && bankLoanTotalEl !== active) bankLoanTotalEl.innerText = fmt(bankLoanTotal);
+
+                        const corpusTotalEl = document.getElementById('lblCorpusTotal');
+                        if (corpusTotalEl && corpusTotalEl !== active) corpusTotalEl.innerText = fmt(corpusTotal);
 
                         const totalAmtEl = document.getElementById('lblTotalAmount');
                         if (totalAmtEl && totalAmtEl !== active) totalAmtEl.innerText = fmt(totalAmount);
@@ -1366,16 +1440,14 @@ function exportPriceQuote(plotNo) {
                         if (regTotalEl && regTotalEl !== active) regTotalEl.innerText = fmt(totalRegCharges);
                     }
 
-                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblBankRate'].forEach(id => {
+                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblBankRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate'].forEach(id => {
                         const el = document.getElementById(id);
                         if (el) {
                             el.addEventListener('input', updateCalculations);
                             el.addEventListener('keyup', updateCalculations);
                             el.addEventListener('blur', function() {
                                 const val = parseNum(el.innerText);
-                                if (val > 0) {
-                                    el.innerText = fmt(val);
-                                }
+                                el.innerText = fmt(val);
                                 updateCalculations();
                             });
                         }
