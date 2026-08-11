@@ -1012,6 +1012,7 @@ const plotDataRawAvatar1 = [
         "plot_size":  "390",
         "facing":  "North-West",
         "plot_status":  "AVAILABLE",
+        "is_corner":  true,
         "customer_name":  "",
         "reference_name":  "",
         "dim_north":  "-",

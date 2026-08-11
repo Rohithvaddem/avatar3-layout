@@ -1002,7 +1002,8 @@ function exportPriceQuote(plotNo) {
     const isCorner = (item.is_corner === true) ||
                      (item.remarks && String(item.remarks).toUpperCase().includes('CORNER')) ||
                      (item.facing && String(item.facing).toUpperCase().includes('CORNER')) ||
-                     (currentProject === 'avatar2' && ['45', '53', '96'].includes(String(item.plot_no)));
+                     (currentProject === 'avatar2' && ['45', '53', '96'].includes(String(item.plot_no))) ||
+                     (currentProject === 'avatar1' && ['85'].includes(String(item.plot_no)));
     const customerName = item.customer_name || '';
 
     const projectMeta = projectMetadata[currentProject] || { title: currentProject === 'avatar1' ? "Aspirealty AVATAR 1" : "Aspirealty AVATAR 2" };
