@@ -574,23 +574,27 @@ function adjustZoom(factor) {
 }
 
 function fitMapToViewport() {
-    const vWidth = mapViewport.clientWidth;
-    const vHeight = mapViewport.clientHeight;
+    const vWidth = mapViewport ? mapViewport.clientWidth : 0;
+    const vHeight = mapViewport ? mapViewport.clientHeight : 0;
+
+    const effectiveWidth = (vWidth && vWidth > 100) ? vWidth : (window.innerWidth > 300 ? window.innerWidth - 280 : window.innerWidth);
+    const effectiveHeight = (vHeight && vHeight > 100) ? vHeight : (window.innerHeight > 100 ? window.innerHeight - 72 : window.innerHeight);
     
+    let width = 1024;
     let height = 576;
     if (currentProject === 'avatar2') {
-        height = 646;
+        width = 1600;
+        height = 900;
     } else if (currentProject === 'avatar1') {
+        width = 1024;
         height = 647;
     }
     
-    // Background original dims: width: 1024, height: dynamic
-    const fitScale = Math.min(vWidth / 1024, vHeight / height) * 0.95; // 5% margins
-    zoomScale = Math.max(fitScale, 0.1);
+    const fitScale = Math.min(effectiveWidth / width, effectiveHeight / height) * 0.96;
+    zoomScale = Math.max(fitScale, 0.4);
     
-    // Centering calculations
-    panX = (vWidth - 1024 * zoomScale) / 2;
-    panY = (vHeight - height * zoomScale) / 2;
+    panX = (effectiveWidth - width * zoomScale) / 2;
+    panY = (effectiveHeight - height * zoomScale) / 2;
     
     applyTransform();
 }

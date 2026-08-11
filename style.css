@@ -718,23 +718,24 @@ body {
 /* Plot dots styling */
 .plot-dot {
     position: absolute;
-    width: 15px;
-    height: 15px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-heading);
-    font-size: 7px;
-    font-weight: 700;
+    font-size: 8.5px;
+    font-weight: 800;
     color: #ffffff;
     cursor: pointer;
     pointer-events: auto;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    border: 1.5px solid #ffffff;
+    box-shadow: 0 0 10px var(--plot-color), 0 2px 6px rgba(0, 0, 0, 0.6);
     background-color: var(--plot-color);
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s, opacity 0.3s;
     will-change: transform;
+    z-index: 10;
 }
 
 .plot-dot.avatar2-dot {
@@ -744,9 +745,9 @@ body {
 }
 
 .plot-dot:hover {
-    transform: scale(1.35);
-    z-index: 20;
-    box-shadow: 0 0 16px var(--plot-color), 0 4px 12px rgba(0,0,0,0.5);
+    transform: scale(1.4);
+    z-index: 30;
+    box-shadow: 0 0 20px var(--plot-color), 0 4px 14px rgba(0,0,0,0.7);
     border-color: #ffffff;
 }
 
