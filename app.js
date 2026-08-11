@@ -2554,81 +2554,36 @@ function initLeafletMap() {
     // Initialize custom Mini-map Inset (Disabled)
     // setupMiniMap();
 
-    // Setup L.ImageOverlay.Rotated extension (3-Point Geographic Affine Anchor)
+    // Setup L.ImageOverlay.Rotated extension (Rotates cleanly around 50% 50% image center)
     if (!L.ImageOverlay.Rotated) {
         L.ImageOverlay.Rotated = L.ImageOverlay.extend({
-            initialize: function (url, topleft, topright, bottomleft, options) {
-                this._url = url;
-                this._topleft = L.latLng(topleft);
-                this._topright = L.latLng(topright);
-                this._bottomleft = L.latLng(bottomleft);
-                L.setOptions(this, options);
-            },
-            onAdd: function (map) {
-                this._map = map;
-                if (!this._image) {
-                    this._initImage();
-                }
-                var pane = map.getPanes().overlayPane;
-                pane.appendChild(this._image);
-
-                map.on('viewreset resetview zoom zoomend', this._reset, this);
-                if (map.options.zoomAnimation && L.Browser.any3d) {
-                    map.on('zoomanim', this._animateZoom, this);
-                }
-                this._reset();
-            },
-            onRemove: function (map) {
-                if (this._image && this._image.parentNode) {
-                    this._image.parentNode.removeChild(this._image);
-                }
-                map.off('viewreset resetview zoom zoomend', this._reset, this);
-                if (map.options.zoomAnimation) {
-                    map.off('zoomanim', this._animateZoom, this);
-                }
-                this._map = null;
-            },
-            _initImage: function () {
-                var img = this._image = L.DomUtil.create('img', 'leaflet-image-layer');
-                if (this._url) img.src = this._url;
-                if (this.options.opacity) L.DomUtil.setOpacity(img, this.options.opacity);
-                img.style.transformOrigin = '0 0';
-                img.style.position = 'absolute';
+            options: {
+                rotation: 0
             },
             _reset: function () {
-                if (!this._map || !this._image) return;
-                var pxTopLeft = this._map.latLngToLayerPoint(this._topleft);
-                var pxTopRight = this._map.latLngToLayerPoint(this._topright);
-                var pxBottomLeft = this._map.latLngToLayerPoint(this._bottomleft);
-
-                var pxW = Math.sqrt(Math.pow(pxTopRight.x - pxTopLeft.x, 2) + Math.pow(pxTopRight.y - pxTopLeft.y, 2));
-                var pxH = Math.sqrt(Math.pow(pxBottomLeft.x - pxTopLeft.x, 2) + Math.pow(pxBottomLeft.y - pxTopLeft.y, 2));
-                var angle = Math.atan2(pxTopRight.y - pxTopLeft.y, pxTopRight.x - pxTopLeft.x);
-
-                L.DomUtil.setPosition(this._image, pxTopLeft);
-                this._image.style.width = pxW + 'px';
-                this._image.style.height = pxH + 'px';
-                this._image.style.transform = L.DomUtil.getTranslateString(pxTopLeft) + ' rotate(' + angle + 'rad)';
+                L.ImageOverlay.prototype._reset.call(this);
+                if (this._image && this.options.rotation) {
+                    this._image.style.transformOrigin = '50% 50%';
+                    var currentTransform = this._image.style.transform || '';
+                    if (!currentTransform.includes('rotate(')) {
+                        this._image.style.transform = currentTransform + ' rotate(' + (-this.options.rotation) + 'deg)';
+                    }
+                }
             },
             _animateZoom: function (e) {
-                if (!this._map || !this._image) return;
-                var pxTopLeft = this._map._latLngToNewLayerPoint(this._topleft, e.zoom, e.center);
-                var pxTopRight = this._map._latLngToNewLayerPoint(this._topright, e.zoom, e.center);
-                var pxBottomLeft = this._map._latLngToNewLayerPoint(this._bottomleft, e.zoom, e.center);
-
-                var pxW = Math.sqrt(Math.pow(pxTopRight.x - pxTopLeft.x, 2) + Math.pow(pxTopRight.y - pxTopLeft.y, 2));
-                var pxH = Math.sqrt(Math.pow(pxBottomLeft.x - pxTopLeft.x, 2) + Math.pow(pxBottomLeft.y - pxTopLeft.y, 2));
-                var angle = Math.atan2(pxTopRight.y - pxTopLeft.y, pxTopRight.x - pxTopLeft.x);
-
-                L.DomUtil.setPosition(this._image, pxTopLeft);
-                this._image.style.width = pxW + 'px';
-                this._image.style.height = pxH + 'px';
-                this._image.style.transform = L.DomUtil.getTranslateString(pxTopLeft) + ' rotate(' + angle + 'rad)';
+                L.ImageOverlay.prototype._animateZoom.call(this, e);
+                if (this._image && this.options.rotation) {
+                    this._image.style.transformOrigin = '50% 50%';
+                    var currentTransform = this._image.style.transform || '';
+                    if (!currentTransform.includes('rotate(')) {
+                        this._image.style.transform = currentTransform + ' rotate(' + (-this.options.rotation) + 'deg)';
+                    }
+                }
             }
         });
 
-        L.imageOverlay.rotated = function (url, topleft, topright, bottomleft, options) {
-            return new L.ImageOverlay.Rotated(url, topleft, topright, bottomleft, options);
+        L.imageOverlay.rotated = function (url, bounds, options) {
+            return new L.ImageOverlay.Rotated(url, bounds, options);
         };
     }
     
@@ -2781,10 +2736,19 @@ function initLeafletMap() {
                     overlayOpacity = parsedColor.opacity;
                 }
 
-                const leafletOverlay = L.imageOverlay(href, bounds, {
-                    opacity: overlayOpacity,
-                    interactive: false
-                });
+                let leafletOverlay;
+                if (rotation && Math.abs(rotation) > 0.001) {
+                    leafletOverlay = L.imageOverlay.rotated(href, bounds, {
+                        rotation: rotation,
+                        opacity: overlayOpacity,
+                        interactive: false
+                    });
+                } else {
+                    leafletOverlay = L.imageOverlay(href, bounds, {
+                        opacity: overlayOpacity,
+                        interactive: false
+                    });
+                }
                 layoutsGroup.addLayer(leafletOverlay);
             }
         }
