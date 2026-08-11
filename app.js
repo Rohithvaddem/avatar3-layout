@@ -1128,11 +1128,9 @@ function exportPriceQuote(plotNo) {
                 }
                 .section-header-banner {
                     background: #f1f5f9 !important;
-                    border: 1.5px solid #0f172a;
-                    padding: 3px 10px;
+                    border: 1.5px solid #0f172a !important;
+                    padding: 3.5px 10px;
                     font-weight: 800;
-                    border-top: none;
-                    border-bottom: none;
                     text-align: center;
                     font-size: 11.5px;
                     -webkit-print-color-adjust: exact !important;
@@ -1176,8 +1174,7 @@ function exportPriceQuote(plotNo) {
                     font-size: 9.5px;
                     font-weight: 700;
                     line-height: 1.4;
-                    border: 1.5px solid #0f172a;
-                    border-top: none;
+                    border: 1.5px solid #0f172a !important;
                     padding: 6px 10px;
                 }
                 .notes-title { color: #0f172a; font-weight: 800; }
