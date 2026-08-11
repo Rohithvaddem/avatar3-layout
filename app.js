@@ -966,7 +966,31 @@ function exportPriceQuote(plotNo) {
     const isEast = facingStr.toUpperCase().includes('EAST');
     const customerName = item.customer_name || '';
 
-    const projectMeta = projectMetadata[currentProject] || { title: "Aspirealty AVATAR 2" };
+    const defaultBaseRate = (currentProject === 'avatar1') ? 23999 : 15499;
+    const defaultRateFmt = '₹ ' + defaultBaseRate.toLocaleString('en-IN');
+    const totalPlotAmount = Math.round(plotAreaYds * defaultBaseRate);
+    const totalPlotAmountFmt = '₹ ' + totalPlotAmount.toLocaleString('en-IN');
+
+    const regRate = 3000;
+    const bankAmount = Math.round(plotAreaYds * regRate);
+    const bankAmountFmt = '₹ ' + bankAmount.toLocaleString('en-IN');
+
+    const cashRateSqYd = Math.max(0, defaultBaseRate - regRate);
+    const cashRateFmt = '₹ ' + cashRateSqYd.toLocaleString('en-IN');
+    const cashAmount = Math.max(0, totalPlotAmount - bankAmount);
+    const cashAmountFmt = '₹ ' + cashAmount.toLocaleString('en-IN');
+
+    const bookingAmt = 100000;
+    const amt1 = Math.round(totalPlotAmount * 0.25);
+    const amt2 = totalPlotAmount - bookingAmt - amt1;
+    const amt1Fmt = '₹ ' + amt1.toLocaleString('en-IN');
+    const amt2Fmt = '₹ ' + amt2.toLocaleString('en-IN');
+
+    const reg75 = Math.round(bankAmount * 0.075);
+    const reg75Fmt = '₹ ' + reg75.toLocaleString('en-IN');
+    const mutation = Math.max(800, Math.round(bankAmount * 0.001));
+    const totalRegCharges = reg75 + 1000 + 100 + 50 + 5000 + mutation;
+    const totalRegFmt = '₹ ' + totalRegCharges.toLocaleString('en-IN');
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
@@ -1206,7 +1230,7 @@ function exportPriceQuote(plotNo) {
                             <td style="font-weight: 800;" contenteditable="true">${projectMeta.title}</td>
                             <td style="font-weight: 700; text-align: center;" contenteditable="true">${item.plot_no}</td>
                             <td style="font-weight: 700; text-align: center; text-transform: uppercase;" contenteditable="true">${facingStr}</td>
-                            <td class="bg-yellow" style="text-align: right;" id="lblClosingPrice" contenteditable="true">₹ 15,499</td>
+                            <td class="bg-yellow" style="text-align: right;" id="lblClosingPrice" contenteditable="true">${defaultRateFmt}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1224,8 +1248,8 @@ function exportPriceQuote(plotNo) {
                     <tbody>
                         <tr>
                             <td class="bg-yellow" style="text-align: center;" id="lblPlotArea" contenteditable="true">${plotAreaYds}</td>
-                            <td style="text-align: right;" id="lblPerSqYd" contenteditable="true">₹ 15,499</td>
-                            <td class="bg-green" style="text-align: right;" id="lblTotalAmount" contenteditable="true">₹ 30,99,800</td>
+                            <td style="text-align: right;" id="lblPerSqYd" contenteditable="true">${defaultRateFmt}</td>
+                            <td class="bg-green" style="text-align: right;" id="lblTotalAmount" contenteditable="true">${totalPlotAmountFmt}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1246,17 +1270,17 @@ function exportPriceQuote(plotNo) {
                             <td><strong contenteditable="true">By A/C Transfer</strong></td>
                             <td style="text-align: center;" id="lblBankSqYd" contenteditable="true">${plotAreaYds}</td>
                             <td class="bg-yellow" style="text-align: right;" id="lblBankRate" contenteditable="true">₹ 3,000</td>
-                            <td style="text-align: right;" id="lblBankTotal" contenteditable="true">₹ 6,00,000</td>
+                            <td style="text-align: right;" id="lblBankTotal" contenteditable="true">${bankAmountFmt}</td>
                         </tr>
                         <tr>
                             <td><strong contenteditable="true">By Cash</strong></td>
                             <td style="text-align: center;" id="lblCashSqYd" contenteditable="true">${plotAreaYds}</td>
-                            <td class="bg-yellow" style="text-align: right;" id="lblCashRate" contenteditable="true">₹ 12,499</td>
-                            <td style="text-align: right;" id="lblCashTotal" contenteditable="true">₹ 24,99,800</td>
+                            <td class="bg-yellow" style="text-align: right;" id="lblCashRate" contenteditable="true">${cashRateFmt}</td>
+                            <td style="text-align: right;" id="lblCashTotal" contenteditable="true">${cashAmountFmt}</td>
                         </tr>
                         <tr class="bg-green">
                             <td colspan="3" style="text-align: right; font-weight: 800;" contenteditable="true">Total</td>
-                            <td style="text-align: right;" id="lblStructTotal" contenteditable="true">₹ 30,99,800</td>
+                            <td style="text-align: right;" id="lblStructTotal" contenteditable="true">${totalPlotAmountFmt}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1283,17 +1307,17 @@ function exportPriceQuote(plotNo) {
                             <td id="lblDatePart2" contenteditable="true">-</td>
                             <td><strong id="lblScheduleLabel1" contenteditable="true">WITHIN 15 DAYS</strong></td>
                             <td style="text-align: center;" id="lblPct1" contenteditable="true">25%</td>
-                            <td style="text-align: right;" id="lblAmt1" contenteditable="true">₹ 7,49,950</td>
+                            <td style="text-align: right;" id="lblAmt1" contenteditable="true">${amt1Fmt}</td>
                         </tr>
                         <tr>
                             <td id="lblDatePart3" contenteditable="true">-</td>
                             <td><strong id="lblScheduleLabel2" contenteditable="true">WITHIN 45 DAYS</strong></td>
                             <td style="text-align: center;" contenteditable="true">100%</td>
-                            <td style="text-align: right;" id="lblAmt2" contenteditable="true">₹ 22,49,850</td>
+                            <td style="text-align: right;" id="lblAmt2" contenteditable="true">${amt2Fmt}</td>
                         </tr>
                         <tr class="bg-green">
                             <td colspan="3" style="text-align: right; font-weight: 800;" contenteditable="true">TOTAL</td>
-                            <td style="text-align: right;" id="lblScheduleTotal" contenteditable="true">₹ 30,99,800</td>
+                            <td style="text-align: right;" id="lblScheduleTotal" contenteditable="true">${totalPlotAmountFmt}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1310,7 +1334,7 @@ function exportPriceQuote(plotNo) {
                     <tbody>
                         <tr>
                             <td style="width: 65%;" class="red-heading" contenteditable="true">REGISTRATION CHARGES: 7.5% ON TOTAL BANK AMOUNT</td>
-                            <td style="width: 35%; text-align: right; font-weight: 700;" id="lblReg75" contenteditable="true">₹ 45,000</td>
+                            <td style="width: 35%; text-align: right; font-weight: 700;" id="lblReg75" contenteditable="true">${reg75Fmt}</td>
                         </tr>
                         <tr>
                             <td contenteditable="true">USER CHARGES</td>
@@ -1330,11 +1354,11 @@ function exportPriceQuote(plotNo) {
                         </tr>
                         <tr>
                             <td contenteditable="true">MUTATION 0.1%</td>
-                            <td style="text-align: right; font-weight: 700;" id="lblMutation" contenteditable="true">800</td>
+                            <td style="text-align: right; font-weight: 700;" id="lblMutation" contenteditable="true">${mutation}</td>
                         </tr>
                         <tr class="bg-green">
                             <td style="font-weight: 800;" contenteditable="true">TOTAL REGISTRATION CHARGES</td>
-                            <td style="text-align: right;" id="lblRegTotal" contenteditable="true">₹ 51,950</td>
+                            <td style="text-align: right;" id="lblRegTotal" contenteditable="true">${totalRegFmt}</td>
                         </tr>
                     </tbody>
                 </table>
