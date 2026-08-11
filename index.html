@@ -188,21 +188,6 @@
 
             <!-- Map Viewport -->
             <div class="map-viewport" id="mapViewport">
-                <!-- Floating Pro Tips Card (Auto-disappears after 10 seconds) -->
-                <div class="floating-pro-tips-banner" id="floatingProTipsBanner">
-                    <div class="pro-tips-content">
-                        <div class="pro-tip-item">
-                            <i class="fa-solid fa-lightbulb" style="color: #f59e0b; font-size: 13px;"></i>
-                            <span><strong>Tip 1:</strong> Click on plot buttons on layout for instant plot availability &amp; details.</span>
-                        </div>
-                        <div class="pro-tip-item">
-                            <i class="fa-solid fa-earth-americas" style="color: #60a5fa; font-size: 13px;"></i>
-                            <span><strong>Tip 2:</strong> Switch to <strong>Satellite View</strong> for detailed information on nearby roads &amp; highlights.</span>
-                        </div>
-                    </div>
-                    <button id="closeProTipsBtn" class="close-pro-tips-btn" title="Dismiss Tips"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-
                 <!-- Floating Smart Plot Finder Match Result Banner -->
                 <div class="finder-result-banner" id="finderResultBanner" style="display: none;">
                     <span><i class="fa-solid fa-wand-magic-sparkles" style="color: #60a5fa;"></i> Found <strong id="matchedPlotCount" style="color: #4ade80; font-size: 14px;">0</strong> matching plots!</span>
@@ -285,9 +270,10 @@
                             class="fa-solid fa-compress"></i></button>
                 </div>
 
-                <!-- Zoom Instructions (fades out after drag/zoom) -->
+                <!-- Floating User Tips Banner (Displays for 10 seconds then disappears) -->
                 <div class="map-tip" id="mapTip">
-                    <i class="fa-solid fa-hand-pointer"></i> Drag to Pan &bull; Scroll or Pinch to Zoom
+                    <i class="fa-solid fa-lightbulb" style="color: #facc15; font-size: 14px;"></i>
+                    <span><strong>Quick Tip:</strong> Click plot buttons for details &bull; Switch to Satellite View for nearby highlights</span>
                 </div>
 
                 <!-- Coming Soon Overlay for Unlaunched Projects (Avatar 3) -->

@@ -697,10 +697,7 @@ function applyTransform(noTransition = false) {
 }
 
 function fadeMapTip() {
-    if (mapTip) {
-        mapTip.classList.add('fade-out');
-        setTimeout(() => mapTip.remove(), 600);
-    }
+    // Controlled by setupMapTipTimer for full 10-second display
 }
 
 // ----------------------------------------------------
@@ -3424,32 +3421,23 @@ function setupSidebarEmiCalculator() {
     updateSidebarEmi();
 }
 
-function setupWelcomeSplash() {
-    const splash = document.getElementById('welcomeSplashOverlay');
-    const progress = document.getElementById('splashProgressBar');
+let mapTipTimer = null;
+function setupMapTipTimer() {
+    const tipEl = document.getElementById('mapTip');
+    if (!tipEl) return;
     
-    if (splash && progress) {
-        // Animate progress bar fill smoothly
+    tipEl.style.display = 'flex';
+    tipEl.style.opacity = '1';
+    
+    if (mapTipTimer) clearTimeout(mapTipTimer);
+    mapTipTimer = setTimeout(() => {
+        tipEl.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        tipEl.style.opacity = '0';
+        tipEl.style.transform = 'translate(-50%, 10px)';
         setTimeout(() => {
-            progress.style.width = '100%';
-        }, 100);
-        
-        let isDismissed = false;
-        const dismissSplash = () => {
-            if (isDismissed) return;
-            isDismissed = true;
-            splash.classList.add('hide');
-            setTimeout(() => {
-                if (splash && splash.parentNode) {
-                    splash.parentNode.removeChild(splash);
-                }
-            }, 650);
-        };
-
-        // Click or tap anywhere on screen to open the webpage
-        splash.addEventListener('click', dismissSplash);
-        splash.addEventListener('touchstart', dismissSplash, { passive: true });
-    }
+            tipEl.style.display = 'none';
+        }, 600);
+    }, 10000); // Display tips banner for 10 seconds, then auto-disappear
 }
 
 // ----------------------------------------------------
@@ -3644,14 +3632,14 @@ function startRealtimeCloudSync() {
 
 // Global DOM Ready initializer for Interactive Features
 document.addEventListener('DOMContentLoaded', () => {
-    setupWelcomeSplash();
+    setupMapTipTimer();
     setupInterestModal();
     setupSiteVisitBooking();
     setupSidebarEmiCalculator();
     setupSmartPlotFinder();
     startRealtimeCloudSync();
 });
-setupWelcomeSplash();
+setupMapTipTimer();
 setupInterestModal();
 setupSiteVisitBooking();
 setupSidebarEmiCalculator();
