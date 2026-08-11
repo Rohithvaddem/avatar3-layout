@@ -3325,34 +3325,33 @@ _Sent via Aspirealty Interactive Viewer_`;
     }
 }
 
+function setupProTipsBanner() {
+    const banner = document.getElementById('floatingProTipsBanner');
+    const closeBtn = document.getElementById('closeProTipsBtn');
+    if (!banner) return;
 
+    let timer = setTimeout(() => {
+        banner.classList.add('hide-tips');
+    }, 10000); // Automatically disappears after 10 seconds
 
-function setupWelcomeSplash() {
-    const splash = document.getElementById('welcomeSplashOverlay');
-    const progress = document.getElementById('splashProgressBar');
-    
-    if (splash && progress) {
-        // Animate progress bar fill smoothly
-        setTimeout(() => {
-            progress.style.width = '100%';
-        }, 100);
-        
-        let isDismissed = false;
-        const dismissSplash = () => {
-            if (isDismissed) return;
-            isDismissed = true;
-            splash.classList.add('hide');
-            setTimeout(() => {
-                if (splash && splash.parentNode) {
-                    splash.parentNode.removeChild(splash);
-                }
-            }, 650);
-        };
-
-        // Click or tap anywhere on screen to open the webpage
-        splash.addEventListener('click', dismissSplash);
-        splash.addEventListener('touchstart', dismissSplash, { passive: true });
+    function dismissBanner() {
+        if (timer) clearTimeout(timer);
+        banner.classList.add('hide-tips');
     }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dismissBanner();
+        });
+    }
+
+    // Dismiss on first click anywhere outside the tips card
+    document.addEventListener('click', (e) => {
+        if (!banner.contains(e.target)) {
+            dismissBanner();
+        }
+    }, { once: true });
 }
 
 // ----------------------------------------------------
@@ -3386,78 +3385,82 @@ function setupSmartPlotFinder() {
     }
 
     // Toggle chip selections in quiz modal
-    ['finderSizeOptions', 'finderFacingOptions', 'finderStatusOptions'].forEach(containerId => {
-        const container = document.getElementById(containerId);
-        if (container) {
-            const chips = container.querySelectorAll('.finder-chip');
-            chips.forEach(chip => {
-                chip.addEventListener('click', () => {
-                    chips.forEach(c => c.classList.remove('active'));
+    const chips = document.querySelectorAll('.chip');
+    chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+            const parent = chip.parentElement;
+            if (parent) {
+                const isMulti = parent.dataset.multi === 'true';
+                if (!isMulti) {
+                    parent.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
                     chip.classList.add('active');
-                });
-            });
-        }
+                } else {
+                    chip.classList.toggle('active');
+                }
+            }
+        });
     });
 
     function runFinderQuiz() {
-        const sizeVal = document.querySelector('#finderSizeOptions .finder-chip.active')?.dataset.value || 'all';
-        const facingVal = document.querySelector('#finderFacingOptions .finder-chip.active')?.dataset.value || 'all';
-        const statusVal = document.querySelector('#finderStatusOptions .finder-chip.active')?.dataset.value || 'AVAILABLE';
+        const activeFacingChips = document.querySelectorAll('#facingGroup .chip.active');
+        const selectedFacings = Array.from(activeFacingChips).map(c => c.dataset.val);
 
-        const dataSource = avatarDataPool[currentProject] || [];
+        const activeSizeChips = document.querySelectorAll('#sizeGroup .chip.active');
+        const selectedSizes = Array.from(activeSizeChips).map(c => c.dataset.val);
+
+        const activeBudgetChips = document.querySelectorAll('#budgetGroup .chip.active');
+        const selectedBudgets = Array.from(activeBudgetChips).map(c => c.dataset.val);
+
+        let count = 0;
         const plotDots = document.querySelectorAll('.plot-dot');
-        let matchCount = 0;
 
         plotDots.forEach(dot => {
-            const plotNo = dot.dataset.plotNo;
-            const detail = dataSource.find(p => String(p.plot_no) === String(plotNo)) || {};
-            
-            const plotStatus = String(detail.plot_status || dot.dataset.status || 'AVAILABLE').toUpperCase().trim();
-            const plotFacing = String(detail.facing || dot.dataset.facing || '').trim();
-            const rawSize = parseFloat(String(detail.plot_size || '').replace(/[^0-9.]/g, ''));
-            const plotSize = isNaN(rawSize) || rawSize <= 0 ? 200 : rawSize;
+            const pNo = dot.dataset.plotNo;
+            const item = plotData.find(p => String(p.plot_no) === String(pNo));
+            if (!item) return;
 
-            // Check Status Match
-            let statusMatch = true;
-            if (statusVal === 'AVAILABLE') {
-                statusMatch = plotStatus === 'AVAILABLE';
+            let matchesFacing = true;
+            if (selectedFacings.length > 0) {
+                matchesFacing = selectedFacings.some(f => (item.facing || '').toLowerCase().includes(f.toLowerCase()));
             }
 
-            // Check Size Match
-            let sizeMatch = true;
-            if (sizeVal === '150-200') {
-                sizeMatch = plotSize >= 100 && plotSize <= 200;
-            } else if (sizeVal === '201-300') {
-                sizeMatch = plotSize >= 201 && plotSize <= 300;
-            } else if (sizeVal === '301+') {
-                sizeMatch = plotSize >= 301;
+            let matchesSize = true;
+            const sizeYds = parseFloat(item.plot_size) || 0;
+            if (selectedSizes.length > 0 && sizeYds > 0) {
+                matchesSize = selectedSizes.some(s => {
+                    if (s === 'small') return sizeYds < 180;
+                    if (s === 'medium') return sizeYds >= 180 && sizeYds <= 250;
+                    if (s === 'large') return sizeYds > 250;
+                    return true;
+                });
             }
 
-            // Check Facing Match
-            let facingMatch = true;
-            if (facingVal === 'East') {
-                facingMatch = plotFacing.toLowerCase().includes('east');
-            } else if (facingVal === 'West') {
-                facingMatch = plotFacing.toLowerCase().includes('west');
-            } else if (facingVal === 'North') {
-                facingMatch = plotFacing.toLowerCase().includes('north') || plotFacing.toLowerCase().includes('south');
-            } else if (facingVal === 'Corner') {
-                facingMatch = plotFacing.toLowerCase().includes('cross') || plotFacing.toLowerCase().includes('corner') || plotFacing.includes('-');
+            let matchesBudget = true;
+            let sqYdRate = 15000;
+            if (currentProject === 'avatar1') sqYdRate = 23999;
+            else if (currentProject === 'avatar2') sqYdRate = 15499;
+
+            const totalCostLakhs = (sizeYds * sqYdRate) / 100000;
+            if (selectedBudgets.length > 0 && totalCostLakhs > 0) {
+                matchesBudget = selectedBudgets.some(b => {
+                    if (b === 'under30') return totalCostLakhs < 30;
+                    if (b === '30to50') return totalCostLakhs >= 30 && totalCostLakhs <= 50;
+                    if (b === 'above50') return totalCostLakhs > 50;
+                    return true;
+                });
             }
 
-            const isMatched = statusMatch && sizeMatch && facingMatch;
-
-            if (isMatched) {
+            if (matchesFacing && matchesSize && matchesBudget) {
                 dot.classList.add('matched-finder-dot');
                 dot.classList.remove('dimmed-finder-dot');
-                matchCount++;
+                count++;
             } else {
                 dot.classList.remove('matched-finder-dot');
                 dot.classList.add('dimmed-finder-dot');
             }
         });
 
-        if (matchedCountEl) matchedCountEl.textContent = matchCount;
+        if (matchedCountEl) matchedCountEl.textContent = count;
         if (resultBanner) resultBanner.style.display = 'flex';
         closeModal();
     }
@@ -3547,16 +3550,9 @@ function startRealtimeCloudSync() {
 
 // Global DOM Ready initializer for Interactive Features
 document.addEventListener('DOMContentLoaded', () => {
-    setupWelcomeSplash();
+    setupProTipsBanner();
     setupInterestModal();
     setupSiteVisitBooking();
     setupSmartPlotFinder();
     startRealtimeCloudSync();
 });
-setupWelcomeSplash();
-setupInterestModal();
-setupSiteVisitBooking();
-setupSmartPlotFinder();
-startRealtimeCloudSync();
-
-

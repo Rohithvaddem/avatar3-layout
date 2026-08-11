@@ -30,41 +30,7 @@
 </head>
 
 <body>
-    <!-- Premium Welcome Intro Splash Screen -->
-    <div class="welcome-splash-overlay" id="welcomeSplashOverlay">
-        <div class="welcome-splash-card">
-            <div class="splash-logo-wrapper">
-                <img src="aspirealty_label.png" alt="Aspirealty Logo" class="splash-logo">
-            </div>
-            <h2 class="splash-title">Interactive Venture Viewer</h2>
-            <p class="splash-subtitle">Premium Gated Community Layouts &amp; GIS Mapping</p>
 
-            <div class="splash-progress-track">
-                <div class="splash-progress-bar" id="splashProgressBar"></div>
-            </div>
-
-            <!-- Pro Tips Section -->
-            <div class="splash-tips-container">
-                <div class="splash-tips-header">
-                    <i class="fa-solid fa-lightbulb"></i> <span>Quick User Tips</span>
-                </div>
-                <div class="splash-tip-item">
-                    <span class="tip-num">Tip 1</span>
-                    <span class="tip-text">Click on buttons on layout for plot details.</span>
-                </div>
-                <div class="splash-tip-item">
-                    <span class="tip-num">Tip 2</span>
-                    <span class="tip-text">Click on Satellite View for detailed information of nearby roads &amp; highlights.</span>
-                </div>
-            </div>
-
-            <!-- Click Anywhere to Continue Prompt -->
-            <div class="splash-continue-prompt" id="splashContinuePrompt">
-                <div class="continue-icon-pulse"><i class="fa-solid fa-hand-pointer"></i></div>
-                <span>Click anywhere on screen to continue</span>
-            </div>
-        </div>
-    </div>
 
     <div class="dashboard-container">
         <!-- Sidebar Navigation -->
@@ -222,6 +188,21 @@
 
             <!-- Map Viewport -->
             <div class="map-viewport" id="mapViewport">
+                <!-- Floating Pro Tips Card (Auto-disappears after 10 seconds) -->
+                <div class="floating-pro-tips-banner" id="floatingProTipsBanner">
+                    <div class="pro-tips-content">
+                        <div class="pro-tip-item">
+                            <i class="fa-solid fa-lightbulb" style="color: #f59e0b; font-size: 13px;"></i>
+                            <span><strong>Tip 1:</strong> Click on plot buttons on layout for instant plot availability &amp; details.</span>
+                        </div>
+                        <div class="pro-tip-item">
+                            <i class="fa-solid fa-earth-americas" style="color: #60a5fa; font-size: 13px;"></i>
+                            <span><strong>Tip 2:</strong> Switch to <strong>Satellite View</strong> for detailed information on nearby roads &amp; highlights.</span>
+                        </div>
+                    </div>
+                    <button id="closeProTipsBtn" class="close-pro-tips-btn" title="Dismiss Tips"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
                 <!-- Floating Smart Plot Finder Match Result Banner -->
                 <div class="finder-result-banner" id="finderResultBanner" style="display: none;">
                     <span><i class="fa-solid fa-wand-magic-sparkles" style="color: #60a5fa;"></i> Found <strong id="matchedPlotCount" style="color: #4ade80; font-size: 14px;">0</strong> matching plots!</span>
