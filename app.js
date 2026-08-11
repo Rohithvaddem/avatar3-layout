@@ -637,10 +637,18 @@ function setupMapControls() {
         adjustZoom(0.8);
     });
 
-    document.getElementById('zoomResetBtn').addEventListener('click', () => {
-        if (isSatelliteActive) return;
-        fitMapToViewport();
-    });
+    const recenterBtn = document.getElementById('recenterBtn') || document.getElementById('zoomResetBtn');
+    if (recenterBtn) {
+        recenterBtn.addEventListener('click', (e) => {
+            if (isSatelliteActive && leafletMap) {
+                e.stopPropagation();
+                const activeLoc = getActiveProjectCenter();
+                leafletMap.flyTo(activeLoc, 17, { duration: 1.2 });
+            } else {
+                fitMapToViewport();
+            }
+        });
+    }
 }
 
 function adjustZoom(factor) {
@@ -2527,13 +2535,7 @@ function initLeafletMap() {
         }
     });
     
-    document.getElementById('zoomResetBtn').addEventListener('click', (e) => {
-        if (isSatelliteActive && leafletMap) {
-            e.stopPropagation();
-            const activeLoc = getActiveProjectCenter();
-            leafletMap.setView(activeLoc, 17);
-        }
-    });
+
     
     // Satellite Layer (Esri World Imagery with maxNativeZoom to auto-scale tiles when zooming close)
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
