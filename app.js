@@ -1700,7 +1700,7 @@ function openPlotModal(plotNo) {
     const estimatedPlotCost = plotAreaYds * sqYdRate;
     const plotStatusUpper = String(item.plot_status || '').toUpperCase().trim();
     const isAvailable = plotStatusUpper === 'AVAILABLE';
-    const canGenerateQuote = (plotStatusUpper === 'AVAILABLE' || plotStatusUpper === 'HOLD');
+    const canGenerateQuote = (plotStatusUpper === 'AVAILABLE' || plotStatusUpper === 'HOLD' || plotStatusUpper === 'MORTGAGE' || plotStatusUpper === 'MORTAGAGE');
 
     let emiHtml = '';
 
