@@ -2509,9 +2509,14 @@ function initLeafletMap() {
         zoom: 17,
         maxZoom: 20,
         minZoom: 13,
+        zoomSnap: 0.5,
+        zoomDelta: 0.5,
+        zoomAnimation: true,
+        fadeAnimation: false, // Prevents tile opacity fade flicker
+        markerZoomAnimation: true,
         inertia: false, // Prevents map coasting/auto-adjusting after finger swipe
         preferCanvas: true, // Hardware-accelerated HTML5 Canvas vector rendering for 60FPS
-        wheelPxPerZoomLevel: 100 // Smooth wheel zoom
+        wheelPxPerZoomLevel: 120
     });
     
     // Initialize LayerGroups and add them to map
@@ -2535,16 +2540,14 @@ function initLeafletMap() {
         }
     });
     
-
-    
     // Satellite Layer (Esri World Imagery with maxNativeZoom to auto-scale tiles when zooming close)
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS, AeroGRID, IGN, and the GIS User Community',
         maxNativeZoom: 18,
         maxZoom: 20,
-        keepBuffer: 4, // Preload surrounding satellite tiles for zero-lag panning
-        updateWhenIdle: true, // Optimize rendering performance during fast drags
-        updateWhenZooming: false
+        keepBuffer: 6, // Preload surrounding satellite tiles for zero-lag panning
+        updateWhenIdle: false, // Immediate tile updates
+        updateWhenZooming: true // Keep background and overlays strictly in sync during zoom
     }).addTo(leafletMap);
 
     // Initialize custom Mini-map Inset (Disabled)
