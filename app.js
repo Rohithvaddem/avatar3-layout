@@ -2201,6 +2201,23 @@ function setupAdminState() {
             sidebarShare.addEventListener('click', shareLayoutLink);
         }
 
+        function performLogout() {
+            isAdminLoggedIn = false;
+            sessionStorage.removeItem('isAdminLoggedIn');
+            if (window.lockIntervalId) {
+                clearInterval(window.lockIntervalId);
+                window.lockIntervalId = null;
+            }
+            if (document.body.classList.contains('pitch-mode-active')) {
+                document.body.classList.remove('pitch-mode-active');
+            }
+            const exitBtn = document.getElementById('exitPitchModeBtn');
+            if (exitBtn) exitBtn.remove();
+            
+            alert('Admin mode disabled.');
+            window.location.reload();
+        }
+
         // DB Export handler
         document.getElementById('exportDbBtn').addEventListener('click', () => {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(plotData, null, 4));
@@ -2220,31 +2237,34 @@ function setupAdminState() {
             }
         });
 
-        // Logout handler
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            isAdminLoggedIn = false;
-            sessionStorage.removeItem('isAdminLoggedIn');
-            if (window.lockIntervalId) {
-                clearInterval(window.lockIntervalId);
-                window.lockIntervalId = null;
-            }
-            if (document.body.classList.contains('pitch-mode-active')) {
-                document.body.classList.remove('pitch-mode-active');
-            }
-            const exitBtn = document.getElementById('exitPitchModeBtn');
-            if (exitBtn) exitBtn.remove();
-            
-            alert('Admin mode disabled.');
-            window.location.reload();
-        });
+        // Sidebar Logout handler
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', performLogout);
+        }
 
-        // Setup top indicator banner
+        // Setup top indicator banner with Admin Logout at top right corner
         let banner = document.getElementById('adminBanner');
         if (!banner) {
             banner = document.createElement('div');
             banner.id = 'adminBanner';
-            banner.style.cssText = 'background: linear-gradient(90deg, #b45309, #d97706); color: #fff; text-align: center; padding: 8px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; z-index: 1000; position: relative;';
-            banner.innerHTML = `<i class="fa-solid fa-user-shield"></i> ADMINISTRATOR MODE ACTIVE &bull; Edit plot details in modal <button id="adminShareBtn" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border: 1px solid rgba(255,255,255,0.4); color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; margin-left: 10px;"><i class="fa-solid fa-share-nodes"></i> Share Layout</button> <button id="togglePitchModeBtn" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.25); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; margin-left: 10px;"><i class="fa-solid fa-desktop"></i> Pitch Mode</button>`;
+            banner.style.cssText = 'background: linear-gradient(90deg, #b45309, #d97706); color: #fff; padding: 6px 16px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; width: 100%; z-index: 1000; position: relative; box-shadow: 0 2px 10px rgba(0,0,0,0.2);';
+            banner.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-user-shield"></i> ADMINISTRATOR MODE ACTIVE &bull; Edit plot details in modal
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button id="adminShareBtn" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border: 1px solid rgba(255,255,255,0.4); color: #fff; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-share-nodes"></i> Share Layout
+                    </button>
+                    <button id="togglePitchModeBtn" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.25); color: #fff; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                        <i class="fa-solid fa-desktop"></i> Pitch Mode
+                    </button>
+                    <button id="topLogoutBtn" style="background: #dc2626; border: 1px solid rgba(255,255,255,0.4); color: #fff; padding: 5px 14px; border-radius: 6px; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
+                        <i class="fa-solid fa-right-from-bracket"></i> Admin Logout
+                    </button>
+                </div>
+            `;
             document.body.insertBefore(banner, document.body.firstChild);
             
             const adminShareBtn = document.getElementById('adminShareBtn');
@@ -2257,6 +2277,11 @@ function setupAdminState() {
                 togglePitchBtn.addEventListener('click', () => {
                     togglePitchMode();
                 });
+            }
+
+            const topLogoutBtn = document.getElementById('topLogoutBtn');
+            if (topLogoutBtn) {
+                topLogoutBtn.addEventListener('click', performLogout);
             }
         }
     } else {
