@@ -1698,7 +1698,9 @@ function openPlotModal(plotNo) {
         sqYdRate = 15499;
     }
     const estimatedPlotCost = plotAreaYds * sqYdRate;
-    const isAvailable = String(item.plot_status || '').toUpperCase() === 'AVAILABLE';
+    const plotStatusUpper = String(item.plot_status || '').toUpperCase().trim();
+    const isAvailable = plotStatusUpper === 'AVAILABLE';
+    const canGenerateQuote = (plotStatusUpper === 'AVAILABLE' || plotStatusUpper === 'HOLD');
 
     let emiHtml = '';
 
@@ -1731,7 +1733,7 @@ function openPlotModal(plotNo) {
             ${emiHtml}
             ${adminCrmHtml}
         </div>
-        <button class="admin-login-btn" id="exportPriceQuoteBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; border-radius: 8px; display: ${isAdminLoggedIn ? 'flex' : 'none'}; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+        <button class="admin-login-btn" id="exportPriceQuoteBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; border-radius: 8px; display: ${(isAdminLoggedIn && canGenerateQuote) ? 'flex' : 'none'}; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
             <i class="fa-solid fa-file-invoice-dollar"></i> Generate Price Quote / PDF
         </button>
         ${editButtonHtml}
