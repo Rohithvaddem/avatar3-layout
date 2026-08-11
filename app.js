@@ -1407,7 +1407,7 @@ function exportPriceQuote(plotNo) {
                 <div class="notes-block">
                     <div class="notes-title" contenteditable="true">NOTE 1 : EXTRA CORPUS FUND 200/- Rs Per SQ Yd ( Not Included In Plot Cost )</div>
                     <div class="notes-title" contenteditable="true">NOTE 2 : Documentation Charges 5,000 and Registration Charges - 7.6% on Sale Deed Value, these charges are not included in the Price Quotation</div>
-                    <div class="notes-title" contenteditable="true">NOTE 3: IN CASE OF PLOT CANCEL AFTER 15 DAYS FROM THE BOOKING DATE, A CHARGE OF RS.50000/- WILL APPLY.</div>
+                    <div class="notes-title" contenteditable="true">NOTE 3: Please note that canceling your plot booking after 15 days will result in a cancellation charge of Rs. 50,000.</div>
                 </div>
 
                 <!-- Registration Charges Table (25% Size Reduction) -->
