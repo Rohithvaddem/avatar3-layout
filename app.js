@@ -3744,8 +3744,180 @@ function startRealtimeCloudSync() {
     setInterval(fetchAndMergeCloudData, 4000);
 }
 
+// ----------------------------------------------------
+// Admin Mode & Share Layout Feature
+// ----------------------------------------------------
+let isAdminLoggedIn = false;
+let isSharedCustomerView = false;
+
+function setupAdmin() {
+    const sidebarFooter = document.getElementById('sidebarFooter');
+
+    if (sessionStorage.getItem('aspirealty_admin_logged_in') === 'true') {
+        isAdminLoggedIn = true;
+    }
+
+    function renderAdminSidebarFooter() {
+        if (!sidebarFooter) return;
+
+        if (isAdminLoggedIn) {
+            sidebarFooter.style.display = 'block';
+            sidebarFooter.innerHTML = `
+                <div id="adminControlsBlock" style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 700; color: #4ade80; background: rgba(34, 197, 94, 0.15); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(34, 197, 94, 0.3);">
+                        <span><i class="fa-solid fa-user-shield"></i> Admin Active</span>
+                        <button id="adminLogoutBtn" style="background: none; border: none; color: #ef4444; font-weight: 700; cursor: pointer; font-size: 11px;">Logout</button>
+                    </div>
+                    <button class="admin-login-btn" id="shareLayoutBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; font-weight: 800; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border-radius: 8px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
+                        <i class="fa-solid fa-share-nodes"></i> Share Current Layout
+                    </button>
+                </div>
+            `;
+
+            const logoutBtn = document.getElementById('adminLogoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    isAdminLoggedIn = false;
+                    sessionStorage.removeItem('aspirealty_admin_logged_in');
+                    renderAdminSidebarFooter();
+                    if (mapperSection) mapperSection.style.display = 'none';
+                    renderPlotDots();
+                });
+            }
+
+            const shareBtn = document.getElementById('shareLayoutBtn');
+            if (shareBtn) {
+                shareBtn.addEventListener('click', openShareLayoutModal);
+            }
+
+            if (mapperSection && !isSharedCustomerView) mapperSection.style.display = 'block';
+        } else if (!isSharedCustomerView) {
+            sidebarFooter.style.display = 'block';
+            sidebarFooter.innerHTML = `
+                <button class="admin-login-btn" id="staffLoginBtn" style="border: none; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fa-solid fa-lock"></i> Staff Login
+                </button>
+            `;
+            const btn = document.getElementById('staffLoginBtn');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    const pin = prompt('Enter Staff / Admin PIN:');
+                    if (pin === '1234' || pin === 'admin') {
+                        isAdminLoggedIn = true;
+                        sessionStorage.setItem('aspirealty_admin_logged_in', 'true');
+                        renderAdminSidebarFooter();
+                        renderPlotDots();
+                    } else if (pin !== null) {
+                        alert('Incorrect PIN!');
+                    }
+                });
+            }
+        } else {
+            sidebarFooter.style.display = 'none';
+        }
+    }
+
+    renderAdminSidebarFooter();
+}
+
+function openShareLayoutModal() {
+    const backdrop = document.getElementById('shareLayoutModalBackdrop');
+    const closeBtn = document.getElementById('shareModalCloseBtn');
+    const shareInput = document.getElementById('shareUrlInput');
+    const copyBtn = document.getElementById('copyShareUrlBtn');
+    const whatsappBtn = document.getElementById('whatsappShareBtn');
+    const copyToast = document.getElementById('copySuccessToast');
+    const titleEl = document.getElementById('shareModalTitle');
+
+    const projectMeta = projectMetadata[currentProject] || { title: currentProject.toUpperCase() };
+
+    if (titleEl) titleEl.textContent = `Share ${projectMeta.title} Link`;
+
+    const baseUrl = window.location.origin + window.location.pathname;
+    const shareUrl = `${baseUrl}?project=${currentProject}&shared=true`;
+
+    if (shareInput) shareInput.value = shareUrl;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            if (copyToast) {
+                copyToast.style.display = 'block';
+                setTimeout(() => { copyToast.style.display = 'none'; }, 3500);
+            }
+        }).catch(() => {});
+    }
+
+    if (whatsappBtn) {
+        const msg = encodeURIComponent(`Hi! Here is the digital layout map for ${projectMeta.title}:\n${shareUrl}`);
+        whatsappBtn.href = `https://api.whatsapp.com/send?text=${msg}`;
+    }
+
+    if (copyBtn) {
+        copyBtn.onclick = () => {
+            if (shareInput) {
+                shareInput.select();
+                navigator.clipboard.writeText(shareInput.value);
+                if (copyToast) {
+                    copyToast.style.display = 'block';
+                    setTimeout(() => { copyToast.style.display = 'none'; }, 3500);
+                }
+            }
+        };
+    }
+
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            if (backdrop) backdrop.style.display = 'none';
+        };
+    }
+
+    if (backdrop) {
+        backdrop.style.display = 'flex';
+        backdrop.onclick = (e) => {
+            if (e.target === backdrop) backdrop.style.display = 'none';
+        };
+    }
+}
+
+function checkAndApplySharedCustomerView() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedProj = urlParams.get('project') || urlParams.get('shared_project');
+    const isShared = urlParams.get('shared') === 'true' || urlParams.get('mode') === 'shared';
+
+    if (sharedProj && ['avatar1', 'avatar2', 'avatar3'].includes(sharedProj.toLowerCase())) {
+        currentProject = sharedProj.toLowerCase();
+
+        if (isShared) {
+            isSharedCustomerView = true;
+
+            const navGrid = document.querySelector('.project-nav-grid');
+            if (navGrid) navGrid.style.display = 'none';
+
+            const navContainer = document.querySelector('.project-nav-container');
+            if (navContainer) navContainer.style.display = 'none';
+
+            const footer = document.getElementById('sidebarFooter');
+            if (footer) footer.style.display = 'none';
+
+            const mapper = document.getElementById('mapperSection');
+            if (mapper) mapper.style.display = 'none';
+
+            const mapViewport = document.getElementById('mapViewport');
+            if (mapViewport) {
+                const projectMeta = projectMetadata[currentProject] || { title: currentProject.toUpperCase() };
+                const banner = document.createElement('div');
+                banner.className = 'shared-customer-banner';
+                banner.style.cssText = 'position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(59, 130, 246, 0.4); color: #ffffff; padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); pointer-events: none;';
+                banner.innerHTML = `<i class="fa-solid fa-building-user" style="color: #60a5fa;"></i> Viewing ${projectMeta.title} Layout`;
+                mapViewport.appendChild(banner);
+            }
+        }
+    }
+}
+
 // Global DOM Ready initializer for Interactive Features
 document.addEventListener('DOMContentLoaded', () => {
+    checkAndApplySharedCustomerView();
     setupMapTipTimer();
     setupInterestModal();
     setupSiteVisitBooking();
@@ -3753,6 +3925,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSmartPlotFinder();
     startRealtimeCloudSync();
 });
+checkAndApplySharedCustomerView();
 setupMapTipTimer();
 setupInterestModal();
 setupSiteVisitBooking();
