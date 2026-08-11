@@ -1,4 +1,4 @@
-﻿[
+[
     {
         "plot_no":  "1",
         "plot_size":  "303",
@@ -532,6 +532,7 @@
         "plot_size":  "250",
         "facing":  "South-West",
         "plot_status":  "AVAILABLE",
+        "is_corner":  true,
         "customer_name":  "",
         "reference_name":  "",
         "dim_north":  "-",
@@ -628,6 +629,7 @@
         "plot_size":  "225",
         "facing":  "South-West",
         "plot_status":  "HOLD",
+        "is_corner":  true,
         "customer_name":  "",
         "reference_name":  "",
         "dim_north":  "-",
@@ -1144,6 +1146,7 @@
         "plot_size":  "216",
         "facing":  "South-West",
         "plot_status":  "AVAILABLE",
+        "is_corner":  true,
         "customer_name":  "",
         "reference_name":  "",
         "dim_north":  "-",
