@@ -1273,7 +1273,7 @@ function exportPriceQuote(plotNo) {
                 </table>
 
                 <!-- Price Quotation Table -->
-                <div style="background: #f1f5f9; border: 1.5px solid #0f172a; padding: 4px 12px; font-weight: 800; border-top: none; border-bottom: none; text-align: center;" contenteditable="true">Price Quotation</div>
+                <div class="section-header-banner" style="margin-top: 10px;" contenteditable="true">Price Quotation</div>
                 <table class="q-table">
                     <thead>
                         <tr>
@@ -1292,7 +1292,7 @@ function exportPriceQuote(plotNo) {
                 </table>
 
                 <!-- Extras & Additional Charges Table -->
-                <div style="background: #f1f5f9; border: 1.5px solid #0f172a; padding: 4px 12px; font-weight: 800; border-top: none; border-bottom: none; text-align: center;" contenteditable="true">Extras &amp; Premium Charges (If Applicable)</div>
+                <div class="section-header-banner" style="margin-top: 10px;" contenteditable="true">Extras &amp; Premium Charges (If Applicable)</div>
                 <table class="q-table">
                     <thead>
                         <tr>
@@ -1336,7 +1336,7 @@ function exportPriceQuote(plotNo) {
                 </table>
 
                 <!-- Payment Structure Table -->
-                <div style="background: #f1f5f9; border: 1.5px solid #0f172a; padding: 4px 12px; font-weight: 800; border-top: none; border-bottom: none; text-align: center;" contenteditable="true">Payment Structure</div>
+                <div class="section-header-banner" style="margin-top: 10px;" contenteditable="true">Payment Structure</div>
                 <table class="q-table">
                     <thead>
                         <tr>
@@ -1367,7 +1367,7 @@ function exportPriceQuote(plotNo) {
                 </table>
 
                 <!-- Payment Schedule Table -->
-                <div style="background: #f1f5f9; border: 1.5px solid #0f172a; padding: 4px 12px; font-weight: 800; border-top: none; border-bottom: none; text-align: center;" contenteditable="true">Payment Schedule</div>
+                <div class="section-header-banner" style="margin-top: 10px;" contenteditable="true">Payment Schedule</div>
                 <table class="q-table">
                     <thead>
                         <tr>
@@ -1404,7 +1404,7 @@ function exportPriceQuote(plotNo) {
                 </table>
 
                 <!-- Standard Notes -->
-                <div class="notes-block">
+                <div class="notes-block" style="margin-top: 10px;">
                     <div class="notes-title" contenteditable="true">NOTE 1 : EXTRA CORPUS FUND 200/- Rs Per SQ Yd ( Not Included In Plot Cost )</div>
                     <div class="notes-title" contenteditable="true">NOTE 2 : Documentation Charges 5,000 and Registration Charges - 7.6% on Sale Deed Value, these charges are not included in the Price Quotation</div>
                     <div class="notes-title" contenteditable="true">NOTE 3: Please note that canceling your plot booking after 15 days will result in a cancellation charge of Rs. 50,000.</div>
