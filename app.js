@@ -2781,39 +2781,10 @@ function initLeafletMap() {
                     overlayOpacity = parsedColor.opacity;
                 }
 
-                function getRotatedCorners(northVal, southVal, eastVal, westVal, angleDeg) {
-                    const rad = angleDeg * Math.PI / 180;
-                    const centerLat = (northVal + southVal) / 2;
-                    const centerLon = (eastVal + westVal) / 2;
-                    const halfH = (northVal - southVal) / 2;
-                    const halfW = (eastVal - westVal) / 2;
-                    
-                    function rotatePoint(dx, dy) {
-                        const rx = dx * Math.cos(rad) - dy * Math.sin(rad);
-                        const ry = dx * Math.sin(rad) + dy * Math.cos(rad);
-                        return [centerLat + ry, centerLon + rx];
-                    }
-                    
-                    return {
-                        topLeft: rotatePoint(-halfW, halfH),
-                        topRight: rotatePoint(halfW, halfH),
-                        bottomLeft: rotatePoint(-halfW, -halfH)
-                    };
-                }
-
-                let leafletOverlay;
-                if (rotation && Math.abs(rotation) > 0.001) {
-                    const corners = getRotatedCorners(north, south, east, west, -rotation);
-                    leafletOverlay = L.imageOverlay.rotated(href, corners.topLeft, corners.topRight, corners.bottomLeft, {
-                        opacity: overlayOpacity,
-                        interactive: false
-                    });
-                } else {
-                    leafletOverlay = L.imageOverlay(href, bounds, {
-                        opacity: overlayOpacity,
-                        interactive: false
-                    });
-                }
+                const leafletOverlay = L.imageOverlay(href, bounds, {
+                    opacity: overlayOpacity,
+                    interactive: false
+                });
                 layoutsGroup.addLayer(leafletOverlay);
             }
         }
