@@ -130,6 +130,16 @@ const mapperExportBtn = document.getElementById('mapperExportBtn');
 
 // Initial Load Setup
 window.addEventListener('DOMContentLoaded', () => {
+    // Parse URL parameters BEFORE initApp so the correct project loads
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetProj = urlParams.get('project');
+    const isCustomerShare = urlParams.get('share') === 'true';
+
+    // Set project before initialization if a share/project param exists
+    if (targetProj && (targetProj === 'avatar1' || targetProj === 'avatar2' || targetProj === 'avatar3')) {
+        currentProject = targetProj;
+    }
+
     initApp();
     setupMapControls();
     setupSearch();
@@ -141,34 +151,33 @@ window.addEventListener('DOMContentLoaded', () => {
     setupProjectNavigation();
     setupInterestModal();
 
-    // Check URL parameters for customer shared layout mode
-    const urlParams = new URLSearchParams(window.location.search);
-    const targetProj = urlParams.get('project') || urlParams.get('share') || urlParams.get('shared');
-    const isCustomerShare = urlParams.get('share') === 'true' || urlParams.get('shared') === 'true' || urlParams.has('project');
-
+    // After initApp sets up navigation, trigger the correct project tab
     if (targetProj && (targetProj === 'avatar1' || targetProj === 'avatar2' || targetProj === 'avatar3')) {
-        currentProject = targetProj;
-        const btn = document.querySelector(`.project-nav-btn[data-project="${targetProj}"]`);
-        if (btn) {
-            document.querySelectorAll('.project-nav-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        }
+        // Use a small delay to allow data to finish loading, then click the correct tab
+        setTimeout(() => {
+            const btn = document.querySelector(`.project-nav-btn[data-project="${targetProj}"]`);
+            if (btn) {
+                btn.click();
+            }
+        }, 800);
     }
 
-    if (isCustomerShare) {
-        // Customer View Isolation: Hide project selector tabs so customer only sees this layout
+    // Customer Shared View Isolation
+    if (isCustomerShare && targetProj) {
         const projNavSection = document.getElementById('projectNavSection');
-        if (projNavSection) {
-            projNavSection.style.display = 'none';
-        }
+        if (projNavSection) projNavSection.style.display = 'none';
 
-        const projTitle = currentProject === 'avatar1' ? 'Avatar 1' : (currentProject === 'avatar2' ? 'Avatar 2' : 'Avatar 3');
+        // Hide Staff Login for customer views
+        const sidebarFooterEl = document.getElementById('sidebarFooter');
+        if (sidebarFooterEl) sidebarFooterEl.style.display = 'none';
+
+        const projTitle = targetProj === 'avatar1' ? 'Avatar 1' : (targetProj === 'avatar2' ? 'Avatar 2' : 'Avatar 3');
         let customerBanner = document.getElementById('customerShareNotice');
         if (!customerBanner) {
             customerBanner = document.createElement('div');
             customerBanner.id = 'customerShareNotice';
-            customerBanner.style.cssText = 'background: linear-gradient(90deg, #0f172a, #1e293b); color: #60a5fa; text-align: center; padding: 8px 16px; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; position: relative; z-index: 999; border-bottom: 1.5px solid #3b82f6; letter-spacing: 0.5px;';
-            customerBanner.innerHTML = `<i class="fa-solid fa-gem"></i> Aspirealty ${projTitle} Digital Layout`;
+            customerBanner.style.cssText = 'background: linear-gradient(90deg, #0f172a, #1e293b); color: #60a5fa; text-align: center; padding: 10px 16px; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; position: relative; z-index: 999; border-bottom: 2px solid #3b82f6; letter-spacing: 0.5px;';
+            customerBanner.innerHTML = `<i class="fa-solid fa-gem"></i> Aspirealty ${projTitle} — Interactive Digital Layout`;
             document.body.insertBefore(customerBanner, document.body.firstChild);
         }
     }
@@ -2324,71 +2333,155 @@ function setupAdminState() {
 
 function shareLayoutLink() {
     const projName = currentProject === 'avatar1' ? 'Avatar 1' : (currentProject === 'avatar2' ? 'Avatar 2' : 'Avatar 3');
-    const baseUrl = window.location.origin + window.location.pathname;
+    
+    // Build the shareable URL using the actual deployed GitHub Pages URL
+    let baseUrl = window.location.origin + window.location.pathname;
+    // Remove trailing hash or query
+    baseUrl = baseUrl.split('?')[0].split('#')[0];
+    // Ensure trailing slash or index.html
+    if (!baseUrl.endsWith('/') && !baseUrl.endsWith('.html')) {
+        baseUrl += '/';
+    }
     const shareUrl = `${baseUrl}?project=${currentProject}&share=true`;
 
     showShareModal(projName, shareUrl);
 }
 
 function showShareModal(projName, shareUrl) {
-    let backdrop = document.getElementById('shareModalBackdrop');
-    if (!backdrop) {
-        backdrop = document.createElement('div');
-        backdrop.id = 'shareModalBackdrop';
-        backdrop.className = 'modal-backdrop';
-        backdrop.style.cssText = 'display: flex; align-items: center; justify-content: center; z-index: 10000; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); position: fixed; inset: 0;';
-        backdrop.innerHTML = `
-            <div class="modal-card" style="max-width: 480px; width: 90%; background: #0f172a; border: 1.5px solid #3b82f6; border-radius: 12px; padding: 24px; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 style="font-size: 16px; font-weight: 800; color: #60a5fa; margin: 0; display: flex; align-items: center; gap: 8px;">
+    // Remove existing modal to always rebuild with fresh content
+    const existing = document.getElementById('shareModalBackdrop');
+    if (existing) existing.remove();
+
+    const backdrop = document.createElement('div');
+    backdrop.id = 'shareModalBackdrop';
+    backdrop.style.cssText = 'display: flex; align-items: center; justify-content: center; z-index: 10000; background: rgba(0,0,0,0.8); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); position: fixed; inset: 0; animation: fadeIn 0.2s ease;';
+    
+    const whatsappMsg = encodeURIComponent(`🏡 *Aspirealty ${projName} — Interactive Digital Layout*\n\nExplore available plots, pricing & complete layout details here:\n${shareUrl}\n\n✅ Real-time plot availability\n✅ Instant price quotation\n✅ Interactive map with all details`);
+    const whatsappUrl = `https://wa.me/?text=${whatsappMsg}`;
+
+    backdrop.innerHTML = `
+        <div style="max-width: 520px; width: 92%; background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); border: 1.5px solid rgba(59, 130, 246, 0.5); border-radius: 16px; padding: 28px; color: #fff; box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(59, 130, 246, 0.15); animation: scaleIn 0.25s ease;">
+            
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                <div>
+                    <h3 style="font-size: 18px; font-weight: 800; color: #60a5fa; margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
                         <i class="fa-solid fa-share-nodes"></i> Share ${projName} Layout
                     </h3>
-                    <button id="closeShareModalBtn" style="background: none; border: none; color: #94a3b8; font-size: 18px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+                    <p style="font-size: 11.5px; color: #64748b; margin: 0; font-weight: 600;">Generate a customer-facing link for this layout</p>
                 </div>
-                <p style="font-size: 12.5px; color: #cbd5e1; margin-bottom: 15px; line-height: 1.5;">
-                    Copy this link to share the <strong>${projName}</strong> digital layout with your customer. When opened, only the <strong>${projName}</strong> layout will be visible.
-                </p>
-                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-                    <input type="text" id="shareUrlInput" value="${shareUrl}" readonly style="flex: 1; background: #1e293b; border: 1px solid #334155; color: #38bdf8; padding: 10px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; outline: none;">
-                    <button id="btnCopyShareModal" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
-                        <i class="fa-solid fa-copy"></i> Copy Link
+                <button id="closeShareModalBtn" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; width: 32px; height: 32px; border-radius: 8px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <!-- Info Card -->
+            <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 10px; padding: 14px 16px; margin-bottom: 18px;">
+                <div style="font-size: 12px; color: #93c5fd; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-circle-info"></i> What the customer will see:
+                </div>
+                <ul style="font-size: 11.5px; color: #cbd5e1; margin: 0; padding-left: 18px; line-height: 1.8;">
+                    <li>Only the <strong style="color: #60a5fa;">${projName}</strong> interactive layout map</li>
+                    <li>Real-time plot availability & status colors</li>
+                    <li>Plot details modal with size, facing & pricing</li>
+                    <li>No project switching or admin controls visible</li>
+                </ul>
+            </div>
+            
+            <!-- Clickable Link Preview -->
+            <div style="margin-bottom: 14px;">
+                <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: block;">Shareable Link</label>
+                <div style="background: #0f172a; border: 1.5px solid #334155; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 10px;">
+                    <a href="${shareUrl}" target="_blank" id="shareUrlLink" style="flex: 1; color: #38bdf8; font-size: 12.5px; font-weight: 600; text-decoration: none; word-break: break-all; line-height: 1.5; transition: color 0.15s;" onmouseover="this.style.color='#7dd3fc'" onmouseout="this.style.color='#38bdf8'">${shareUrl}</a>
+                    <button id="btnOpenLink" title="Open in new tab" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #94a3b8; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; transition: all 0.15s;">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
                     </button>
                 </div>
-                <div id="shareCopyNotice" style="display: none; background: rgba(34, 197, 94, 0.15); border: 1px solid #22c55e; color: #4ade80; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; text-align: center;">
-                    <i class="fa-solid fa-circle-check"></i> Link Copied to Clipboard!
-                </div>
             </div>
-        `;
-        document.body.appendChild(backdrop);
+            
+            <!-- Action Buttons Row -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+                <button id="btnCopyShareModal" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);">
+                    <i class="fa-solid fa-copy"></i> Copy Link
+                </button>
+                <a href="${whatsappUrl}" target="_blank" style="background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; border: none; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; transition: all 0.2s; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);">
+                    <i class="fa-brands fa-whatsapp" style="font-size: 16px;"></i> Share via WhatsApp
+                </a>
+            </div>
+            
+            <!-- Copy Success Notice -->
+            <div id="shareCopyNotice" style="display: none; background: rgba(34, 197, 94, 0.12); border: 1.5px solid rgba(34, 197, 94, 0.4); color: #4ade80; padding: 10px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 700; text-align: center; animation: fadeIn 0.2s ease;">
+                <i class="fa-solid fa-circle-check"></i> Link copied to clipboard successfully!
+            </div>
+        </div>
+    `;
+    document.body.appendChild(backdrop);
 
-        document.getElementById('closeShareModalBtn').addEventListener('click', () => {
-            backdrop.style.display = 'none';
-        });
+    // Close button
+    document.getElementById('closeShareModalBtn').addEventListener('click', () => {
+        backdrop.remove();
+    });
 
-        backdrop.addEventListener('click', (e) => {
-            if (e.target === backdrop) backdrop.style.display = 'none';
-        });
+    // Click outside to close
+    backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) backdrop.remove();
+    });
 
-        document.getElementById('btnCopyShareModal').addEventListener('click', () => {
-            const input = document.getElementById('shareUrlInput');
-            input.select();
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(input.value);
-            } else {
-                document.execCommand('copy');
-            }
-            const notice = document.getElementById('shareCopyNotice');
+    // ESC key to close
+    const escHandler = (e) => {
+        if (e.key === 'Escape') {
+            backdrop.remove();
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+
+    // Open in new tab button
+    document.getElementById('btnOpenLink').addEventListener('click', () => {
+        window.open(shareUrl, '_blank');
+    });
+
+    // Copy button
+    document.getElementById('btnCopyShareModal').addEventListener('click', () => {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                showCopySuccess();
+            }).catch(() => {
+                fallbackCopy();
+            });
+        } else {
+            fallbackCopy();
+        }
+    });
+
+    function fallbackCopy() {
+        const textarea = document.createElement('textarea');
+        textarea.value = shareUrl;
+        textarea.style.cssText = 'position: fixed; left: -9999px;';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        textarea.remove();
+        showCopySuccess();
+    }
+
+    function showCopySuccess() {
+        const notice = document.getElementById('shareCopyNotice');
+        if (notice) {
             notice.style.display = 'block';
-            setTimeout(() => { notice.style.display = 'none'; }, 3000);
-        });
-    } else {
-        const input = document.getElementById('shareUrlInput');
-        if (input) input.value = shareUrl;
-        const h3 = backdrop.querySelector('h3');
-        if (h3) h3.innerHTML = `<i class="fa-solid fa-share-nodes"></i> Share ${projName} Layout`;
-        const p = backdrop.querySelector('p');
-        if (p) p.innerHTML = `Copy this link to share the <strong>${projName}</strong> digital layout with your customer. When opened, only the <strong>${projName}</strong> layout will be visible.`;
-        backdrop.style.display = 'flex';
+            const copyBtn = document.getElementById('btnCopyShareModal');
+            if (copyBtn) {
+                copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+                copyBtn.style.background = 'linear-gradient(135deg, #16a34a, #15803d)';
+            }
+            setTimeout(() => {
+                if (notice) notice.style.display = 'none';
+                if (copyBtn) {
+                    copyBtn.innerHTML = '<i class="fa-solid fa-copy"></i> Copy Link';
+                    copyBtn.style.background = 'linear-gradient(135deg, #2563eb, #1d4ed8)';
+                }
+            }, 3000);
+        }
     }
 }
 
