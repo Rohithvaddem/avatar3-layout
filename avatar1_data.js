@@ -1,4 +1,4 @@
-﻿const plotDataRawAvatar1 = [
+const plotDataRawAvatar1 = [
     {
         "plot_no":  "1",
         "plot_size":  "270",
@@ -3891,7 +3891,7 @@
         "plot_no":  "325",
         "plot_size":  "257",
         "facing":  "West",
-        "plot_status":  "AVAILABLE",
+        "plot_status":  "MORTGAGE",
         "customer_name":  "",
         "reference_name":  "",
         "dim_north":  "-",
@@ -3915,7 +3915,7 @@
         "plot_no":  "327",
         "plot_size":  "205",
         "facing":  "West",
-        "plot_status":  "AVAILABLE",
+        "plot_status":  "MORTGAGE",
         "customer_name":  "",
         "reference_name":  "",
         "dim_north":  "-",
@@ -3927,7 +3927,7 @@
         "plot_no":  "328",
         "plot_size":  "323",
         "facing":  "West",
-        "plot_status":  "AVAILABLE",
+        "plot_status":  "MORTGAGE",
         "customer_name":  "",
         "reference_name":  "",
         "dim_north":  "-",
