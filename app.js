@@ -2334,15 +2334,9 @@ function setupAdminState() {
 function shareLayoutLink() {
     const projName = currentProject === 'avatar1' ? 'Avatar 1' : (currentProject === 'avatar2' ? 'Avatar 2' : 'Avatar 3');
     
-    // Build the shareable URL using the actual deployed GitHub Pages URL
-    let baseUrl = window.location.origin + window.location.pathname;
-    // Remove trailing hash or query
-    baseUrl = baseUrl.split('?')[0].split('#')[0];
-    // Ensure trailing slash or index.html
-    if (!baseUrl.endsWith('/') && !baseUrl.endsWith('.html')) {
-        baseUrl += '/';
-    }
-    const shareUrl = `${baseUrl}?project=${currentProject}&share=true`;
+    // Always use the production GitHub Pages URL for customer-facing share links
+    const PRODUCTION_BASE_URL = 'https://rohithvaddem.github.io/avatar3-layout/';
+    const shareUrl = `${PRODUCTION_BASE_URL}?project=${currentProject}&share=true`;
 
     showShareModal(projName, shareUrl);
 }
