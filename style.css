@@ -611,21 +611,23 @@ body {
     bottom: 24px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--border-color);
-    padding: 8px 18px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-secondary);
+    background: rgba(15, 23, 42, 0.94);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(250, 204, 21, 0.4);
+    padding: 10px 22px;
+    border-radius: 30px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #ffffff;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     pointer-events: none;
-    z-index: 10;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: opacity 0.5s ease;
+    z-index: 1000 !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 20px rgba(250, 204, 21, 0.2);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    white-space: nowrap;
 }
 
 .map-tip.fade-out {
@@ -718,24 +720,23 @@ body {
 /* Plot dots styling */
 .plot-dot {
     position: absolute;
-    width: 18px;
-    height: 18px;
+    width: 15px;
+    height: 15px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-heading);
-    font-size: 8.5px;
-    font-weight: 800;
+    font-size: 7px;
+    font-weight: 700;
     color: #ffffff;
     cursor: pointer;
     pointer-events: auto;
-    border: 1.5px solid #ffffff;
-    box-shadow: 0 0 10px var(--plot-color), 0 2px 6px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     background-color: var(--plot-color);
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s, opacity 0.3s;
     will-change: transform;
-    z-index: 10;
 }
 
 .plot-dot.avatar2-dot {
@@ -745,9 +746,9 @@ body {
 }
 
 .plot-dot:hover {
-    transform: scale(1.4);
-    z-index: 30;
-    box-shadow: 0 0 20px var(--plot-color), 0 4px 14px rgba(0,0,0,0.7);
+    transform: scale(1.35);
+    z-index: 20;
+    box-shadow: 0 0 16px var(--plot-color), 0 4px 12px rgba(0,0,0,0.5);
     border-color: #ffffff;
 }
 
@@ -2030,7 +2031,59 @@ input[type="radio"]:checked + .custom-radio::after {
     transform: scale(1) translateY(0);
 }
 
+/* EMI & Loan Calculator Card inside Plot Modal */
+.emi-calc-container {
+    background: rgba(10, 13, 20, 0.55);
+    border: 1px solid rgba(14, 165, 233, 0.25);
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
 
+.emi-calc-header {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+.emi-slider-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.emi-slider-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.emi-slider-input {
+    width: 100%;
+    accent-color: var(--accent);
+    cursor: pointer;
+    height: 4px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+}
+
+.emi-result-box {
+    background: rgba(14, 165, 233, 0.12);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
 /* Plot Hover Preview Tooltip */
 .plot-hover-tooltip {
@@ -2221,80 +2274,217 @@ input[type="radio"]:checked + .custom-radio::after {
     transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* Floating Pro Tips Card (Auto-disappears after 10 seconds) */
-.floating-pro-tips-banner {
-    position: absolute;
-    top: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 100;
-    background: rgba(15, 23, 42, 0.92);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(59, 130, 246, 0.4);
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(59, 130, 246, 0.25);
-    padding: 10px 18px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    color: #ffffff;
-    max-width: 92%;
-    width: max-content;
-    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    opacity: 1;
-    pointer-events: none;
-}
-
-.floating-pro-tips-banner button {
-    pointer-events: auto;
-}
-
-.floating-pro-tips-banner.hide-tips {
-    opacity: 0;
-    transform: translate(-50%, -20px);
-    pointer-events: none;
-}
-
-.pro-tips-content {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    text-align: left;
-}
-
-.pro-tip-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 11.5px;
-    line-height: 1.4;
-    color: var(--text-secondary);
-}
-
-.pro-tip-item strong {
-    color: #ffffff;
-}
-
-.close-pro-tips-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: var(--text-secondary);
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
+/* Premium Welcome Intro Splash Screen */
+.welcome-splash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at center, rgba(23, 33, 56, 0.98) 0%, rgba(6, 10, 18, 0.99) 100%);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    z-index: 3000;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    font-size: 11px;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
+    opacity: 1;
+    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: auto;
 }
 
-.close-pro-tips-btn:hover {
-    background: rgba(239, 68, 68, 0.2);
-    color: #f87171;
+.welcome-splash-overlay.hide {
+    opacity: 0;
+    transform: scale(1.05);
+    pointer-events: none;
+}
+
+.welcome-splash-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 40px;
+    max-width: 480px;
+    animation: splashCardEntrance 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes splashCardEntrance {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.92);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.splash-logo-wrapper {
+    margin-bottom: 20px;
+}
+
+.splash-logo {
+    max-width: 240px;
+    height: auto;
+    filter: drop-shadow(0 0 25px rgba(14, 165, 233, 0.4));
+    animation: splashLogoGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes splashLogoGlow {
+    from {
+        filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.3));
+    }
+    to {
+        filter: drop-shadow(0 0 35px rgba(14, 165, 233, 0.7));
+    }
+}
+
+.splash-title {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+}
+
+.splash-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+}
+
+.splash-progress-track {
+    width: 240px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.splash-progress-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #0284c7 0%, #38bdf8 50%, #2563eb 100%);
+    border-radius: 4px;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+    transition: width 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.splash-badges {
+    display: flex;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.splash-badges span {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Splash Screen Pro Tips Styling */
+.splash-tips-container {
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin: 16px 0 22px 0;
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.splash-tips-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    color: #38bdf8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 6px;
+}
+
+.splash-tip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.tip-num {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    font-weight: 700;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    margin-top: 1px;
+}
+
+.tip-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+}
+
+/* Click Anywhere to Continue Prompt */
+.splash-continue-prompt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.25) 0%, rgba(37, 99, 235, 0.35) 100%);
+    border: 1px solid rgba(56, 189, 248, 0.5);
+    padding: 12px 24px;
+    border-radius: 30px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.3);
+    animation: continuePulse 1.8s ease-in-out infinite alternate;
+    cursor: pointer;
+}
+
+@keyframes continuePulse {
+    from {
+        box-shadow: 0 0 15px rgba(14, 165, 233, 0.25);
+        transform: scale(0.98);
+    }
+    to {
+        box-shadow: 0 0 30px rgba(14, 165, 233, 0.6);
+        transform: scale(1.02);
+    }
+}
+
+.continue-icon-pulse {
+    font-size: 14px;
+    color: #38bdf8;
+    animation: fingerTap 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes fingerTap {
+    from { transform: translateY(0); }
+    to { transform: translateY(-3px); }
 }
 
 /* Leaflet GIS Satellite Map Butter-Smooth 60FPS Optimization */
