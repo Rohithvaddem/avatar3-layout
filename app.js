@@ -1040,25 +1040,30 @@ function exportPriceQuote(plotNo) {
             <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <style>
-                * { box-sizing: border-box; }
+                * {
+                    box-sizing: border-box;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                    color-adjust: exact !important;
+                }
                 body {
                     font-family: 'Outfit', sans-serif;
                     background: #f1f5f9;
                     color: #0f172a;
                     margin: 0;
-                    padding: 20px;
-                    font-size: 12.5px;
+                    padding: 15px;
+                    font-size: 11px;
                 }
                 .no-print {
-                    max-width: 850px;
-                    margin: 0 auto 20px auto;
+                    max-width: 820px;
+                    margin: 0 auto 15px auto;
                 }
                 .btn-print-quote {
                     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
                     color: #ffffff;
                     border: none;
-                    padding: 14px 32px;
-                    font-size: 15px;
+                    padding: 12px 28px;
+                    font-size: 14px;
                     font-weight: 800;
                     border-radius: 8px;
                     cursor: pointer;
@@ -1088,84 +1093,137 @@ function exportPriceQuote(plotNo) {
                 }
 
                 .quote-container {
-                    max-width: 850px;
+                    max-width: 820px;
                     margin: 0 auto;
                     background: #ffffff;
                     border: 2px solid #0f172a;
-                    padding: 30px;
+                    padding: 18px 24px;
                     box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+                    page-break-inside: avoid;
                 }
                 .quote-banner {
-                    background: #e2e8f0;
+                    background: #e2e8f0 !important;
                     border: 1.5px solid #0f172a;
                     text-align: center;
-                    font-size: 24px;
+                    font-size: 20px;
                     font-weight: 800;
-                    padding: 8px;
+                    padding: 5px;
                     margin-bottom: -1px;
                     position: relative;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                 }
                 .quote-date {
                     position: absolute;
-                    right: 15px;
-                    top: 12px;
-                    font-size: 12px;
+                    right: 12px;
+                    top: 8px;
+                    font-size: 11px;
                     font-weight: 700;
+                }
+                .section-header-banner {
+                    background: #f1f5f9 !important;
+                    border: 1.5px solid #0f172a;
+                    padding: 3px 10px;
+                    font-weight: 800;
+                    border-top: none;
+                    border-bottom: none;
+                    text-align: center;
+                    font-size: 11.5px;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                 }
                 .q-table {
                     width: 100%;
                     border-collapse: collapse;
                     margin-bottom: -1px;
+                    page-break-inside: avoid;
                 }
                 .q-table th, .q-table td {
                     border: 1.5px solid #0f172a;
-                    padding: 6px 12px;
-                    font-size: 12.5px;
+                    padding: 3.5px 8px;
+                    font-size: 11px;
                     text-align: left;
                 }
                 .q-table th {
-                    background: #f1f5f9;
+                    background: #f1f5f9 !important;
                     font-weight: 700;
                     color: #0f172a;
                     text-transform: uppercase;
-                    font-size: 11px;
-                }
-                .bg-yellow { background: #fef08a !important; font-weight: 700; }
-                .bg-green { background: #dcfce7 !important; font-weight: 800; font-size: 13.5px; }
-                .notes-block {
                     font-size: 10.5px;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+                .bg-yellow {
+                    background: #fef08a !important;
                     font-weight: 700;
-                    line-height: 1.6;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+                .bg-green {
+                    background: #dcfce7 !important;
+                    font-weight: 800;
+                    font-size: 11.5px;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+                .notes-block {
+                    font-size: 9.5px;
+                    font-weight: 700;
+                    line-height: 1.4;
                     border: 1.5px solid #0f172a;
                     border-top: none;
-                    padding: 10px;
+                    padding: 6px 10px;
                 }
                 .notes-title { color: #0f172a; font-weight: 800; }
-                .red-heading { color: #dc2626; font-weight: 800; font-size: 12px; }
+                .red-heading { color: #dc2626; font-weight: 800; font-size: 10.5px; }
                 .reg-table {
-                    width: 75% !important;
+                    width: 70% !important;
                 }
                 .reg-table th, .reg-table td {
-                    padding: 4px 8px !important;
-                    font-size: 9.5px !important;
+                    padding: 2.5px 6px !important;
+                    font-size: 9px !important;
                 }
                 .reg-table .red-heading {
-                    font-size: 9.5px !important;
+                    font-size: 9px !important;
                 }
                 .sig-row {
                     display: flex;
                     justify-content: space-between;
-                    margin-top: 40px;
-                    padding-top: 10px;
+                    margin-top: 18px;
+                    padding-top: 6px;
                     font-weight: 800;
-                    font-size: 12px;
+                    font-size: 11px;
+                    page-break-inside: avoid;
                 }
 
                 @media print {
+                    @page {
+                        size: A4 portrait;
+                        margin: 4mm 6mm;
+                    }
+                    html, body {
+                        background: #ffffff !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                        width: 100% !important;
+                        height: 100% !important;
+                        overflow: hidden !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
                     .no-print { display: none !important; }
-                    body { background: #ffffff !important; padding: 0 !important; }
-                    .quote-container { border: none !important; padding: 0 !important; max-width: 100% !important; box-shadow: none !important; }
-                    [contenteditable="true"] { outline: none !important; background: transparent !important; }
+                    .quote-container {
+                        border: none !important;
+                        padding: 0 !important;
+                        max-width: 100% !important;
+                        width: 100% !important;
+                        box-shadow: none !important;
+                        margin: 0 !important;
+                        page-break-inside: avoid !important;
+                    }
+                    [contenteditable="true"] {
+                        outline: none !important;
+                    }
                 }
             </style>
         </head>
