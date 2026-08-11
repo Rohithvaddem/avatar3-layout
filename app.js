@@ -970,10 +970,13 @@ function exportPriceQuote(plotNo) {
     
     // Base Price per sq. yard: Avatar 1 = ₹23,999, Avatar 2 & others = ₹15,499
     const defaultBaseRate = (currentProject === 'avatar1') ? 23999 : 15499;
-    const initialTotalAmount = Math.round(plotAreaYds * defaultBaseRate);
+    const initialEastRate = isEast ? 200 : 0;
+    const initialEffectiveRate = defaultBaseRate + initialEastRate;
+
+    const initialTotalAmount = Math.round(plotAreaYds * initialEffectiveRate);
     const initialBankTotal = Math.round(plotAreaYds * 3000);
     const initialCashTotal = Math.max(0, initialTotalAmount - initialBankTotal);
-    const initialCashRate = Math.max(0, defaultBaseRate - 3000);
+    const initialCashRate = Math.max(0, initialEffectiveRate - 3000);
 
     const initialBooking = 100000;
     const initialAmt1 = Math.round(initialTotalAmount * 0.25);
