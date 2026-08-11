@@ -1318,15 +1318,7 @@ function exportPriceQuote(plotNo) {
 
                         const plotArea = parseNum(areaEl ? areaEl.innerText : '200');
                         
-                        let closingPrice = 15499;
-                        if (active === closingPriceEl || active === perSqYdEl) {
-                            closingPrice = parseNum(active.innerText);
-                        } else if (closingPriceEl) {
-                            closingPrice = parseNum(closingPriceEl.innerText);
-                        } else if (perSqYdEl) {
-                            closingPrice = parseNum(perSqYdEl.innerText);
-                        }
-
+                        let closingPrice = parseNum(closingPriceEl ? closingPriceEl.innerText : (perSqYdEl ? perSqYdEl.innerText : '15499'));
                         const bankRate = parseNum(bankRateEl ? bankRateEl.innerText : '3000');
 
                         const totalAmount = Math.round(plotArea * closingPrice);
@@ -1341,13 +1333,6 @@ function exportPriceQuote(plotNo) {
                         const reg75 = Math.round(bankTotal * 0.075);
                         const mutation = Math.max(800, Math.round(bankTotal * 0.001));
                         const totalRegCharges = reg75 + 1000 + 100 + 50 + 5000 + mutation;
-
-                        if (closingPriceEl && closingPriceEl !== active) {
-                            closingPriceEl.innerText = fmt(closingPrice);
-                        }
-                        if (perSqYdEl && perSqYdEl !== active) {
-                            perSqYdEl.innerText = fmt(closingPrice);
-                        }
 
                         const totalAmtEl = document.getElementById('lblTotalAmount');
                         if (totalAmtEl && totalAmtEl !== active) totalAmtEl.innerText = fmt(totalAmount);
