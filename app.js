@@ -154,184 +154,97 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // Main App Initialization
 function initApp() {
-    // Populate Avatar 3 coordinates from global variable loaded by plot_coords.js
-    if (typeof plotCoordinates !== 'undefined') {
-        avatarCoordsPool.avatar3 = plotCoordinates;
+    // Populate coordinates synchronously from loaded scripts
+    if (typeof plotCoordinates !== 'undefined') avatarCoordsPool.avatar3 = plotCoordinates;
+    if (typeof plotCoordinatesAvatar2 !== 'undefined') avatarCoordsPool.avatar2 = plotCoordinatesAvatar2;
+    if (typeof plotCoordinatesAvatar1 !== 'undefined') avatarCoordsPool.avatar1 = plotCoordinatesAvatar1;
+
+    // Populate plot datasets synchronously from loaded scripts
+    if (typeof plotDataRawAvatar1 !== 'undefined' && !avatarDataPool.avatar1.length) {
+        avatarDataPool.avatar1 = plotDataRawAvatar1.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+    }
+    if (typeof plotDataRawAvatar2 !== 'undefined' && !avatarDataPool.avatar2.length) {
+        avatarDataPool.avatar2 = plotDataRawAvatar2.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+    }
+    if (typeof plotDataRaw !== 'undefined' && !avatarDataPool.avatar3.length) {
+        avatarDataPool.avatar3 = plotDataRaw.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
     }
 
-    // Populate Avatar 2 coordinates from global variable loaded by avatar2_plot_coords.js
-    if (typeof plotCoordinatesAvatar2 !== 'undefined') {
-        avatarCoordsPool.avatar2 = plotCoordinatesAvatar2;
-    }
-
-    // Populate Avatar 1 coordinates from global variable loaded by avatar1_plot_coords.js
-    if (typeof plotCoordinatesAvatar1 !== 'undefined') {
-        avatarCoordsPool.avatar1 = plotCoordinatesAvatar1;
-    }
-
-    // Load Avatar 3 data from local storage if exists
-    const localDataAvatar3 = localStorage.getItem('aspire_avatar3_data');
-    if (localDataAvatar3) {
-        try {
-            avatarDataPool.avatar3 = JSON.parse(localDataAvatar3).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-        } catch (e) {
-            console.error('Error parsing local storage Avatar 3 data', e);
+    // Override with localStorage if present
+    ['avatar1', 'avatar2', 'avatar3'].forEach(proj => {
+        const local = localStorage.getItem(`aspire_${proj}_data`);
+        if (local) {
+            try {
+                const parsed = JSON.parse(local).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+                if (parsed.length) avatarDataPool[proj] = parsed;
+            } catch (e) {}
         }
-    }
-    
-    // Load Avatar 2 data from local storage if exists
-    const localDataAvatar2 = localStorage.getItem('aspire_avatar2_data');
-    if (localDataAvatar2) {
-        try {
-            avatarDataPool.avatar2 = JSON.parse(localDataAvatar2).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-        } catch (e) {
-            console.error('Error parsing local storage Avatar 2 data', e);
-        }
-    }
-
-    // Load Avatar 1 data from local storage if exists
-    const localDataAvatar1 = localStorage.getItem('aspire_avatar1_data');
-    if (localDataAvatar1) {
-        try {
-            avatarDataPool.avatar1 = JSON.parse(localDataAvatar1).filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-        } catch (e) {
-            console.error('Error parsing local storage Avatar 1 data', e);
-        }
-    }
-
-    // Fetch Avatar 3 JSON
-    const fetch3 = fetch('data.json')
-        .then(response => {
-            if (!response.ok) throw new Error('Data fetch failed');
-            return response.json();
-        })
-        .then(data => {
-            if (!avatarDataPool.avatar3.length) {
-                avatarDataPool.avatar3 = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-            }
-        })
-        .catch(err => {
-            console.warn('CORS or network error. Falling back to offline dataset (data.js) for Avatar 3:', err);
-            if (typeof plotDataRaw !== 'undefined' && !avatarDataPool.avatar3.length) {
-                avatarDataPool.avatar3 = plotDataRaw.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-            }
-        });
-
-    // Fetch Avatar 2 JSON
-    const fetch2 = fetch('avatar2_digi/data.json')
-        .then(response => {
-            if (!response.ok) throw new Error('Data fetch failed');
-            return response.json();
-        })
-        .then(data => {
-            const freshData = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-            if (!avatarDataPool.avatar2.length) {
-                avatarDataPool.avatar2 = freshData;
-            } else {
-                freshData.forEach(item => {
-                    let existing = avatarDataPool.avatar2.find(p => String(p.plot_no) === String(item.plot_no));
-                    if (existing) {
-                        if (item.customer_name) existing.customer_name = item.customer_name;
-                        if (item.plot_status) existing.plot_status = item.plot_status;
-                    } else {
-                        avatarDataPool.avatar2.push(item);
-                    }
-                });
-            }
-        })
-        .catch(err => {
-            console.warn('CORS or network error. Falling back to offline dataset (avatar2_data.js) for Avatar 2:', err);
-            if (typeof plotDataRawAvatar2 !== 'undefined') {
-                const fallbackData = plotDataRawAvatar2.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-                if (!avatarDataPool.avatar2.length) {
-                    avatarDataPool.avatar2 = fallbackData;
-                } else {
-                    fallbackData.forEach(item => {
-                        let existing = avatarDataPool.avatar2.find(p => String(p.plot_no) === String(item.plot_no));
-                        if (existing && item.customer_name) existing.customer_name = item.customer_name;
-                    });
-                }
-            }
-        });
-
-    // Fetch Avatar 1 JSON
-    const fetch1 = fetch('avatar1_data.json')
-        .then(response => {
-            if (!response.ok) throw new Error('Data fetch failed');
-            return response.json();
-        })
-        .then(data => {
-            const freshData = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-            if (!avatarDataPool.avatar1.length) {
-                avatarDataPool.avatar1 = freshData;
-            } else {
-                freshData.forEach(item => {
-                    let existing = avatarDataPool.avatar1.find(p => String(p.plot_no) === String(item.plot_no));
-                    if (existing) {
-                        if (item.customer_name) existing.customer_name = item.customer_name;
-                        if (item.plot_status) existing.plot_status = item.plot_status;
-                    } else {
-                        avatarDataPool.avatar1.push(item);
-                    }
-                });
-            }
-        })
-        .catch(err => {
-            console.warn('CORS or network error. Falling back to offline dataset (avatar1_data.js) for Avatar 1:', err);
-            if (typeof plotDataRawAvatar1 !== 'undefined') {
-                const fallbackData = plotDataRawAvatar1.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
-                if (!avatarDataPool.avatar1.length) {
-                    avatarDataPool.avatar1 = fallbackData;
-                } else {
-                    fallbackData.forEach(item => {
-                        let existing = avatarDataPool.avatar1.find(p => String(p.plot_no) === String(item.plot_no));
-                        if (existing && item.customer_name) existing.customer_name = item.customer_name;
-                    });
-                }
-            }
-        });
-
-    // Fallback coordinates fetch in case script load failed but json works
-    let fetchCoordsPromise = Promise.resolve();
-    if (!avatarCoordsPool.avatar2 || !Object.keys(avatarCoordsPool.avatar2).length) {
-        fetchCoordsPromise = fetch('avatar2_plot_coords.json')
-            .then(res => res.json())
-            .then(coords => {
-                avatarCoordsPool.avatar2 = coords;
-            })
-            .catch(err => console.error('Failed to load Avatar 2 coordinates from JSON fallback:', err));
-    }
-
-    let fetchCoordsPromise1 = Promise.resolve();
-    if (!avatarCoordsPool.avatar1 || !Object.keys(avatarCoordsPool.avatar1).length) {
-        fetchCoordsPromise1 = fetch('avatar1_plot_coords.json')
-            .then(res => res.json())
-            .then(coords => {
-                avatarCoordsPool.avatar1 = coords;
-            })
-            .catch(err => console.error('Failed to load Avatar 1 coordinates from JSON fallback:', err));
-    }
-
-    Promise.all([fetchCoordsPromise, fetchCoordsPromise1, fetch3, fetch2, fetch1]).finally(() => {
-        // Set the active project plotData reference
-        plotData = avatarDataPool[currentProject] || [];
-        
-        updateSidebarAndHeaderForProject(currentProject);
-
-        if (currentProject === 'avatar1') {
-            mapContainer.style.width = '1024px';
-            mapContainer.style.height = '647px';
-            mapImage.style.width = '1024px';
-            mapImage.style.height = '647px';
-            mapImage.src = 'avatar1_map_layout.jpg';
-        }
-        
-        // Render dots, stats and fit using fallback data
-        renderPlotDots();
-        updateStatistics();
-        setTimeout(fitMapToViewport, 100);
-        setupAdminState();
     });
+
+    // INSTANT SYNCHRONOUS RENDER: Show dots and layout immediately!
+    plotData = avatarDataPool[currentProject] || [];
+    updateSidebarAndHeaderForProject(currentProject);
+
+    if (currentProject === 'avatar1') {
+        mapContainer.style.width = '1024px';
+        mapContainer.style.height = '647px';
+        mapImage.style.width = '1024px';
+        mapImage.style.height = '647px';
+        mapImage.src = 'avatar1_map_layout.jpg';
+    } else if (currentProject === 'avatar2') {
+        mapContainer.style.width = '1600px';
+        mapContainer.style.height = '900px';
+        mapImage.style.width = '1600px';
+        mapImage.style.height = '900px';
+        mapImage.src = 'avatar2_digi/map_layout.png';
+    }
+
+    renderPlotDots();
+    updateStatistics();
+    setTimeout(fitMapToViewport, 50);
+    setupAdminState();
+
+    // Background Async Refresh for Fresh Server JSON Datasets
+    fetch('data.json')
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+            if (data && Array.isArray(data)) {
+                avatarDataPool.avatar3 = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+                if (currentProject === 'avatar3') {
+                    plotData = avatarDataPool.avatar3;
+                    renderPlotDots();
+                    updateStatistics();
+                }
+            }
+        }).catch(() => {});
+
+    fetch('avatar2_digi/data.json')
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+            if (data && Array.isArray(data)) {
+                const fresh = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+                avatarDataPool.avatar2 = fresh;
+                if (currentProject === 'avatar2') {
+                    plotData = avatarDataPool.avatar2;
+                    renderPlotDots();
+                    updateStatistics();
+                }
+            }
+        }).catch(() => {});
+
+    fetch('avatar1_data.json')
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+            if (data && Array.isArray(data)) {
+                const fresh = data.filter(item => !isNaN(Number(item.plot_no)) && Number(item.plot_no) > 0);
+                avatarDataPool.avatar1 = fresh;
+                if (currentProject === 'avatar1') {
+                    plotData = avatarDataPool.avatar1;
+                    renderPlotDots();
+                    updateStatistics();
+                }
+            }
+        }).catch(() => {});
 }
 
 // ----------------------------------------------------
