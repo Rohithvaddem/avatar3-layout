@@ -1663,7 +1663,7 @@ function openPlotModal(plotNo) {
             ${emiHtml}
             ${adminCrmHtml}
         </div>
-        <button class="admin-login-btn" id="exportPriceQuoteBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+        <button class="admin-login-btn" id="exportPriceQuoteBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; border-radius: 8px; display: ${new URLSearchParams(window.location.search).get('share') === 'true' ? 'none' : 'flex'}; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
             <i class="fa-solid fa-file-invoice-dollar"></i> Generate Price Quote / PDF
         </button>
         ${editButtonHtml}
