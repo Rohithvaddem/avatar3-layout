@@ -952,436 +952,488 @@ function formatNotesList(notes) {
     return notes.map(note => `<div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; margin-bottom: 4px; font-size: 11px; word-break: break-word;">${note}</div>`).join('');
 }
 
-function exportPlotSpecSheet(plotNo) {
+function exportPriceQuote(plotNo) {
     const item = plotData.find(p => String(p.plot_no) === String(plotNo)) || {
         plot_no: plotNo,
-        plot_size: 'N/A',
-        facing: 'N/A',
+        plot_size: '200',
+        facing: 'East',
         plot_status: 'AVAILABLE',
-        dim_north: 'N/A',
-        dim_south: 'N/A',
-        dim_east: 'N/A',
-        dim_west: 'N/A',
-        customer_name: '',
-        customer_phone: '',
-        customer_email: '',
-        lead_source: '',
-        pipeline_stage: '',
-        crm_notes: []
+        customer_name: ''
     };
 
-    const color = getStatusColor(item.plot_status);
-    const projectMeta = projectMetadata[currentProject] || { title: "Aspirealty Project", location: "Hyderabad" };
-    
+    const plotAreaYds = parseFloat(String(item.plot_size || '').replace(/[^0-9.]/g, '')) || 200;
+    const facingStr = item.facing || 'EAST';
+    const isEast = facingStr.toUpperCase().includes('EAST');
+    const customerName = item.customer_name || '';
+
+    const projectMeta = projectMetadata[currentProject] || { title: "Aspirealty AVATAR 2" };
+
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-        alert("Pop-up blocked! Please allow pop-ups to export the Spec-Sheet.");
+        alert("Pop-up blocked! Please allow pop-ups to generate the Price Quote.");
         return;
     }
-    
+
+    const todayStr = new Date().toLocaleDateString('en-GB').replace(/\//g, '.');
+
     printWindow.document.write(`
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Spec Sheet - Plot #${item.plot_no}</title>
+            <title>Price Quote - Plot #${item.plot_no} - ${projectMeta.title}</title>
             <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <style>
+                * { box-sizing: border-box; }
                 body {
                     font-family: 'Outfit', sans-serif;
-                    background: #ffffff;
-                    color: #1e293b;
+                    background: #f1f5f9;
+                    color: #0f172a;
                     margin: 0;
-                    padding: 40px;
-                    line-height: 1.5;
+                    padding: 20px;
+                    font-size: 12.5px;
                 }
-                .spec-container {
-                    max-width: 800px;
-                    margin: 0 auto;
-                    border: 2px solid #e2e8f0;
+                .no-print {
+                    max-width: 850px;
+                    margin: 0 auto 20px auto;
+                    background: #ffffff;
+                    border: 2px solid #3b82f6;
                     border-radius: 12px;
-                    padding: 40px;
-                    position: relative;
+                    padding: 20px;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
                 }
-                .header {
+                .controls-title {
+                    font-size: 16px;
+                    font-weight: 800;
+                    color: #1e3a8a;
+                    margin-bottom: 14px;
                     display: flex;
-                    justify-content: space-between;
                     align-items: center;
-                    border-bottom: 2px solid #f1f5f9;
-                    padding-bottom: 20px;
-                    margin-bottom: 30px;
+                    gap: 8px;
                 }
-                .brand-title {
-                    font-size: 24px;
-                    font-weight: 800;
-                    color: #0f172a;
-                    letter-spacing: -0.5px;
-                }
-                .brand-subtitle {
-                    font-size: 14px;
-                    color: #64748b;
-                }
-                .status-badge {
-                    background-color: ${color}15;
-                    color: ${color};
-                    border: 1px solid ${color};
-                    padding: 6px 14px;
-                    border-radius: 6px;
-                    font-size: 12px;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                }
-                .title-section {
-                    margin-bottom: 30px;
-                }
-                .plot-header {
-                    font-size: 32px;
-                    font-weight: 800;
-                    color: #0f172a;
-                    margin: 0 0 8px 0;
-                }
-                .project-name {
-                    font-size: 15px;
-                    color: #64748b;
-                    font-weight: 600;
-                }
-                .grid-specs {
+                .control-grid {
                     display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 20px;
-                    margin-bottom: 35px;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 15px;
+                    margin-bottom: 15px;
                 }
-                .spec-box {
-                    background: #f8fafc;
-                    border: 1px solid #e2e8f0;
-                    padding: 18px;
-                    border-radius: 8px;
+                .control-group {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 5px;
                 }
-                .spec-title {
+                .control-group label {
                     font-size: 11px;
-                    font-weight: 700;
-                    color: #64748b;
-                    text-transform: uppercase;
-                    margin-bottom: 6px;
-                    letter-spacing: 0.5px;
-                }
-                .spec-value {
-                    font-size: 18px;
-                    font-weight: 700;
-                    color: #0f172a;
-                }
-                .invoice-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 15px;
-                    margin-bottom: 25px;
-                }
-                .invoice-table th, .invoice-table td {
-                    padding: 12px 8px;
-                    text-align: left;
-                    font-size: 14px;
-                    border-bottom: 1px solid #e2e8f0;
-                }
-                .invoice-table th {
-                    background: #f8fafc;
                     font-weight: 700;
                     color: #475569;
                     text-transform: uppercase;
-                    font-size: 11px;
                 }
-                .footer {
-                    margin-top: 50px;
-                    border-top: 2px solid #f1f5f9;
-                    padding-top: 20px;
+                .control-group select, .control-group input {
+                    padding: 9px 12px;
+                    border: 1px solid #cbd5e1;
+                    border-radius: 6px;
+                    font-family: inherit;
+                    font-size: 13px;
+                    outline: none;
+                }
+                .checkbox-row {
                     display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    font-size: 12px;
-                    color: #64748b;
+                    flex-wrap: wrap;
+                    gap: 15px;
+                    margin-top: 10px;
+                    padding-top: 10px;
+                    border-top: 1px dashed #cbd5e1;
                 }
-                .btn-print {
+                .checkbox-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    cursor: pointer;
+                }
+                .btn-print-quote {
                     background: #0f172a;
                     color: #ffffff;
                     border: none;
                     padding: 12px 24px;
                     font-size: 14px;
-                    font-weight: 700;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    margin-bottom: 20px;
-                    transition: all 0.2s ease;
-                }
-                .btn-print:hover {
-                    background: #1e293b;
-                }
-                .calculator-container {
-                    background: #f8fafc;
-                    border: 2px solid #3b82f6;
+                    font-weight: 800;
                     border-radius: 8px;
-                    padding: 20px;
-                    margin-bottom: 30px;
-                }
-                .calculator-title {
-                    font-size: 15px;
-                    font-weight: 700;
-                    color: #1e3a8a;
-                    margin-top: 0;
-                    margin-bottom: 12px;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
-                .calculator-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 15px;
-                    margin-bottom: 15px;
-                }
-                .calc-input {
-                    width: 100%;
-                    padding: 10px;
-                    border: 1px solid #cbd5e1;
-                    border-radius: 6px;
-                    box-sizing: border-box;
-                    font-family: inherit;
-                    font-size: 14px;
-                    outline: none;
-                }
-                .calc-input:focus {
-                    border-color: #3b82f6;
-                }
-                .btn-calc {
-                    background: #2563eb;
-                    color: #ffffff;
-                    border: none;
-                    width: 100%;
-                    padding: 12px;
-                    font-weight: 700;
-                    font-size: 14px;
-                    border-radius: 6px;
                     cursor: pointer;
-                    display: flex;
+                    display: inline-flex;
                     align-items: center;
-                    justify-content: center;
                     gap: 8px;
+                    margin-top: 15px;
+                    transition: background 0.2s;
                 }
-                .btn-calc:hover {
-                    background: #1d4ed8;
+                .btn-print-quote:hover { background: #1e293b; }
+
+                .quote-container {
+                    max-width: 850px;
+                    margin: 0 auto;
+                    background: #ffffff;
+                    border: 2px solid #0f172a;
+                    padding: 30px;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
                 }
+                .quote-banner {
+                    background: #e2e8f0;
+                    border: 1.5px solid #0f172a;
+                    text-align: center;
+                    font-size: 24px;
+                    font-weight: 800;
+                    padding: 8px;
+                    margin-bottom: -1px;
+                    position: relative;
+                }
+                .quote-date {
+                    position: absolute;
+                    right: 15px;
+                    top: 12px;
+                    font-size: 12px;
+                    font-weight: 700;
+                }
+                .q-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: -1px;
+                }
+                .q-table th, .q-table td {
+                    border: 1.5px solid #0f172a;
+                    padding: 6px 12px;
+                    font-size: 12.5px;
+                    text-align: left;
+                }
+                .q-table th {
+                    background: #f1f5f9;
+                    font-weight: 700;
+                    color: #0f172a;
+                    text-transform: uppercase;
+                    font-size: 11px;
+                }
+                .bg-yellow { background: #fef08a !important; font-weight: 700; }
+                .bg-green { background: #dcfce7 !important; font-weight: 800; font-size: 13.5px; }
+                .notes-block {
+                    font-size: 10.5px;
+                    font-weight: 700;
+                    line-height: 1.6;
+                    border: 1.5px solid #0f172a;
+                    border-top: none;
+                    padding: 10px;
+                }
+                .notes-title { color: #0f172a; font-weight: 800; }
+                .red-heading { color: #dc2626; font-weight: 800; font-size: 12px; }
+                .sig-row {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-top: 40px;
+                    padding-top: 10px;
+                    font-weight: 800;
+                    font-size: 12px;
+                }
+
                 @media print {
-                    .btn-print, .calculator-container, .no-print {
-                        display: none !important;
-                    }
-                    body {
-                        padding: 10px !important;
-                        margin: 0 !important;
-                        font-size: 12px !important;
-                    }
-                    .spec-container {
-                        border: none !important;
-                        padding: 0 !important;
-                        margin: 0 auto !important;
-                        max-width: 100% !important;
-                    }
-                    .invoice-table th, .invoice-table td {
-                        padding: 6px 8px !important;
-                        font-size: 12px !important;
-                    }
-                    .header {
-                        margin-bottom: 15px !important;
-                        padding-bottom: 10px !important;
-                    }
-                    .title-section {
-                        margin-bottom: 15px !important;
-                    }
-                    .plot-header {
-                        font-size: 24px !important;
-                    }
-                    .spec-title {
-                        margin-bottom: 6px !important;
-                    }
-                    img[alt="Venture Layout Map"] {
-                        max-height: 220px !important;
-                    }
-                    div[style*="margin-bottom: 30px"] {
-                        margin-bottom: 15px !important;
-                    }
-                    .footer {
-                        margin-top: 25px !important;
-                        padding-top: 10px !important;
-                        font-size: 10px !important;
-                    }
+                    .no-print { display: none !important; }
+                    body { background: #ffffff !important; padding: 0 !important; }
+                    .quote-container { border: none !important; padding: 0 !important; max-width: 100% !important; box-shadow: none !important; }
                 }
             </style>
         </head>
         <body>
-            <div style="max-width: 800px; margin: 0 auto; display: flex; justify-content: flex-end;" class="no-print">
-                <button class="btn-print" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / Save as PDF</button>
+            <div class="no-print">
+                <div class="controls-title"><i class="fa-solid fa-sliders"></i> Price Quote Calculator &amp; Generator</div>
+                <div class="control-grid">
+                    <div class="control-group">
+                        <label>Client Name</label>
+                        <input type="text" id="inpClientName" value="${customerName}" placeholder="e.g. NAGESHWAR RAO" oninput="recalculateQuote()">
+                    </div>
+                    <div class="control-group">
+                        <label>Client Address</label>
+                        <input type="text" id="inpAddress" placeholder="e.g. Hyderabad" oninput="recalculateQuote()">
+                    </div>
+                    <div class="control-group">
+                        <label>Payment Schedule (Days)</label>
+                        <select id="inpDaysScheme" onchange="recalculateQuote()">
+                            <option value="15">15 Days (Early Payment Offer - ₹200/yd Off)</option>
+                            <option value="45" selected>45 Days (Base Rate ₹15,499)</option>
+                            <option value="90">90 Days (Base Rate ₹15,799)</option>
+                            <option value="120">120 Days (Base Rate ₹15,999)</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Bank Registration Value / Sq.Yd</label>
+                        <select id="inpRegRate" onchange="recalculateQuote()">
+                            <option value="3000" selected>Outright Purchase (₹ 3,000/yd)</option>
+                            <option value="7000">Bank Loan Purchase (₹ 7,000/yd)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="checkbox-row">
+                    <label class="checkbox-item"><input type="checkbox" id="chkEast" ${isEast ? 'checked' : ''} onchange="recalculateQuote()"> East Plot (+ ₹200/yd)</label>
+                    <label class="checkbox-item"><input type="checkbox" id="chkCorner" onchange="recalculateQuote()"> Corner Plot (+ ₹500/yd)</label>
+                    <label class="checkbox-item"><input type="checkbox" id="chkMortgage" onchange="recalculateQuote()"> Mortgage Plot (+ ₹300/yd)</label>
+                    <label class="checkbox-item"><input type="checkbox" id="chkBankLoan" onchange="recalculateQuote()"> Bank Loan (+ ₹300/yd)</label>
+                </div>
+
+                <button class="btn-print-quote" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / Save Official Price Quote PDF</button>
             </div>
-            <div class="spec-container">
-                <div class="header">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <img src="aspirealty_label.png" alt="Aspirealty Logo" style="height: 38px; width: auto; object-fit: contain;">
-                    </div>
-                    <span class="status-badge">${item.plot_status}</span>
-                </div>
-                
-                <div class="title-section">
-                    <div class="plot-header">Plot Specification Sheet</div>
-                    <div class="project-name"><i class="fa-solid fa-location-dot"></i> ${projectMeta.title} &bull; ${projectMeta.location}</div>
+
+            <div class="quote-container">
+                <div class="quote-banner">
+                    Price Quote
+                    <span class="quote-date">DATE: <span id="lblDate">${todayStr}</span></span>
                 </div>
 
-                ${((currentProject === 'avatar1' || currentProject === 'avatar2') && item.plot_status === 'AVAILABLE') ? `
-                <div class="calculator-container no-print">
-                    <div class="calculator-title"><i class="fa-solid fa-calculator"></i> Customize Quotation &amp; Pricing</div>
-                    <div style="margin-bottom: 15px;">
-                        <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 5px;">Price per Square Yard (₹)</label>
-                        <input type="number" id="pricePerSqYard" class="calc-input" value="${currentProject === 'avatar1' ? '15000' : '18000'}" placeholder="Enter rate per sq. yard">
-                    </div>
-                    <button class="btn-calc" onclick="calculatePriceAndPrint()"><i class="fa-solid fa-file-invoice-dollar"></i> Calculate &amp; Save as PDF</button>
-                </div>
-                ` : ''}
-                <!-- Venture Layout Map -->
-                <div style="margin-bottom: 30px;">
-                    <div class="spec-title" style="margin-bottom: 12px; color: #3b82f6;">Venture Layout Map</div>
-                    <div style="width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #f8fafc; padding: 10px; display: flex; justify-content: center; align-items: center; box-sizing: border-box;">
-                        <img src="${currentProject === 'avatar1' ? 'avatar1_map_layout.jpg' : 
-                                   currentProject === 'avatar2' ? 'avatar2_digi/map_layout.jpg' : 
-                                   'map_layout.png'}" 
-                             alt="Venture Layout Map" 
-                             style="max-width: 100%; max-height: 280px; object-fit: contain; border-radius: 4px;">
-                    </div>
+                <!-- Client Info Table -->
+                <table class="q-table">
+                    <tr>
+                        <td style="width: 20%; font-weight: 700; background: #f8fafc;">Client Name</td>
+                        <td style="width: 80%; font-weight: 700;" id="lblClientName">${customerName || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 700; background: #f8fafc;">Address</td>
+                        <td id="lblAddress">-</td>
+                    </tr>
+                </table>
+
+                <!-- Project & Closing Price Table -->
+                <table class="q-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 35%;">Project Name</th>
+                            <th style="width: 20%;">Plot No.</th>
+                            <th style="width: 20%;">Facing</th>
+                            <th style="width: 25%;">Closing Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-weight: 800;">${projectMeta.title}</td>
+                            <td style="font-weight: 700; text-align: center;">${item.plot_no}</td>
+                            <td style="font-weight: 700; text-align: center; text-transform: uppercase;">${facingStr}</td>
+                            <td class="bg-yellow" style="text-align: right;" id="lblClosingPrice">₹ 15,499</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Price Quotation Table -->
+                <div style="background: #f1f5f9; border: 1.5px solid #0f172a; padding: 4px 12px; font-weight: 800; border-top: none; border-bottom: none; text-align: center;">Price Quotation</div>
+                <table class="q-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%;">Total sq.yds</th>
+                            <th style="width: 35%;">Per sq.yd.</th>
+                            <th style="width: 35%;">Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="bg-yellow" style="text-align: center;" id="lblPlotArea">${plotAreaYds}</td>
+                            <td style="text-align: right;" id="lblPerSqYd">₹ 15,499</td>
+                            <td class="bg-green" style="text-align: right;" id="lblTotalAmount">₹ 30,99,800</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Payment Structure Table -->
+                <div style="background: #f1f5f9; border: 1.5px solid #0f172a; padding: 4px 12px; font-weight: 800; border-top: none; border-bottom: none; text-align: center;">Payment Structure</div>
+                <table class="q-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%;">Payment Mode</th>
+                            <th style="width: 25%;">Total sq.yd</th>
+                            <th style="width: 25%;">Per sq.yd.</th>
+                            <th style="width: 20%;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>By A/C Transfer</strong></td>
+                            <td style="text-align: center;" id="lblBankSqYd">${plotAreaYds}</td>
+                            <td class="bg-yellow" style="text-align: right;" id="lblBankRate">₹ 3,000</td>
+                            <td style="text-align: right;" id="lblBankTotal">₹ 6,00,000</td>
+                        </tr>
+                        <tr>
+                            <td><strong>By Cash</strong></td>
+                            <td style="text-align: center;" id="lblCashSqYd">${plotAreaYds}</td>
+                            <td class="bg-yellow" style="text-align: right;" id="lblCashRate">₹ 12,499</td>
+                            <td style="text-align: right;" id="lblCashTotal">₹ 24,99,800</td>
+                        </tr>
+                        <tr class="bg-green">
+                            <td colspan="3" style="text-align: right; font-weight: 800;">Total</td>
+                            <td style="text-align: right;" id="lblStructTotal">₹ 30,99,800</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Payment Schedule Table -->
+                <div style="background: #f1f5f9; border: 1.5px solid #0f172a; padding: 4px 12px; font-weight: 800; border-top: none; border-bottom: none; text-align: center;">Payment Schedule</div>
+                <table class="q-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Date</th>
+                            <th style="width: 35%;">Particulars</th>
+                            <th style="width: 20%;">Percentage (%)</th>
+                            <th style="width: 20%;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="lblDateBooking">${todayStr}</td>
+                            <td><strong>BOOKING AMOUNT</strong></td>
+                            <td style="text-align: center;">-</td>
+                            <td style="text-align: right;">₹ 1,00,000</td>
+                        </tr>
+                        <tr>
+                            <td id="lblDatePart2">-</td>
+                            <td><strong id="lblScheduleLabel1">WITHIN 15 DAYS</strong></td>
+                            <td style="text-align: center;" id="lblPct1">25%</td>
+                            <td style="text-align: right;" id="lblAmt1">₹ 7,49,950</td>
+                        </tr>
+                        <tr>
+                            <td id="lblDatePart3">-</td>
+                            <td><strong id="lblScheduleLabel2">WITHIN 45 DAYS</strong></td>
+                            <td style="text-align: center;">100%</td>
+                            <td style="text-align: right;" id="lblAmt2">₹ 22,49,850</td>
+                        </tr>
+                        <tr class="bg-green">
+                            <td colspan="3" style="text-align: right; font-weight: 800;">TOTAL</td>
+                            <td style="text-align: right;" id="lblScheduleTotal">₹ 30,99,800</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Standard Notes -->
+                <div class="notes-block">
+                    <div class="notes-title">NOTE 1 : EXTRA CORPUS FUND 200/- Rs Per SQ Yd ( Not Included In Plot Cost )</div>
+                    <div class="notes-title">NOTE 2 : Documentation Charges 5,000 and Registration Charges - 7.6% on Sale Deed Value, these charges are not included in the Price Quotation</div>
+                    <div class="notes-title">NOTE 3: IN CASE OF PLOT CANCEL AFTER 15 DAYS FROM THE BOOKING DATE, A CHARGE OF RS.50000/- WILL APPLY.</div>
                 </div>
 
-                <!-- Invoice-Style Details Table -->
-                <div style="margin-bottom: 30px;">
-                    <div class="spec-title" style="margin-bottom: 12px; color: #3b82f6;">Plot &amp; Venture Details</div>
-                    <table class="invoice-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 40%;">Description / Item</th>
-                                <th style="width: 60%;">Specification Details</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>Plot Number</strong></td>
-                                <td style="color: #2563eb; font-weight: 700;">Plot #${item.plot_no}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Plot Area</strong></td>
-                                <td>${item.plot_size ? item.plot_size + ' Sq. Yards' : 'N/A'}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Facing Direction</strong></td>
-                                <td>${item.facing || 'N/A'}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Current Status</strong></td>
-                                <td style="font-weight: 700; text-transform: uppercase;">${item.plot_status}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Venture Name</strong></td>
-                                <td>${projectMeta.title}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Venture Location</strong></td>
-                                <td>${projectMeta.location}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Total Venture Area</strong></td>
-                                <td>${projectMeta.area || 'N/A'}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Total Venture Plots</strong></td>
-                                <td>${projectMeta.plots || 'N/A'}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Venture Approvals</strong></td>
-                                <td>
-                                    ${currentProject === 'avatar1' ? 'DTCP Approved 224/2023/h | RERA Approved po2400007808' : 
-                                      currentProject === 'avatar2' ? 'DTCP Approved 28/2025/h | RERA Approved Po2400009896' : 
-                                      'DTCP Approved 9/2024/h'}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <!-- Registration Charges Table -->
+                <table class="q-table" style="margin-top: 10px;">
+                    <tbody>
+                        <tr>
+                            <td style="width: 65%;" class="red-heading">REGISTRATION CHARGES: 7.5% ON TOTAL BANK AMOUNT</td>
+                            <td style="width: 35%; text-align: right; font-weight: 700;" id="lblReg75">₹ 45,000</td>
+                        </tr>
+                        <tr>
+                            <td>USER CHARGES</td>
+                            <td style="text-align: right; font-weight: 700;">1000</td>
+                        </tr>
+                        <tr>
+                            <td>STAMP</td>
+                            <td style="text-align: right; font-weight: 700;">100</td>
+                        </tr>
+                        <tr>
+                            <td>HARITHA HARAM</td>
+                            <td style="text-align: right; font-weight: 700;">50</td>
+                        </tr>
+                        <tr>
+                            <td>DOCUMENTATION CHARGES</td>
+                            <td style="text-align: right; font-weight: 700;">5000</td>
+                        </tr>
+                        <tr>
+                            <td>MUTATION 0.1%</td>
+                            <td style="text-align: right; font-weight: 700;" id="lblMutation">800</td>
+                        </tr>
+                        <tr class="bg-green">
+                            <td style="font-weight: 800;">TOTAL REGISTRATION CHARGES</td>
+                            <td style="text-align: right;" id="lblRegTotal">₹ 51,950</td>
+                        </tr>
+                    </tbody>
+                </table>
 
-                <!-- Price Structure Container (Visible on Calculation) -->
-                <div id="priceStructureContainer" style="margin-bottom: 30px; display: none;">
-                    <div class="spec-title" style="margin-bottom: 12px; color: #2563eb;">Estimated Price Structure &amp; Quotation</div>
-                    <table class="invoice-table">
-                        <tbody>
-                            <tr>
-                                <td style="width: 60%;"><strong>Base Land Cost</strong> (Area &times; Rate per Sq. Yard)</td>
-                                <td id="valBasePrice" style="width: 40%; text-align: right; font-weight: 600;">₹0.00</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Govt Stamp Duty &amp; Reg. (7.5% in Telangana)</strong></td>
-                                <td id="valStampDuty" style="text-align: right; font-weight: 600;">₹0.00</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Corpus Fund (₹200/yd)</strong></td>
-                                <td id="valCorpusFund" style="text-align: right; font-weight: 600;">₹0.00</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Legal Verification &amp; Document Fee</strong></td>
-                                <td id="valLegalFee" style="text-align: right; font-weight: 600;">₹15,000.00</td>
-                            </tr>
-                            <tr style="background: #eff6ff; font-weight: 800; font-size: 16px; color: #1e3a8a; border-top: 2px solid #2563eb;">
-                                <td>Grand Total (Estimated Quoted Price)</td>
-                                <td id="valGrandTotal" style="text-align: right;">₹0.00</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="footer">
-                    <div>Generated on ${new Date().toLocaleDateString()}</div>
-                    <div>&copy; ${new Date().getFullYear()} Aspirealty Projects Private Limited. All rights reserved.</div>
+                <div class="sig-row">
+                    <div>CUSTOMER SIGN :</div>
+                    <div>AUTHORISED SIGN :</div>
                 </div>
             </div>
 
             <script>
-                function calculatePriceAndPrint() {
-                    const rate = parseFloat(document.getElementById('pricePerSqYard').value) || 0;
-                    const area = parseFloat("${item.plot_size}".replace(/[^0-9.]/g, '')) || 0;
-                    
-                    if (area === 0) {
-                        alert("Invalid plot size for calculations!");
-                        return;
+                function recalculateQuote() {
+                    const plotArea = ${plotAreaYds};
+                    const name = document.getElementById('inpClientName').value.trim() || '-';
+                    const addr = document.getElementById('inpAddress').value.trim() || '-';
+                    const schemeDays = parseInt(document.getElementById('inpDaysScheme').value) || 45;
+                    const regRate = parseFloat(document.getElementById('inpRegRate').value) || 3000;
+
+                    let baseRate = 15499;
+                    if (schemeDays === 15) baseRate = 15299; // ₹200 Early Payment Offer discount!
+                    else if (schemeDays === 45) baseRate = 15499;
+                    else if (schemeDays === 90) baseRate = 15799;
+                    else if (schemeDays === 120) baseRate = 15999;
+
+                    let extraRate = 0;
+                    if (document.getElementById('chkEast').checked) extraRate += 200;
+                    if (document.getElementById('chkCorner').checked) extraRate += 500;
+                    if (document.getElementById('chkMortgage').checked) extraRate += 300;
+                    if (document.getElementById('chkBankLoan').checked) extraRate += 300;
+
+                    const closingPriceSqYd = baseRate + extraRate;
+                    const totalPlotAmount = Math.round(plotArea * closingPriceSqYd);
+
+                    const bankAmount = Math.round(plotArea * regRate);
+                    const cashAmount = Math.max(0, totalPlotAmount - bankAmount);
+                    const cashRateSqYd = Math.max(0, closingPriceSqYd - regRate);
+
+                    const bookingAmt = 100000;
+                    let amt1 = 0;
+                    let amt2 = 0;
+                    let pct1Str = "25%";
+                    let label1 = "WITHIN 15 DAYS";
+                    let label2 = "WITHIN " + schemeDays + " DAYS";
+
+                    if (schemeDays === 15) {
+                        label1 = "WITHIN 5 DAYS";
+                        label2 = "WITHIN 10 DAYS";
+                        pct1Str = "50%";
+                        amt1 = Math.round((totalPlotAmount - bookingAmt) * 0.5);
+                        amt2 = totalPlotAmount - bookingAmt - amt1;
+                    } else {
+                        pct1Str = "25%";
+                        amt1 = Math.round(totalPlotAmount * 0.25);
+                        amt2 = totalPlotAmount - bookingAmt - amt1;
                     }
-                    
-                    const basePrice = area * rate;
-                    const stampDuty = basePrice * 0.075; // 7.5% Govt Stamp Duty & Registration in Telangana
-                    const corpusFund = area * 200; // ₹200 per sq. yard Corpus Fund
-                    const legalFee = 15000; // ₹15,000 Legal Verification & Document Fee
-                    const grandTotal = basePrice + stampDuty + corpusFund + legalFee;
-                    
-                    // Format currency
-                    const fmt = (val) => '₹ ' + val.toLocaleString('en-IN', {
-                        maximumFractionDigits: 2,
-                        minimumFractionDigits: 2
-                    });
-                    
-                    document.getElementById('valBasePrice').textContent = fmt(basePrice);
-                    document.getElementById('valStampDuty').textContent = fmt(stampDuty);
-                    document.getElementById('valCorpusFund').textContent = fmt(corpusFund);
-                    document.getElementById('valLegalFee').textContent = fmt(legalFee);
-                    document.getElementById('valGrandTotal').textContent = fmt(grandTotal);
-                    
-                    // Show quotation table
-                    document.getElementById('priceStructureContainer').style.display = 'block';
-                    
-                    // Automatically trigger native print dialog to save as PDF
-                    setTimeout(() => {
-                        window.print();
-                    }, 400);
+
+                    const reg75 = Math.round(bankAmount * 0.075);
+                    const userCharges = 1000;
+                    const stamp = 100;
+                    const haritha = 50;
+                    const docCharges = 5000;
+                    const mutation = Math.max(800, Math.round(bankAmount * 0.001));
+                    const totalRegCharges = reg75 + userCharges + stamp + haritha + docCharges + mutation;
+
+                    const fmt = (v) => '₹ ' + Math.round(v).toLocaleString('en-IN');
+
+                    document.getElementById('lblClientName').textContent = name;
+                    document.getElementById('lblAddress').textContent = addr;
+
+                    document.getElementById('lblClosingPrice').textContent = fmt(closingPriceSqYd);
+                    document.getElementById('lblPerSqYd').textContent = fmt(closingPriceSqYd);
+                    document.getElementById('lblTotalAmount').textContent = fmt(totalPlotAmount);
+
+                    document.getElementById('lblBankRate').textContent = fmt(regRate);
+                    document.getElementById('lblBankTotal').textContent = fmt(bankAmount);
+                    document.getElementById('lblCashRate').textContent = fmt(cashRateSqYd);
+                    document.getElementById('lblCashTotal').textContent = fmt(cashAmount);
+                    document.getElementById('lblStructTotal').textContent = fmt(totalPlotAmount);
+
+                    document.getElementById('lblScheduleLabel1').textContent = label1;
+                    document.getElementById('lblScheduleLabel2').textContent = label2;
+                    document.getElementById('lblPct1').textContent = pct1Str;
+                    document.getElementById('lblAmt1').textContent = fmt(amt1);
+                    document.getElementById('lblAmt2').textContent = fmt(amt2);
+                    document.getElementById('lblScheduleTotal').textContent = fmt(totalPlotAmount);
+
+                    document.getElementById('lblReg75').textContent = fmt(reg75);
+                    document.getElementById('lblMutation').textContent = mutation.toLocaleString('en-IN');
+                    document.getElementById('lblRegTotal').textContent = fmt(totalRegCharges);
                 }
+
+                recalculateQuote();
             </script>
         </body>
         </html>
@@ -1515,11 +1567,9 @@ function openPlotModal(plotNo) {
             ${emiHtml}
             ${adminCrmHtml}
         </div>
-        ${isAdminLoggedIn ? `
-        <button class="admin-login-btn" id="exportSpecSheetBtn" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border-color); font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px;">
-            <i class="fa-solid fa-file-pdf"></i> Export Spec-Sheet / PDF
+        <button class="admin-login-btn" id="exportPriceQuoteBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+            <i class="fa-solid fa-file-invoice-dollar"></i> Generate Price Quote / PDF
         </button>
-        ` : ''}
         ${editButtonHtml}
     `;
 
@@ -1570,10 +1620,10 @@ function openPlotModal(plotNo) {
         }
     }
     
-    const exportPdfBtn = document.getElementById('exportSpecSheetBtn');
-    if (exportPdfBtn) {
-        exportPdfBtn.addEventListener('click', () => {
-            exportPlotSpecSheet(plotNo);
+    const exportQuoteBtn = document.getElementById('exportPriceQuoteBtn') || document.getElementById('exportSpecSheetBtn');
+    if (exportQuoteBtn) {
+        exportQuoteBtn.addEventListener('click', () => {
+            exportPriceQuote(plotNo);
         });
     }
 
@@ -2554,55 +2604,31 @@ function initLeafletMap() {
     // Initialize custom Mini-map Inset (Disabled)
     // setupMiniMap();
 
-    // Setup L.ImageOverlay.Rotated extension (Center-Anchored Geographic Pivot for zero-shift rotation)
+    // Setup L.ImageOverlay.Rotated extension (Rotates cleanly around 50% 50% image center)
     if (!L.ImageOverlay.Rotated) {
         L.ImageOverlay.Rotated = L.ImageOverlay.extend({
             options: {
                 rotation: 0
             },
             _reset: function () {
-                if (!this._map || !this._image) return;
-                var bounds = this._bounds;
-                var center = bounds.getCenter();
-                var centerPx = this._map.latLngToLayerPoint(center);
-                
-                var nw = this._map.latLngToLayerPoint(bounds.getNorthWest());
-                var se = this._map.latLngToLayerPoint(bounds.getSouthEast());
-                var w = Math.abs(se.x - nw.x);
-                var h = Math.abs(se.y - nw.y);
-
-                this._image.style.width = w + 'px';
-                this._image.style.height = h + 'px';
-                this._image.style.transformOrigin = 'center center';
-
-                var topLeftPx = centerPx.sub(L.point(w / 2, h / 2));
-                var transform = L.DomUtil.getTranslateString(topLeftPx);
-                if (this.options.rotation) {
-                    transform += ' rotate(' + (-this.options.rotation) + 'deg)';
+                L.ImageOverlay.prototype._reset.call(this);
+                if (this._image && this.options.rotation) {
+                    this._image.style.transformOrigin = '50% 50%';
+                    var currentTransform = this._image.style.transform || '';
+                    if (!currentTransform.includes('rotate(')) {
+                        this._image.style.transform = currentTransform + ' rotate(' + (-this.options.rotation) + 'deg)';
+                    }
                 }
-                this._image.style.transform = transform;
             },
             _animateZoom: function (e) {
-                if (!this._map || !this._image) return;
-                var bounds = this._bounds;
-                var center = bounds.getCenter();
-                var centerPx = this._map._latLngToNewLayerPoint(center, e.zoom, e.center);
-                
-                var nw = this._map._latLngToNewLayerPoint(bounds.getNorthWest(), e.zoom, e.center);
-                var se = this._map._latLngToNewLayerPoint(bounds.getSouthEast(), e.zoom, e.center);
-                var w = Math.abs(se.x - nw.x);
-                var h = Math.abs(se.y - nw.y);
-
-                this._image.style.width = w + 'px';
-                this._image.style.height = h + 'px';
-                this._image.style.transformOrigin = 'center center';
-
-                var topLeftPx = centerPx.sub(L.point(w / 2, h / 2));
-                var transform = L.DomUtil.getTranslateString(topLeftPx);
-                if (this.options.rotation) {
-                    transform += ' rotate(' + (-this.options.rotation) + 'deg)';
+                L.ImageOverlay.prototype._animateZoom.call(this, e);
+                if (this._image && this.options.rotation) {
+                    this._image.style.transformOrigin = '50% 50%';
+                    var currentTransform = this._image.style.transform || '';
+                    if (!currentTransform.includes('rotate(')) {
+                        this._image.style.transform = currentTransform + ' rotate(' + (-this.options.rotation) + 'deg)';
+                    }
                 }
-                this._image.style.transform = transform;
             }
         });
 
