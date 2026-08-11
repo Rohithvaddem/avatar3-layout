@@ -964,6 +964,10 @@ function exportPriceQuote(plotNo) {
     const plotAreaYds = parseFloat(String(item.plot_size || '').replace(/[^0-9.]/g, '')) || 200;
     const facingStr = item.facing || 'EAST';
     const isEast = facingStr.toUpperCase().includes('EAST');
+    const isMortgage = (item.plot_status && String(item.plot_status).toUpperCase().includes('MORTGAGE')) ||
+                       (item.remarks && String(item.remarks).toUpperCase().includes('MORTGAGE')) ||
+                       (item.facing && String(item.facing).toUpperCase().includes('MORTGAGE')) ||
+                       (item.is_mortgage === true);
     const customerName = item.customer_name || '';
 
     const projectMeta = projectMetadata[currentProject] || { title: currentProject === 'avatar1' ? "Aspirealty AVATAR 1" : "Aspirealty AVATAR 2" };
@@ -971,7 +975,8 @@ function exportPriceQuote(plotNo) {
     // Base Price per sq. yard: Avatar 1 = ₹23,999, Avatar 2 & others = ₹15,499
     const defaultBaseRate = (currentProject === 'avatar1') ? 23999 : 15499;
     const initialEastRate = isEast ? 200 : 0;
-    const initialEffectiveRate = defaultBaseRate + initialEastRate;
+    const initialMortgageRate = isMortgage ? 300 : 0;
+    const initialEffectiveRate = defaultBaseRate + initialEastRate + initialMortgageRate;
 
     const initialTotalAmount = Math.round(plotAreaYds * initialEffectiveRate);
     const initialBankTotal = Math.round(plotAreaYds * 3000);
@@ -1204,8 +1209,8 @@ function exportPriceQuote(plotNo) {
                         </tr>
                         <tr>
                             <td contenteditable="true">Mortgage Plot Charge</td>
-                            <td style="text-align: center;" id="lblMortgageRate" contenteditable="true">₹ 0</td>
-                            <td style="text-align: right;" id="lblMortgageTotal" contenteditable="true">₹ 0</td>
+                            <td style="text-align: center;" id="lblMortgageRate" contenteditable="true">${isMortgage ? '₹ 300' : '₹ 0'}</td>
+                            <td style="text-align: right;" id="lblMortgageTotal" contenteditable="true">${fmt(isMortgage ? plotAreaYds * 300 : 0)}</td>
                         </tr>
                         <tr>
                             <td contenteditable="true">Bank Loan Processing Extra</td>
