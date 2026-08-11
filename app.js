@@ -2565,10 +2565,13 @@ function initLeafletMap() {
                 L.setOptions(this, options);
             },
             onAdd: function (map) {
+                this._map = map;
                 if (!this._image) {
                     this._initImage();
                 }
-                map._panes.overlayPane.appendChild(this._image);
+                var pane = map.getPanes().overlayPane;
+                pane.appendChild(this._image);
+
                 map.on('viewreset resetview zoom zoomend', this._reset, this);
                 if (map.options.zoomAnimation && L.Browser.any3d) {
                     map.on('zoomanim', this._animateZoom, this);
@@ -2583,6 +2586,7 @@ function initLeafletMap() {
                 if (map.options.zoomAnimation) {
                     map.off('zoomanim', this._animateZoom, this);
                 }
+                this._map = null;
             },
             _initImage: function () {
                 var img = this._image = L.DomUtil.create('img', 'leaflet-image-layer');
