@@ -2554,31 +2554,55 @@ function initLeafletMap() {
     // Initialize custom Mini-map Inset (Disabled)
     // setupMiniMap();
 
-    // Setup L.ImageOverlay.Rotated extension (Rotates cleanly around 50% 50% image center)
+    // Setup L.ImageOverlay.Rotated extension (Center-Anchored Geographic Pivot for zero-shift rotation)
     if (!L.ImageOverlay.Rotated) {
         L.ImageOverlay.Rotated = L.ImageOverlay.extend({
             options: {
                 rotation: 0
             },
             _reset: function () {
-                L.ImageOverlay.prototype._reset.call(this);
-                if (this._image && this.options.rotation) {
-                    this._image.style.transformOrigin = '50% 50%';
-                    var currentTransform = this._image.style.transform || '';
-                    if (!currentTransform.includes('rotate(')) {
-                        this._image.style.transform = currentTransform + ' rotate(' + (-this.options.rotation) + 'deg)';
-                    }
+                if (!this._map || !this._image) return;
+                var bounds = this._bounds;
+                var center = bounds.getCenter();
+                var centerPx = this._map.latLngToLayerPoint(center);
+                
+                var nw = this._map.latLngToLayerPoint(bounds.getNorthWest());
+                var se = this._map.latLngToLayerPoint(bounds.getSouthEast());
+                var w = Math.abs(se.x - nw.x);
+                var h = Math.abs(se.y - nw.y);
+
+                this._image.style.width = w + 'px';
+                this._image.style.height = h + 'px';
+                this._image.style.transformOrigin = 'center center';
+
+                var topLeftPx = centerPx.sub(L.point(w / 2, h / 2));
+                var transform = L.DomUtil.getTranslateString(topLeftPx);
+                if (this.options.rotation) {
+                    transform += ' rotate(' + (-this.options.rotation) + 'deg)';
                 }
+                this._image.style.transform = transform;
             },
             _animateZoom: function (e) {
-                L.ImageOverlay.prototype._animateZoom.call(this, e);
-                if (this._image && this.options.rotation) {
-                    this._image.style.transformOrigin = '50% 50%';
-                    var currentTransform = this._image.style.transform || '';
-                    if (!currentTransform.includes('rotate(')) {
-                        this._image.style.transform = currentTransform + ' rotate(' + (-this.options.rotation) + 'deg)';
-                    }
+                if (!this._map || !this._image) return;
+                var bounds = this._bounds;
+                var center = bounds.getCenter();
+                var centerPx = this._map._latLngToNewLayerPoint(center, e.zoom, e.center);
+                
+                var nw = this._map._latLngToNewLayerPoint(bounds.getNorthWest(), e.zoom, e.center);
+                var se = this._map._latLngToNewLayerPoint(bounds.getSouthEast(), e.zoom, e.center);
+                var w = Math.abs(se.x - nw.x);
+                var h = Math.abs(se.y - nw.y);
+
+                this._image.style.width = w + 'px';
+                this._image.style.height = h + 'px';
+                this._image.style.transformOrigin = 'center center';
+
+                var topLeftPx = centerPx.sub(L.point(w / 2, h / 2));
+                var transform = L.DomUtil.getTranslateString(topLeftPx);
+                if (this.options.rotation) {
+                    transform += ' rotate(' + (-this.options.rotation) + 'deg)';
                 }
+                this._image.style.transform = transform;
             }
         });
 
