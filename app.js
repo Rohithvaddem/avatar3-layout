@@ -1389,6 +1389,7 @@ function exportPriceQuote(plotNo) {
                         const areaEl = document.getElementById('lblPlotArea');
                         const closingPriceEl = document.getElementById('lblClosingPrice');
                         const bankRateEl = document.getElementById('lblBankRate');
+                        const cashRateEl = document.getElementById('lblCashRate');
 
                         const eastRateEl = document.getElementById('lblEastRate');
                         const cornerRateEl = document.getElementById('lblCornerRate');
@@ -1397,7 +1398,7 @@ function exportPriceQuote(plotNo) {
                         const corpusRateEl = document.getElementById('lblCorpusRate');
 
                         const plotArea = parseNum(areaEl ? areaEl.innerText : '200');
-                        const baseClosingPrice = parseNum(closingPriceEl ? closingPriceEl.innerText : '15499');
+                        let baseClosingPrice = parseNum(closingPriceEl ? closingPriceEl.innerText : '15499');
                         const bankRate = parseNum(bankRateEl ? bankRateEl.innerText : '3000');
 
                         const eastRate = parseNum(eastRateEl ? eastRateEl.innerText : '0');
@@ -1405,6 +1406,13 @@ function exportPriceQuote(plotNo) {
                         const mortgageRate = parseNum(mortgageRateEl ? mortgageRateEl.innerText : '0');
                         const bankLoanRate = parseNum(bankLoanRateEl ? bankLoanRateEl.innerText : '0');
                         const corpusRate = parseNum(corpusRateEl ? corpusRateEl.innerText : '200');
+
+                        // If user edits By Cash Rate directly in Payment Structure, update base Closing Price
+                        if (active === cashRateEl) {
+                            const typedCashRate = parseNum(cashRateEl.innerText);
+                            baseClosingPrice = Math.max(0, (typedCashRate + bankRate) - (eastRate + cornerRate + mortgageRate + bankLoanRate));
+                            if (closingPriceEl) closingPriceEl.innerText = fmt(baseClosingPrice);
+                        }
 
                         // Base plot cost without add-ons
                         const baseTotalAmount = Math.round(plotArea * baseClosingPrice);
@@ -1421,8 +1429,8 @@ function exportPriceQuote(plotNo) {
                         const totalValueAmount = Math.round(plotArea * effectiveRate);
 
                         const bankTotal = Math.round(plotArea * bankRate);
-                        const cashTotal = Math.max(0, totalValueAmount - bankTotal);
                         const cashRate = Math.max(0, effectiveRate - bankRate);
+                        const cashTotal = Math.max(0, totalValueAmount - bankTotal);
 
                         const bookingAmt = 100000;
                         const amt1 = Math.round(totalValueAmount * 0.25);
@@ -1460,11 +1468,16 @@ function exportPriceQuote(plotNo) {
                         const corpusTotalEl = document.getElementById('lblCorpusTotal');
                         if (corpusTotalEl && corpusTotalEl !== active) corpusTotalEl.innerText = fmt(corpusTotal);
 
-                        // Update Payment Structure & Schedule
+                        // Update Payment Structure (Sq.Yds, Rates & Totals)
+                        const bankSqYdEl = document.getElementById('lblBankSqYd');
+                        if (bankSqYdEl && bankSqYdEl !== active) bankSqYdEl.innerText = plotArea;
+
+                        const cashSqYdEl = document.getElementById('lblCashSqYd');
+                        if (cashSqYdEl && cashSqYdEl !== active) cashSqYdEl.innerText = plotArea;
+
                         const bankTotalEl = document.getElementById('lblBankTotal');
                         if (bankTotalEl && bankTotalEl !== active) bankTotalEl.innerText = fmt(bankTotal);
 
-                        const cashRateEl = document.getElementById('lblCashRate');
                         if (cashRateEl && cashRateEl !== active) cashRateEl.innerText = fmt(cashRate);
 
                         const cashTotalEl = document.getElementById('lblCashTotal');
@@ -1473,6 +1486,7 @@ function exportPriceQuote(plotNo) {
                         const structTotalEl = document.getElementById('lblStructTotal');
                         if (structTotalEl && structTotalEl !== active) structTotalEl.innerText = fmt(totalValueAmount);
 
+                        // Update Payment Schedule
                         const amt1El = document.getElementById('lblAmt1');
                         if (amt1El && amt1El !== active) amt1El.innerText = fmt(amt1);
 
@@ -1482,6 +1496,7 @@ function exportPriceQuote(plotNo) {
                         const scheduleTotalEl = document.getElementById('lblScheduleTotal');
                         if (scheduleTotalEl && scheduleTotalEl !== active) scheduleTotalEl.innerText = fmt(totalValueAmount);
 
+                        // Update Registration Charges
                         const reg75El = document.getElementById('lblReg75');
                         if (reg75El && reg75El !== active) reg75El.innerText = fmt(reg75);
 
@@ -1492,7 +1507,7 @@ function exportPriceQuote(plotNo) {
                         if (regTotalEl && regTotalEl !== active) regTotalEl.innerText = fmt(totalRegCharges);
                     }
 
-                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblBankRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate'].forEach(id => {
+                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate'].forEach(id => {
                         const el = document.getElementById(id);
                         if (el) {
                             el.addEventListener('input', updateCalculations);
@@ -2180,18 +2195,19 @@ function setupAdminState() {
         if (mapperSection) mapperSection.style.display = 'block';
         
         sidebarFooter.innerHTML = `
-            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
-                <button class="admin-login-btn" id="sidebarShareBtn" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 9px 12px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; width: 100%;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%;">
+                <button class="admin-login-btn" id="sidebarShareBtn" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 8px 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; grid-column: span 2;">
                     <i class="fa-solid fa-share-nodes"></i> Share Current Layout Link
                 </button>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%;">
-                    <button class="admin-login-btn" id="exportDbBtn" style="background-color: var(--accent); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 8px 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px;">
-                        <i class="fa-solid fa-download"></i> Export Data
-                    </button>
-                    <button class="admin-login-btn" id="resetDbBtn" style="background-color: rgba(255,255,255,0.05); color: var(--text-secondary); border: 1px solid var(--border-color); font-weight: 600; cursor: pointer; padding: 8px 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px;">
-                        <i class="fa-solid fa-rotate-left"></i> Reset
-                    </button>
-                </div>
+                <button class="admin-login-btn" id="exportDbBtn" style="background-color: var(--accent); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 8px 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px;">
+                    <i class="fa-solid fa-download"></i> Export Data
+                </button>
+                <button class="admin-login-btn" id="resetDbBtn" style="background-color: rgba(255,255,255,0.05); color: var(--text-secondary); border: 1px solid var(--border-color); font-weight: 600; cursor: pointer; padding: 8px 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px;">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+                <button class="admin-login-btn" id="logoutBtn" style="background-color: var(--status-registered); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 8px 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; grid-column: span 2;">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Admin Logout
+                </button>
             </div>
         `;
 
