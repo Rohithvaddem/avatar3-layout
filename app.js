@@ -1173,45 +1173,6 @@ function exportPriceQuote(plotNo) {
             </style>
         </head>
         <body>
-            <div class="no-print">
-                <div class="controls-title"><i class="fa-solid fa-sliders"></i> Price Quote Calculator &amp; Auto Preset</div>
-                <div class="edit-hint"><i class="fa-solid fa-pen-to-square"></i> Live Edit Mode: Click on ANY single cell, title, number, or note anywhere on the page below to edit directly!</div>
-                
-                <div class="control-grid">
-                    <div class="control-group">
-                        <label>Client Name</label>
-                        <input type="text" id="inpClientName" value="${customerName}" placeholder="e.g. NAGESHWAR RAO" oninput="recalculateQuote()">
-                    </div>
-                    <div class="control-group">
-                        <label>Client Address</label>
-                        <input type="text" id="inpAddress" placeholder="e.g. Hyderabad" oninput="recalculateQuote()">
-                    </div>
-                    <div class="control-group">
-                        <label>Payment Schedule (Days)</label>
-                        <select id="inpDaysScheme" onchange="recalculateQuote()">
-                            <option value="15">15 Days (Early Payment Offer - ₹200/yd Off)</option>
-                            <option value="45" selected>45 Days (Base Rate ₹15,499)</option>
-                            <option value="90">90 Days (Base Rate ₹15,799)</option>
-                            <option value="120">120 Days (Base Rate ₹15,999)</option>
-                        </select>
-                    </div>
-                    <div class="control-group">
-                        <label>Bank Registration Value / Sq.Yd</label>
-                        <select id="inpRegRate" onchange="recalculateQuote()">
-                            <option value="3000" selected>Outright Purchase (₹ 3,000/yd)</option>
-                            <option value="7000">Bank Loan Purchase (₹ 7,000/yd)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="checkbox-row">
-                    <label class="checkbox-item"><input type="checkbox" id="chkEast" ${isEast ? 'checked' : ''} onchange="recalculateQuote()"> East Plot (+ ₹200/yd)</label>
-                    <label class="checkbox-item"><input type="checkbox" id="chkCorner" onchange="recalculateQuote()"> Corner Plot (+ ₹500/yd)</label>
-                    <label class="checkbox-item"><input type="checkbox" id="chkMortgage" onchange="recalculateQuote()"> Mortgage Plot (+ ₹300/yd)</label>
-                    <label class="checkbox-item"><input type="checkbox" id="chkBankLoan" onchange="recalculateQuote()"> Bank Loan (+ ₹300/yd)</label>
-                </div>
-            </div>
-
             <div class="quote-container">
                 <div class="quote-banner">
                     <span contenteditable="true">Price Quote</span>
