@@ -2507,16 +2507,17 @@ function initLeafletMap() {
         zoomControl: false, // Hiding default zoom to use our custom floating controls
         center: loc,
         zoom: 17,
-        maxZoom: 20,
-        minZoom: 13,
-        zoomSnap: 0.5,
-        zoomDelta: 0.5,
-        zoomAnimation: true,
-        fadeAnimation: false, // Prevents tile opacity fade flicker
-        markerZoomAnimation: true,
-        inertia: false, // Prevents map coasting/auto-adjusting after finger swipe
+        maxZoom: 18,
+        minZoom: 15,
+        zoomSnap: 1,
+        zoomDelta: 1,
+        zoomAnimation: false, // Turn off zoom scaling animation to prevent overlay resizing/warping
+        fadeAnimation: false, // Turn off fade transition
+        markerZoomAnimation: false,
+        bounceAtZoomLimits: false,
+        inertia: false, // Prevents map coasting/auto-adjusting after swipe
         preferCanvas: true, // Hardware-accelerated HTML5 Canvas vector rendering for 60FPS
-        wheelPxPerZoomLevel: 120
+        wheelPxPerZoomLevel: 150
     });
     
     // Initialize LayerGroups and add them to map
