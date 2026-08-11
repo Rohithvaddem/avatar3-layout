@@ -1310,12 +1310,23 @@ function exportPriceQuote(plotNo) {
                     }
 
                     function updateCalculations() {
+                        const active = document.activeElement;
                         const areaEl = document.getElementById('lblPlotArea');
-                        const priceEl = document.getElementById('lblClosingPrice') || document.getElementById('lblPerSqYd');
+                        const closingPriceEl = document.getElementById('lblClosingPrice');
+                        const perSqYdEl = document.getElementById('lblPerSqYd');
                         const bankRateEl = document.getElementById('lblBankRate');
 
                         const plotArea = parseNum(areaEl ? areaEl.innerText : '200');
-                        const closingPrice = parseNum(priceEl ? priceEl.innerText : '15499');
+                        
+                        let closingPrice = 15499;
+                        if (active === closingPriceEl || active === perSqYdEl) {
+                            closingPrice = parseNum(active.innerText);
+                        } else if (closingPriceEl) {
+                            closingPrice = parseNum(closingPriceEl.innerText);
+                        } else if (perSqYdEl) {
+                            closingPrice = parseNum(perSqYdEl.innerText);
+                        }
+
                         const bankRate = parseNum(bankRateEl ? bankRateEl.innerText : '3000');
 
                         const totalAmount = Math.round(plotArea * closingPrice);
@@ -1331,43 +1342,45 @@ function exportPriceQuote(plotNo) {
                         const mutation = Math.max(800, Math.round(bankTotal * 0.001));
                         const totalRegCharges = reg75 + 1000 + 100 + 50 + 5000 + mutation;
 
-                        const perSqYdEl = document.getElementById('lblPerSqYd');
-                        if (perSqYdEl && priceEl && perSqYdEl !== priceEl) {
+                        if (closingPriceEl && closingPriceEl !== active) {
+                            closingPriceEl.innerText = fmt(closingPrice);
+                        }
+                        if (perSqYdEl && perSqYdEl !== active) {
                             perSqYdEl.innerText = fmt(closingPrice);
                         }
 
                         const totalAmtEl = document.getElementById('lblTotalAmount');
-                        if (totalAmtEl) totalAmtEl.innerText = fmt(totalAmount);
+                        if (totalAmtEl && totalAmtEl !== active) totalAmtEl.innerText = fmt(totalAmount);
 
                         const bankTotalEl = document.getElementById('lblBankTotal');
-                        if (bankTotalEl) bankTotalEl.innerText = fmt(bankTotal);
+                        if (bankTotalEl && bankTotalEl !== active) bankTotalEl.innerText = fmt(bankTotal);
 
                         const cashRateEl = document.getElementById('lblCashRate');
-                        if (cashRateEl) cashRateEl.innerText = fmt(cashRate);
+                        if (cashRateEl && cashRateEl !== active) cashRateEl.innerText = fmt(cashRate);
 
                         const cashTotalEl = document.getElementById('lblCashTotal');
-                        if (cashTotalEl) cashTotalEl.innerText = fmt(cashTotal);
+                        if (cashTotalEl && cashTotalEl !== active) cashTotalEl.innerText = fmt(cashTotal);
 
                         const structTotalEl = document.getElementById('lblStructTotal');
-                        if (structTotalEl) structTotalEl.innerText = fmt(totalAmount);
+                        if (structTotalEl && structTotalEl !== active) structTotalEl.innerText = fmt(totalAmount);
 
                         const amt1El = document.getElementById('lblAmt1');
-                        if (amt1El) amt1El.innerText = fmt(amt1);
+                        if (amt1El && amt1El !== active) amt1El.innerText = fmt(amt1);
 
                         const amt2El = document.getElementById('lblAmt2');
-                        if (amt2El) amt2El.innerText = fmt(amt2);
+                        if (amt2El && amt2El !== active) amt2El.innerText = fmt(amt2);
 
                         const scheduleTotalEl = document.getElementById('lblScheduleTotal');
-                        if (scheduleTotalEl) scheduleTotalEl.innerText = fmt(totalAmount);
+                        if (scheduleTotalEl && scheduleTotalEl !== active) scheduleTotalEl.innerText = fmt(totalAmount);
 
                         const reg75El = document.getElementById('lblReg75');
-                        if (reg75El) reg75El.innerText = fmt(reg75);
+                        if (reg75El && reg75El !== active) reg75El.innerText = fmt(reg75);
 
                         const mutationEl = document.getElementById('lblMutation');
-                        if (mutationEl) mutationEl.innerText = mutation.toLocaleString('en-IN');
+                        if (mutationEl && mutationEl !== active) mutationEl.innerText = mutation.toLocaleString('en-IN');
 
                         const regTotalEl = document.getElementById('lblRegTotal');
-                        if (regTotalEl) regTotalEl.innerText = fmt(totalRegCharges);
+                        if (regTotalEl && regTotalEl !== active) regTotalEl.innerText = fmt(totalRegCharges);
                     }
 
                     ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblBankRate'].forEach(id => {
@@ -1375,7 +1388,13 @@ function exportPriceQuote(plotNo) {
                         if (el) {
                             el.addEventListener('input', updateCalculations);
                             el.addEventListener('keyup', updateCalculations);
-                            el.addEventListener('blur', updateCalculations);
+                            el.addEventListener('blur', function() {
+                                const val = parseNum(el.innerText);
+                                if (val > 0) {
+                                    el.innerText = fmt(val);
+                                }
+                                updateCalculations();
+                            });
                         }
                     });
                 }
