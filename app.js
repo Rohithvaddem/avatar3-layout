@@ -1296,6 +1296,91 @@ function exportPriceQuote(plotNo) {
             <div class="no-print" style="text-align: center; margin-top: 30px; margin-bottom: 40px;">
                 <button class="btn-print-quote" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / Save Official Price Quote PDF</button>
             </div>
+
+            <script>
+                function attachLiveRecalculation() {
+                    function parseNum(str) {
+                        if (!str) return 0;
+                        const cleaned = str.replace(/[^0-9.]/g, '');
+                        return parseFloat(cleaned) || 0;
+                    }
+
+                    function fmt(val) {
+                        return '₹ ' + Math.round(val).toLocaleString('en-IN');
+                    }
+
+                    function updateCalculations() {
+                        const areaEl = document.getElementById('lblPlotArea');
+                        const priceEl = document.getElementById('lblClosingPrice') || document.getElementById('lblPerSqYd');
+                        const bankRateEl = document.getElementById('lblBankRate');
+
+                        const plotArea = parseNum(areaEl ? areaEl.innerText : '200');
+                        const closingPrice = parseNum(priceEl ? priceEl.innerText : '15499');
+                        const bankRate = parseNum(bankRateEl ? bankRateEl.innerText : '3000');
+
+                        const totalAmount = Math.round(plotArea * closingPrice);
+                        const bankTotal = Math.round(plotArea * bankRate);
+                        const cashTotal = Math.max(0, totalAmount - bankTotal);
+                        const cashRate = Math.max(0, closingPrice - bankRate);
+
+                        const bookingAmt = 100000;
+                        const amt1 = Math.round(totalAmount * 0.25);
+                        const amt2 = Math.max(0, totalAmount - bookingAmt - amt1);
+
+                        const reg75 = Math.round(bankTotal * 0.075);
+                        const mutation = Math.max(800, Math.round(bankTotal * 0.001));
+                        const totalRegCharges = reg75 + 1000 + 100 + 50 + 5000 + mutation;
+
+                        const perSqYdEl = document.getElementById('lblPerSqYd');
+                        if (perSqYdEl && priceEl && perSqYdEl !== priceEl) {
+                            perSqYdEl.innerText = fmt(closingPrice);
+                        }
+
+                        const totalAmtEl = document.getElementById('lblTotalAmount');
+                        if (totalAmtEl) totalAmtEl.innerText = fmt(totalAmount);
+
+                        const bankTotalEl = document.getElementById('lblBankTotal');
+                        if (bankTotalEl) bankTotalEl.innerText = fmt(bankTotal);
+
+                        const cashRateEl = document.getElementById('lblCashRate');
+                        if (cashRateEl) cashRateEl.innerText = fmt(cashRate);
+
+                        const cashTotalEl = document.getElementById('lblCashTotal');
+                        if (cashTotalEl) cashTotalEl.innerText = fmt(cashTotal);
+
+                        const structTotalEl = document.getElementById('lblStructTotal');
+                        if (structTotalEl) structTotalEl.innerText = fmt(totalAmount);
+
+                        const amt1El = document.getElementById('lblAmt1');
+                        if (amt1El) amt1El.innerText = fmt(amt1);
+
+                        const amt2El = document.getElementById('lblAmt2');
+                        if (amt2El) amt2El.innerText = fmt(amt2);
+
+                        const scheduleTotalEl = document.getElementById('lblScheduleTotal');
+                        if (scheduleTotalEl) scheduleTotalEl.innerText = fmt(totalAmount);
+
+                        const reg75El = document.getElementById('lblReg75');
+                        if (reg75El) reg75El.innerText = fmt(reg75);
+
+                        const mutationEl = document.getElementById('lblMutation');
+                        if (mutationEl) mutationEl.innerText = mutation.toLocaleString('en-IN');
+
+                        const regTotalEl = document.getElementById('lblRegTotal');
+                        if (regTotalEl) regTotalEl.innerText = fmt(totalRegCharges);
+                    }
+
+                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblBankRate'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            el.addEventListener('input', updateCalculations);
+                            el.addEventListener('keyup', updateCalculations);
+                            el.addEventListener('blur', updateCalculations);
+                        }
+                    });
+                }
+                attachLiveRecalculation();
+            </script>
         </body>
         </html>
     `);
