@@ -141,13 +141,35 @@ window.addEventListener('DOMContentLoaded', () => {
     setupProjectNavigation();
     setupInterestModal();
 
-    // Check URL parameters to initialize project and view
+    // Check URL parameters for customer shared layout mode
     const urlParams = new URLSearchParams(window.location.search);
-    const initialProject = urlParams.get('project');
-    if (initialProject) {
-        const btn = document.querySelector(`.project-nav-btn[data-project="${initialProject}"]`);
+    const targetProj = urlParams.get('project') || urlParams.get('share') || urlParams.get('shared');
+    const isCustomerShare = urlParams.get('share') === 'true' || urlParams.get('shared') === 'true' || urlParams.has('project');
+
+    if (targetProj && (targetProj === 'avatar1' || targetProj === 'avatar2' || targetProj === 'avatar3')) {
+        currentProject = targetProj;
+        const btn = document.querySelector(`.project-nav-btn[data-project="${targetProj}"]`);
         if (btn) {
-            btn.click();
+            document.querySelectorAll('.project-nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+    }
+
+    if (isCustomerShare) {
+        // Customer View Isolation: Hide project selector tabs so customer only sees this layout
+        const projNavSection = document.getElementById('projectNavSection');
+        if (projNavSection) {
+            projNavSection.style.display = 'none';
+        }
+
+        const projTitle = currentProject === 'avatar1' ? 'Avatar 1' : (currentProject === 'avatar2' ? 'Avatar 2' : 'Avatar 3');
+        let customerBanner = document.getElementById('customerShareNotice');
+        if (!customerBanner) {
+            customerBanner = document.createElement('div');
+            customerBanner.id = 'customerShareNotice';
+            customerBanner.style.cssText = 'background: linear-gradient(90deg, #0f172a, #1e293b); color: #60a5fa; text-align: center; padding: 8px 16px; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; position: relative; z-index: 999; border-bottom: 1.5px solid #3b82f6; letter-spacing: 0.5px;';
+            customerBanner.innerHTML = `<i class="fa-solid fa-gem"></i> Aspirealty ${projTitle} Digital Layout`;
+            document.body.insertBefore(customerBanner, document.body.firstChild);
         }
     }
 });
@@ -2159,6 +2181,9 @@ function setupAdminState() {
         
         sidebarFooter.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; padding: 0 4px;">
+                <button class="admin-login-btn" id="sidebarShareBtn" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 13px;">
+                    <i class="fa-solid fa-share-nodes"></i> Share Current Layout Link
+                </button>
                 <button class="admin-login-btn" id="exportDbBtn" style="background-color: var(--accent); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 13px;">
                     <i class="fa-solid fa-download"></i> Export data.json
                 </button>
@@ -2170,6 +2195,11 @@ function setupAdminState() {
                 </button>
             </div>
         `;
+
+        const sidebarShare = document.getElementById('sidebarShareBtn');
+        if (sidebarShare) {
+            sidebarShare.addEventListener('click', shareLayoutLink);
+        }
 
         // DB Export handler
         document.getElementById('exportDbBtn').addEventListener('click', () => {
@@ -2214,9 +2244,14 @@ function setupAdminState() {
             banner = document.createElement('div');
             banner.id = 'adminBanner';
             banner.style.cssText = 'background: linear-gradient(90deg, #b45309, #d97706); color: #fff; text-align: center; padding: 8px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; z-index: 1000; position: relative;';
-            banner.innerHTML = `<i class="fa-solid fa-user-shield"></i> ADMINISTRATOR MODE ACTIVE &bull; Edit any plot details by opening their card and clicking "Edit Plot Details" <button id="togglePitchModeBtn" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.25); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; margin-left: 15px;"><i class="fa-solid fa-desktop"></i> Pitch Mode</button>`;
+            banner.innerHTML = `<i class="fa-solid fa-user-shield"></i> ADMINISTRATOR MODE ACTIVE &bull; Edit plot details in modal <button id="adminShareBtn" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border: 1px solid rgba(255,255,255,0.4); color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; margin-left: 10px;"><i class="fa-solid fa-share-nodes"></i> Share Layout</button> <button id="togglePitchModeBtn" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.25); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; margin-left: 10px;"><i class="fa-solid fa-desktop"></i> Pitch Mode</button>`;
             document.body.insertBefore(banner, document.body.firstChild);
             
+            const adminShareBtn = document.getElementById('adminShareBtn');
+            if (adminShareBtn) {
+                adminShareBtn.addEventListener('click', shareLayoutLink);
+            }
+
             const togglePitchBtn = document.getElementById('togglePitchModeBtn');
             if (togglePitchBtn) {
                 togglePitchBtn.addEventListener('click', () => {
@@ -2244,6 +2279,76 @@ function setupAdminState() {
                 loginForm.reset();
             });
         }
+    }
+}
+
+function shareLayoutLink() {
+    const projName = currentProject === 'avatar1' ? 'Avatar 1' : (currentProject === 'avatar2' ? 'Avatar 2' : 'Avatar 3');
+    const baseUrl = window.location.origin + window.location.pathname;
+    const shareUrl = `${baseUrl}?project=${currentProject}&share=true`;
+
+    showShareModal(projName, shareUrl);
+}
+
+function showShareModal(projName, shareUrl) {
+    let backdrop = document.getElementById('shareModalBackdrop');
+    if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'shareModalBackdrop';
+        backdrop.className = 'modal-backdrop';
+        backdrop.style.cssText = 'display: flex; align-items: center; justify-content: center; z-index: 10000; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); position: fixed; inset: 0;';
+        backdrop.innerHTML = `
+            <div class="modal-card" style="max-width: 480px; width: 90%; background: #0f172a; border: 1.5px solid #3b82f6; border-radius: 12px; padding: 24px; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="font-size: 16px; font-weight: 800; color: #60a5fa; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-share-nodes"></i> Share ${projName} Layout
+                    </h3>
+                    <button id="closeShareModalBtn" style="background: none; border: none; color: #94a3b8; font-size: 18px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <p style="font-size: 12.5px; color: #cbd5e1; margin-bottom: 15px; line-height: 1.5;">
+                    Copy this link to share the <strong>${projName}</strong> digital layout with your customer. When opened, only the <strong>${projName}</strong> layout will be visible.
+                </p>
+                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                    <input type="text" id="shareUrlInput" value="${shareUrl}" readonly style="flex: 1; background: #1e293b; border: 1px solid #334155; color: #38bdf8; padding: 10px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; outline: none;">
+                    <button id="btnCopyShareModal" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+                        <i class="fa-solid fa-copy"></i> Copy Link
+                    </button>
+                </div>
+                <div id="shareCopyNotice" style="display: none; background: rgba(34, 197, 94, 0.15); border: 1px solid #22c55e; color: #4ade80; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; text-align: center;">
+                    <i class="fa-solid fa-circle-check"></i> Link Copied to Clipboard!
+                </div>
+            </div>
+        `;
+        document.body.appendChild(backdrop);
+
+        document.getElementById('closeShareModalBtn').addEventListener('click', () => {
+            backdrop.style.display = 'none';
+        });
+
+        backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) backdrop.style.display = 'none';
+        });
+
+        document.getElementById('btnCopyShareModal').addEventListener('click', () => {
+            const input = document.getElementById('shareUrlInput');
+            input.select();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(input.value);
+            } else {
+                document.execCommand('copy');
+            }
+            const notice = document.getElementById('shareCopyNotice');
+            notice.style.display = 'block';
+            setTimeout(() => { notice.style.display = 'none'; }, 3000);
+        });
+    } else {
+        const input = document.getElementById('shareUrlInput');
+        if (input) input.value = shareUrl;
+        const h3 = backdrop.querySelector('h3');
+        if (h3) h3.innerHTML = `<i class="fa-solid fa-share-nodes"></i> Share ${projName} Layout`;
+        const p = backdrop.querySelector('p');
+        if (p) p.innerHTML = `Copy this link to share the <strong>${projName}</strong> digital layout with your customer. When opened, only the <strong>${projName}</strong> layout will be visible.`;
+        backdrop.style.display = 'flex';
     }
 }
 
@@ -3744,180 +3849,8 @@ function startRealtimeCloudSync() {
     setInterval(fetchAndMergeCloudData, 4000);
 }
 
-// ----------------------------------------------------
-// Admin Mode & Share Layout Feature
-// ----------------------------------------------------
-let isAdminLoggedIn = false;
-let isSharedCustomerView = false;
-
-function setupAdmin() {
-    const sidebarFooter = document.getElementById('sidebarFooter');
-
-    if (sessionStorage.getItem('aspirealty_admin_logged_in') === 'true') {
-        isAdminLoggedIn = true;
-    }
-
-    function renderAdminSidebarFooter() {
-        if (!sidebarFooter) return;
-
-        if (isAdminLoggedIn) {
-            sidebarFooter.style.display = 'block';
-            sidebarFooter.innerHTML = `
-                <div id="adminControlsBlock" style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 700; color: #4ade80; background: rgba(34, 197, 94, 0.15); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(34, 197, 94, 0.3);">
-                        <span><i class="fa-solid fa-user-shield"></i> Admin Active</span>
-                        <button id="adminLogoutBtn" style="background: none; border: none; color: #ef4444; font-weight: 700; cursor: pointer; font-size: 11px;">Logout</button>
-                    </div>
-                    <button class="admin-login-btn" id="shareLayoutBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; font-weight: 800; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border-radius: 8px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
-                        <i class="fa-solid fa-share-nodes"></i> Share Current Layout
-                    </button>
-                </div>
-            `;
-
-            const logoutBtn = document.getElementById('adminLogoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', () => {
-                    isAdminLoggedIn = false;
-                    sessionStorage.removeItem('aspirealty_admin_logged_in');
-                    renderAdminSidebarFooter();
-                    if (mapperSection) mapperSection.style.display = 'none';
-                    renderPlotDots();
-                });
-            }
-
-            const shareBtn = document.getElementById('shareLayoutBtn');
-            if (shareBtn) {
-                shareBtn.addEventListener('click', openShareLayoutModal);
-            }
-
-            if (mapperSection && !isSharedCustomerView) mapperSection.style.display = 'block';
-        } else if (!isSharedCustomerView) {
-            sidebarFooter.style.display = 'block';
-            sidebarFooter.innerHTML = `
-                <button class="admin-login-btn" id="staffLoginBtn" style="border: none; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    <i class="fa-solid fa-lock"></i> Staff Login
-                </button>
-            `;
-            const btn = document.getElementById('staffLoginBtn');
-            if (btn) {
-                btn.addEventListener('click', () => {
-                    const pin = prompt('Enter Staff / Admin PIN:');
-                    if (pin === '1234' || pin === 'admin') {
-                        isAdminLoggedIn = true;
-                        sessionStorage.setItem('aspirealty_admin_logged_in', 'true');
-                        renderAdminSidebarFooter();
-                        renderPlotDots();
-                    } else if (pin !== null) {
-                        alert('Incorrect PIN!');
-                    }
-                });
-            }
-        } else {
-            sidebarFooter.style.display = 'none';
-        }
-    }
-
-    renderAdminSidebarFooter();
-}
-
-function openShareLayoutModal() {
-    const backdrop = document.getElementById('shareLayoutModalBackdrop');
-    const closeBtn = document.getElementById('shareModalCloseBtn');
-    const shareInput = document.getElementById('shareUrlInput');
-    const copyBtn = document.getElementById('copyShareUrlBtn');
-    const whatsappBtn = document.getElementById('whatsappShareBtn');
-    const copyToast = document.getElementById('copySuccessToast');
-    const titleEl = document.getElementById('shareModalTitle');
-
-    const projectMeta = projectMetadata[currentProject] || { title: currentProject.toUpperCase() };
-
-    if (titleEl) titleEl.textContent = `Share ${projectMeta.title} Link`;
-
-    const baseUrl = window.location.origin + window.location.pathname;
-    const shareUrl = `${baseUrl}?project=${currentProject}&shared=true`;
-
-    if (shareInput) shareInput.value = shareUrl;
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(shareUrl).then(() => {
-            if (copyToast) {
-                copyToast.style.display = 'block';
-                setTimeout(() => { copyToast.style.display = 'none'; }, 3500);
-            }
-        }).catch(() => {});
-    }
-
-    if (whatsappBtn) {
-        const msg = encodeURIComponent(`Hi! Here is the digital layout map for ${projectMeta.title}:\n${shareUrl}`);
-        whatsappBtn.href = `https://api.whatsapp.com/send?text=${msg}`;
-    }
-
-    if (copyBtn) {
-        copyBtn.onclick = () => {
-            if (shareInput) {
-                shareInput.select();
-                navigator.clipboard.writeText(shareInput.value);
-                if (copyToast) {
-                    copyToast.style.display = 'block';
-                    setTimeout(() => { copyToast.style.display = 'none'; }, 3500);
-                }
-            }
-        };
-    }
-
-    if (closeBtn) {
-        closeBtn.onclick = () => {
-            if (backdrop) backdrop.style.display = 'none';
-        };
-    }
-
-    if (backdrop) {
-        backdrop.style.display = 'flex';
-        backdrop.onclick = (e) => {
-            if (e.target === backdrop) backdrop.style.display = 'none';
-        };
-    }
-}
-
-function checkAndApplySharedCustomerView() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const sharedProj = urlParams.get('project') || urlParams.get('shared_project');
-    const isShared = urlParams.get('shared') === 'true' || urlParams.get('mode') === 'shared';
-
-    if (sharedProj && ['avatar1', 'avatar2', 'avatar3'].includes(sharedProj.toLowerCase())) {
-        currentProject = sharedProj.toLowerCase();
-
-        if (isShared) {
-            isSharedCustomerView = true;
-
-            const navGrid = document.querySelector('.project-nav-grid');
-            if (navGrid) navGrid.style.display = 'none';
-
-            const navContainer = document.querySelector('.project-nav-container');
-            if (navContainer) navContainer.style.display = 'none';
-
-            const footer = document.getElementById('sidebarFooter');
-            if (footer) footer.style.display = 'none';
-
-            const mapper = document.getElementById('mapperSection');
-            if (mapper) mapper.style.display = 'none';
-
-            const mapViewport = document.getElementById('mapViewport');
-            if (mapViewport) {
-                const projectMeta = projectMetadata[currentProject] || { title: currentProject.toUpperCase() };
-                const banner = document.createElement('div');
-                banner.className = 'shared-customer-banner';
-                banner.style.cssText = 'position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(59, 130, 246, 0.4); color: #ffffff; padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); pointer-events: none;';
-                banner.innerHTML = `<i class="fa-solid fa-building-user" style="color: #60a5fa;"></i> Viewing ${projectMeta.title} Layout`;
-                mapViewport.appendChild(banner);
-            }
-        }
-    }
-}
-
 // Global DOM Ready initializer for Interactive Features
 document.addEventListener('DOMContentLoaded', () => {
-    checkAndApplySharedCustomerView();
     setupMapTipTimer();
     setupInterestModal();
     setupSiteVisitBooking();
@@ -3925,7 +3858,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSmartPlotFinder();
     startRealtimeCloudSync();
 });
-checkAndApplySharedCustomerView();
 setupMapTipTimer();
 setupInterestModal();
 setupSiteVisitBooking();
