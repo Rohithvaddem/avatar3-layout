@@ -963,6 +963,7 @@ function exportPriceQuote(plotNo) {
 
     const plotAreaYds = parseFloat(String(item.plot_size || '').replace(/[^0-9.]/g, '')) || 200;
     const facingStr = item.facing || 'EAST';
+    const isEast = facingStr.toUpperCase().includes('EAST');
     const customerName = item.customer_name || '';
 
     const projectMeta = projectMetadata[currentProject] || { title: currentProject === 'avatar1' ? "Aspirealty AVATAR 1" : "Aspirealty AVATAR 2" };
