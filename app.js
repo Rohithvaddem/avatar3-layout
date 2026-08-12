@@ -633,6 +633,20 @@ function setupMapControls() {
         }
     });
 
+function getPresetFitScale() {
+    if (!mapViewport) return 0.5;
+    const vWidth = mapViewport.clientWidth || window.innerWidth;
+    const vHeight = mapViewport.clientHeight || window.innerHeight;
+    let height = 576;
+    if (currentProject === 'avatar2') {
+        height = 646;
+    } else if (currentProject === 'avatar1') {
+        height = 647;
+    }
+    const fitScale = Math.min(vWidth / 1024, vHeight / height) * 0.95;
+    return Math.max(fitScale, 0.2);
+}
+
     // Scroll wheel to zoom
     mapViewport.addEventListener('wheel', (e) => {
         e.preventDefault();
@@ -645,13 +659,24 @@ function setupMapControls() {
         const mapX = (mouseX - panX) / zoomScale;
         const mapY = (mouseY - panY) / zoomScale;
         
-        // Zoom factor update
+        const minScale = getPresetFitScale();
         const zoomFactor = e.deltaY < 0 ? (1 + zoomIntensity) : (1 - zoomIntensity);
-        zoomScale = Math.min(Math.max(zoomScale * zoomFactor, 0.12), 2.5);
+        const newScale = Math.min(Math.max(zoomScale * zoomFactor, minScale), 2.5);
         
-        // Recalculate pan offset to keep map coordinates centered under cursor
-        panX = mouseX - mapX * zoomScale;
-        panY = mouseY - mapY * zoomScale;
+        if (newScale <= minScale + 0.001) {
+            zoomScale = minScale;
+            const vWidth = mapViewport.clientWidth;
+            const vHeight = mapViewport.clientHeight;
+            let height = 576;
+            if (currentProject === 'avatar2') height = 646;
+            else if (currentProject === 'avatar1') height = 647;
+            panX = (vWidth - 1024 * zoomScale) / 2;
+            panY = (vHeight - height * zoomScale) / 2;
+        } else {
+            zoomScale = newScale;
+            panX = mouseX - mapX * zoomScale;
+            panY = mouseY - mapY * zoomScale;
+        }
         
         applyTransform();
         fadeMapTip();
@@ -690,10 +715,23 @@ function adjustZoom(factor) {
     const mapX = (centerX - panX) / zoomScale;
     const mapY = (centerY - panY) / zoomScale;
     
-    zoomScale = Math.min(Math.max(zoomScale * factor, 0.12), 2.5);
+    const minScale = getPresetFitScale();
+    const newScale = Math.min(Math.max(zoomScale * factor, minScale), 2.5);
     
-    panX = centerX - mapX * zoomScale;
-    panY = centerY - mapY * zoomScale;
+    if (newScale <= minScale + 0.001) {
+        zoomScale = minScale;
+        const vWidth = mapViewport.clientWidth;
+        const vHeight = mapViewport.clientHeight;
+        let height = 576;
+        if (currentProject === 'avatar2') height = 646;
+        else if (currentProject === 'avatar1') height = 647;
+        panX = (vWidth - 1024 * zoomScale) / 2;
+        panY = (vHeight - height * zoomScale) / 2;
+    } else {
+        zoomScale = newScale;
+        panX = centerX - mapX * zoomScale;
+        panY = centerY - mapY * zoomScale;
+    }
     
     applyTransform();
     fadeMapTip();
@@ -710,9 +748,8 @@ function fitMapToViewport() {
         height = 647;
     }
     
-    // Background original dims: width: 1024, height: dynamic
-    const fitScale = Math.min(vWidth / 1024, vHeight / height) * 0.95; // 5% margins
-    zoomScale = Math.max(fitScale, 0.1);
+    const fitScale = getPresetFitScale();
+    zoomScale = fitScale;
     
     // Centering calculations
     panX = (vWidth - 1024 * zoomScale) / 2;
@@ -2927,7 +2964,7 @@ function initLeafletMap() {
         center: loc,
         zoom: 17,
         maxZoom: 19,
-        minZoom: 14,
+        minZoom: 16,
         zoomSnap: 0.25, // Smooth fine-grain zoom steps
         zoomDelta: 0.5,
         zoomAnimation: true, // Enable butter-smooth 60FPS CSS animation
