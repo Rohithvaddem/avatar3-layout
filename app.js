@@ -185,6 +185,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // Main App Initialization
 function initApp() {
+    // Preload layout images into memory so project switching is instant (0ms delay)
+    const preloadImg1 = new Image();
+    preloadImg1.src = 'avatar1_map_layout.jpg';
+    const preloadImg2 = new Image();
+    preloadImg2.src = 'avatar2_digi/map_layout.jpg';
+
     // Populate Avatar 3 coordinates from global variable loaded by plot_coords.js
     if (typeof plotCoordinates !== 'undefined') {
         avatarCoordsPool.avatar3 = plotCoordinates;
