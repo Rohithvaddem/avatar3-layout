@@ -395,7 +395,6 @@ body {
     height: 100vh;
     overflow: hidden;
     position: relative;
-    background-color: #ffffff;
 }
 
 /* Header */
@@ -694,7 +693,7 @@ body {
     user-select: none;
     background-color: #ffffff;
     border-radius: 0;
-    box-shadow: none !important;
+    box-shadow: none;
     will-change: transform;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
