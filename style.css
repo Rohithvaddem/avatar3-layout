@@ -693,7 +693,7 @@ body {
     user-select: none;
     background-color: #ffffff;
     border-radius: 0;
-    box-shadow: none;
+    box-shadow: none !important;
     will-change: transform;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
