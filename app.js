@@ -470,8 +470,8 @@ function renderPlotDots() {
                 lockBadge.innerHTML = '<i class="fa-solid fa-lock" style="font-size: 8px; color: #f87171; margin: 0; padding: 0; line-height: 1;"></i>';
                 dot.appendChild(lockBadge);
             }
-            dot.style.left = `${(coords.left * scaleX) - 10}px`;
-            dot.style.top = `${(coords.top * scaleY) - 10}px`;
+            dot.style.left = `${(coords.left * scaleX) - 8}px`;
+            dot.style.top = `${(coords.top * scaleY) - 8}px`;
             dot.textContent = plotNo;
             
             // Hover Tooltip Listeners
@@ -508,10 +508,10 @@ function renderPlotDots() {
             const dot = document.createElement('button');
             dot.className = 'plot-dot';
             
-            let offset = 10;
+            let offset = 8;
             if (currentProject === 'avatar2') {
                 dot.classList.add('avatar2-dot');
-                offset = 13;
+                offset = 10;
             }
             
             dot.id = `plot-dot-${plotNo}`;
