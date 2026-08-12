@@ -185,12 +185,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // Main App Initialization
 function initApp() {
-    // Preload layout images into memory so project switching is instant (0ms delay)
-    const preloadImg1 = new Image();
-    preloadImg1.src = 'avatar1_map_layout.jpg';
-    const preloadImg2 = new Image();
-    preloadImg2.src = 'avatar2_digi/map_layout.jpg';
-
     // Populate Avatar 3 coordinates from global variable loaded by plot_coords.js
     if (typeof plotCoordinates !== 'undefined') {
         avatarCoordsPool.avatar3 = plotCoordinates;
@@ -361,6 +355,18 @@ function initApp() {
             mapImage.style.width = '1024px';
             mapImage.style.height = '647px';
             mapImage.src = 'avatar1_map_layout.jpg';
+        } else if (currentProject === 'avatar2') {
+            mapContainer.style.width = '1024px';
+            mapContainer.style.height = '646px';
+            mapImage.style.width = '1024px';
+            mapImage.style.height = '646px';
+            mapImage.src = 'avatar2_digi/map_layout.jpg';
+        } else if (currentProject === 'avatar3') {
+            mapContainer.style.width = '1024px';
+            mapContainer.style.height = '576px';
+            mapImage.style.width = '1024px';
+            mapImage.style.height = '576px';
+            mapImage.src = 'map_layout.png';
         }
         
         // Render dots, stats and fit using fallback data
@@ -3481,7 +3487,21 @@ function updateSidebarAndHeaderForProject(project) {
 function changeLayoutImage(newSrc, containerWidth, containerHeight, imageWidth, imageHeight, onBeforeLoad) {
     const loader = document.getElementById('layoutLoader');
     
-    const applyNewLayout = () => {
+    // Smoothly scale down & fade out current layout
+    if (loader) loader.classList.add('active');
+    mapImage.classList.add('loading-layout');
+    plotsOverlay.classList.add('loading-layout');
+    
+    // Check if the image source is actually changing.
+    const cleanSrc = newSrc.split('?')[0];
+    const currentCleanSrc = mapImage.src.substring(mapImage.src.length - cleanSrc.length);
+    
+    let isTransitioned = false;
+    const transitionDone = () => {
+        if (isTransitioned) return;
+        isTransitioned = true;
+        
+        // Update dimensions before rendering dots so they place correctly
         mapContainer.style.width = containerWidth;
         mapContainer.style.height = containerHeight;
         mapImage.style.width = imageWidth;
@@ -3489,51 +3509,49 @@ function changeLayoutImage(newSrc, containerWidth, containerHeight, imageWidth, 
         
         if (onBeforeLoad) onBeforeLoad();
         
+        // Render dots and auto-fit to viewport
         renderPlotDots();
         fitMapToViewport();
         
-        mapImage.classList.remove('loading-layout');
-        plotsOverlay.classList.remove('loading-layout');
-        if (loader) loader.classList.remove('active');
+        // Smoothly scale in & fade back in
+        setTimeout(() => {
+            mapImage.classList.remove('loading-layout');
+            plotsOverlay.classList.remove('loading-layout');
+            if (loader) loader.classList.remove('active');
+        }, 100);
     };
-
-    const cleanSrc = newSrc.split('?')[0];
-    const currentCleanSrc = mapImage.src ? mapImage.src.split('?')[0] : '';
     
-    // If the image is already current, apply immediately
-    if (currentCleanSrc.endsWith(cleanSrc)) {
-        applyNewLayout();
+    if (currentCleanSrc === cleanSrc && mapImage.complete) {
+        setTimeout(transitionDone, 150);
         return;
     }
     
-    // Set new image source
+    // Hook load event
+    const handleLoad = () => {
+        mapImage.removeEventListener('load', handleLoad);
+        mapImage.removeEventListener('error', handleError);
+        transitionDone();
+    };
+    
+    const handleError = () => {
+        mapImage.removeEventListener('load', handleLoad);
+        mapImage.removeEventListener('error', handleError);
+        console.warn('Failed to load image:', newSrc);
+        transitionDone(); // Proceed anyway to not block UI forever
+    };
+    
+    mapImage.addEventListener('load', handleLoad);
+    mapImage.addEventListener('error', handleError);
+    
+    // Safety timeout fallback to guarantee layout loader is ALWAYS hidden
+    setTimeout(() => {
+        if (!isTransitioned) {
+            transitionDone();
+        }
+    }, 1200);
+    
+    // Change source
     mapImage.src = newSrc;
-
-    // If image is already complete (cached in browser), apply instantly without loader delay
-    if (mapImage.complete && mapImage.naturalWidth !== 0) {
-        applyNewLayout();
-        return;
-    }
-
-    // Show loader only if image needs to download over network
-    if (loader) loader.classList.add('active');
-    mapImage.classList.add('loading-layout');
-    plotsOverlay.classList.add('loading-layout');
-
-    let loaded = false;
-    const done = () => {
-        if (loaded) return;
-        loaded = true;
-        mapImage.removeEventListener('load', done);
-        mapImage.removeEventListener('error', done);
-        applyNewLayout();
-    };
-
-    mapImage.addEventListener('load', done);
-    mapImage.addEventListener('error', done);
-    
-    // Safety fallback: maximum 300ms wait
-    setTimeout(done, 300);
 }
 
 function setupProjectNavigation() {
