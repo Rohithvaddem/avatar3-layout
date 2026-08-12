@@ -3481,21 +3481,7 @@ function updateSidebarAndHeaderForProject(project) {
 function changeLayoutImage(newSrc, containerWidth, containerHeight, imageWidth, imageHeight, onBeforeLoad) {
     const loader = document.getElementById('layoutLoader');
     
-    // Smoothly scale down & fade out current layout
-    if (loader) loader.classList.add('active');
-    mapImage.classList.add('loading-layout');
-    plotsOverlay.classList.add('loading-layout');
-    
-    // Check if the image source is actually changing.
-    const cleanSrc = newSrc.split('?')[0];
-    const currentCleanSrc = mapImage.src.substring(mapImage.src.length - cleanSrc.length);
-    
-    let isTransitioned = false;
-    const transitionDone = () => {
-        if (isTransitioned) return;
-        isTransitioned = true;
-        
-        // Update dimensions before rendering dots so they place correctly
+    const applyNewLayout = () => {
         mapContainer.style.width = containerWidth;
         mapContainer.style.height = containerHeight;
         mapImage.style.width = imageWidth;
@@ -3503,42 +3489,51 @@ function changeLayoutImage(newSrc, containerWidth, containerHeight, imageWidth, 
         
         if (onBeforeLoad) onBeforeLoad();
         
-        // Render dots and auto-fit to viewport
         renderPlotDots();
         fitMapToViewport();
         
-        // Smoothly scale in & fade back in
-        setTimeout(() => {
-            mapImage.classList.remove('loading-layout');
-            plotsOverlay.classList.remove('loading-layout');
-            if (loader) loader.classList.remove('active');
-        }, 100);
+        mapImage.classList.remove('loading-layout');
+        plotsOverlay.classList.remove('loading-layout');
+        if (loader) loader.classList.remove('active');
     };
+
+    const cleanSrc = newSrc.split('?')[0];
+    const currentCleanSrc = mapImage.src ? mapImage.src.split('?')[0] : '';
     
-    if (currentCleanSrc === cleanSrc && mapImage.complete) {
-        setTimeout(transitionDone, 150);
+    // If the image is already current, apply immediately
+    if (currentCleanSrc.endsWith(cleanSrc)) {
+        applyNewLayout();
         return;
     }
     
-    // Hook load event
-    const handleLoad = () => {
-        mapImage.removeEventListener('load', handleLoad);
-        mapImage.removeEventListener('error', handleError);
-        transitionDone();
-    };
-    
-    const handleError = () => {
-        mapImage.removeEventListener('load', handleLoad);
-        mapImage.removeEventListener('error', handleError);
-        console.warn('Failed to load image:', newSrc);
-        transitionDone(); // Proceed anyway to not block UI forever
-    };
-    
-    mapImage.addEventListener('load', handleLoad);
-    mapImage.addEventListener('error', handleError);
-    
-    // Change source
+    // Set new image source
     mapImage.src = newSrc;
+
+    // If image is already complete (cached in browser), apply instantly without loader delay
+    if (mapImage.complete && mapImage.naturalWidth !== 0) {
+        applyNewLayout();
+        return;
+    }
+
+    // Show loader only if image needs to download over network
+    if (loader) loader.classList.add('active');
+    mapImage.classList.add('loading-layout');
+    plotsOverlay.classList.add('loading-layout');
+
+    let loaded = false;
+    const done = () => {
+        if (loaded) return;
+        loaded = true;
+        mapImage.removeEventListener('load', done);
+        mapImage.removeEventListener('error', done);
+        applyNewLayout();
+    };
+
+    mapImage.addEventListener('load', done);
+    mapImage.addEventListener('error', done);
+    
+    // Safety fallback: maximum 300ms wait
+    setTimeout(done, 300);
 }
 
 function setupProjectNavigation() {
