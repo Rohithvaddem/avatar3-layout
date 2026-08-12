@@ -511,7 +511,7 @@ function renderPlotDots() {
             let offset = 8;
             if (currentProject === 'avatar2') {
                 dot.classList.add('avatar2-dot');
-                offset = 10;
+                offset = 12;
             }
             
             dot.id = `plot-dot-${plotNo}`;
