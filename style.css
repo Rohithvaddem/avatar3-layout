@@ -395,6 +395,7 @@ body {
     height: 100vh;
     overflow: hidden;
     position: relative;
+    background-color: #ffffff;
 }
 
 /* Header */
@@ -563,7 +564,7 @@ body {
     flex-grow: 1;
     overflow: hidden;
     position: relative;
-    background-color: #05070a;
+    background-color: #ffffff;
     cursor: grab;
 }
 
