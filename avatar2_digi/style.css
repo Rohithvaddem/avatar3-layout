@@ -734,17 +734,17 @@ body {
     transform: translateY(0);
 }
 
-/* Custom Animated Details Modal */
+/* Custom Animated Details Modal (Scoped to Map Viewport) */
 #modalBackdrop {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: transparent; /* Transparent so map is visible and interactive */
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
     backdrop-filter: none;
-    z-index: 150;
-    pointer-events: none; /* Let click actions pass through to map overlay */
+    z-index: 1050;
+    pointer-events: none;
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -755,11 +755,11 @@ body {
 
 #plotModal {
     position: absolute;
-    top: 80px; /* Below the top header */
-    left: 24px;
+    top: 16px;
+    left: 16px;
     right: auto;
     width: 240px;
-    max-width: calc(100% - 50px);
+    max-width: calc(100% - 32px);
     background-color: rgba(13, 20, 38, 0.94);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -767,8 +767,8 @@ body {
     border-radius: 12px;
     padding: 12px;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-    pointer-events: auto; /* Active cursor for inputs/buttons inside card */
-    transform: translateX(-100px);
+    pointer-events: auto;
+    transform: translateX(-60px);
     opacity: 0;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
 }

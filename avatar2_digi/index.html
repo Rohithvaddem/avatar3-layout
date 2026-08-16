@@ -162,21 +162,20 @@
                     <!-- Dynamic overlay nodes go here -->
                     <div class="plots-overlay" id="plotsOverlay"></div>
                 </div>
+                <!-- Custom Animated Plot Details Modal Scoped to Map Viewport -->
+                <div class="modal-backdrop" id="modalBackdrop">
+                    <div class="custom-modal" id="plotModal">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Plot Details</h3>
+                            <button class="modal-close" id="modalCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="modal-body" id="modalBody">
+                            <!-- Populated dynamically by app.js -->
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
-    </div>
-
-    <!-- Custom Animated Plot Details Modal -->
-    <div class="modal-backdrop" id="modalBackdrop">
-        <div class="custom-modal" id="plotModal">
-            <div class="modal-header">
-                <h3 class="modal-title">Plot Details</h3>
-                <button class="modal-close" id="modalCloseBtn"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Populated dynamically by app.js -->
-            </div>
-        </div>
     </div>
 
     <!-- Staff Login Modal -->
