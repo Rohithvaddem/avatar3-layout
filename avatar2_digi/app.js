@@ -49,6 +49,7 @@ const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
 const statTotalPlots = document.getElementById('statTotalPlots');
 const statAvailablePlots = document.getElementById('statAvailablePlots');
 const statBookedPlots = document.getElementById('statBookedPlots');
+const statMortgagePlots = document.getElementById('statMortgagePlots');
 
 // Mapper DOM
 const mapperSection = document.getElementById('mapperSection');
@@ -608,6 +609,9 @@ function updateStatistics() {
 
     statAvailablePlots.textContent = counts.AVAILABLE;
     statBookedPlots.textContent = counts.SOLD + counts.REGISTERED;
+    if (statMortgagePlots) {
+        statMortgagePlots.textContent = counts.MORTGAGE || 0;
+    }
     
     // Render Sidebar Legend items
     statusLegendList.innerHTML = `

@@ -557,6 +557,7 @@ body {
 
 .text-success { color: var(--status-available); }
 .text-danger { color: var(--status-registered); }
+.text-warning { color: var(--status-mortgage); }
 
 /* Map Viewport Grid */
 .map-viewport {

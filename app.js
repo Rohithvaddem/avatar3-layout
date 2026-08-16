@@ -120,6 +120,7 @@ const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
 const statTotalPlots = document.getElementById('statTotalPlots');
 const statAvailablePlots = document.getElementById('statAvailablePlots');
 const statBookedPlots = document.getElementById('statBookedPlots');
+const statMortgagePlots = document.getElementById('statMortgagePlots');
 
 // Mapper DOM
 const mapperSection = document.getElementById('mapperSection');
@@ -1894,7 +1895,10 @@ function updateStatistics() {
     const totalPlaced = Object.keys(coordsSource).length;
     
     statAvailablePlots.textContent = statusCounts['AVAILABLE'] + statusCounts['RESALE'];
-    statBookedPlots.textContent = statusCounts['SOLD'] + statusCounts['REGISTERED'] + statusCounts['HOLD'] + statusCounts['MORTGAGE'] + statusCounts['INVESTOR'];
+    statBookedPlots.textContent = statusCounts['SOLD'] + statusCounts['REGISTERED'] + statusCounts['HOLD'] + statusCounts['INVESTOR'];
+    if (statMortgagePlots) {
+        statMortgagePlots.textContent = statusCounts['MORTGAGE'];
+    }
     
     // Render Legend & Stats in Sidebar
     statusLegendList.innerHTML = '';
