@@ -755,8 +755,9 @@ body {
 
 #plotModal {
     position: absolute;
-    top: 100px; /* Below the top header */
-    right: 75px; /* Shifted left by request so it sits over the layout map */
+    top: 80px; /* Below the top header */
+    left: 24px;
+    right: auto;
     width: 240px;
     max-width: calc(100% - 50px);
     background-color: rgba(13, 20, 38, 0.94);
@@ -767,7 +768,7 @@ body {
     padding: 12px;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
     pointer-events: auto; /* Active cursor for inputs/buttons inside card */
-    transform: translateX(100px);
+    transform: translateX(-100px);
     opacity: 0;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
 }
