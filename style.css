@@ -705,6 +705,8 @@ body {
     pointer-events: none;
     display: block;
     transition: opacity 0.25s ease-in-out;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }
 
 .plots-overlay {
