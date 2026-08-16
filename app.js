@@ -683,6 +683,15 @@ function setupMapControls() {
             }
         });
     }
+
+    const floatLegendHeader = document.getElementById('floatingLegendHeader');
+    const floatLegendCard = document.getElementById('floatingLegendCard');
+    if (floatLegendHeader && floatLegendCard) {
+        floatLegendHeader.addEventListener('click', (e) => {
+            e.stopPropagation();
+            floatLegendCard.classList.toggle('collapsed');
+        });
+    }
 }
 
 function adjustZoom(factor) {
@@ -1900,8 +1909,11 @@ function updateStatistics() {
         statMortgagePlots.textContent = statusCounts['MORTGAGE'];
     }
     
-    // Render Legend & Stats in Sidebar
-    statusLegendList.innerHTML = '';
+    // Render Legend & Stats in Sidebar & Floating Card
+    if (statusLegendList) statusLegendList.innerHTML = '';
+    const floatingLegendBody = document.getElementById('floatingLegendBody');
+    if (floatingLegendBody) floatingLegendBody.innerHTML = '';
+
     const displayStatuses = [
         { label: 'AVAILABLE', status: 'AVAILABLE' },
         { label: 'SOLD / BOOKED', status: 'SOLD' },
@@ -1915,33 +1927,60 @@ function updateStatistics() {
         const count = statusCounts[item.status] || 0;
         const color = getStatusColor(item.status);
         
-        const row = document.createElement('div');
-        row.className = 'legend-item';
-        row.dataset.status = item.status;
-        row.style.setProperty('--status-color', color);
-        
-        row.innerHTML = `
-            <div class="legend-color-label">
-                <span class="legend-color-dot"></span>
-                <span>${item.label}</span>
-            </div>
-            <span class="legend-count">${count}</span>
-        `;
-        
-        row.addEventListener('click', () => {
-            const isAlreadyActive = row.classList.contains('active');
-            document.querySelectorAll('.legend-item').forEach(item => item.classList.remove('active'));
+        // Sidebar Row
+        if (statusLegendList) {
+            const row = document.createElement('div');
+            row.className = 'legend-item';
+            if (activeFilters.status === item.status) row.classList.add('active');
+            row.dataset.status = item.status;
+            row.style.setProperty('--status-color', color);
             
-            if (isAlreadyActive) {
-                activeFilters.status = null;
-            } else {
-                row.classList.add('active');
-                activeFilters.status = item.status;
-            }
-            applyFilters();
-        });
-        
-        statusLegendList.appendChild(row);
+            row.innerHTML = `
+                <div class="legend-color-label">
+                    <span class="legend-color-dot"></span>
+                    <span>${item.label}</span>
+                </div>
+                <span class="legend-count">${count}</span>
+            `;
+            
+            row.addEventListener('click', () => {
+                if (activeFilters.status === item.status) {
+                    activeFilters.status = null;
+                } else {
+                    activeFilters.status = item.status;
+                }
+                applyFilters();
+            });
+            
+            statusLegendList.appendChild(row);
+        }
+
+        // Floating On-Screen Card Item
+        if (floatingLegendBody) {
+            const floatItem = document.createElement('div');
+            floatItem.className = 'floating-legend-item';
+            if (activeFilters.status === item.status) floatItem.classList.add('active');
+            floatItem.style.setProperty('--status-color', color);
+            
+            floatItem.innerHTML = `
+                <div class="label-group">
+                    <span class="color-dot"></span>
+                    <span>${item.label}</span>
+                </div>
+                <span class="count-badge">${count}</span>
+            `;
+            
+            floatItem.addEventListener('click', () => {
+                if (activeFilters.status === item.status) {
+                    activeFilters.status = null;
+                } else {
+                    activeFilters.status = item.status;
+                }
+                applyFilters();
+            });
+            
+            floatingLegendBody.appendChild(floatItem);
+        }
     });
 }
 

@@ -468,6 +468,130 @@ body {
     cursor: grabbing;
 }
 
+/* Floating On-Screen Status Legend Card */
+.floating-legend-card {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 1000;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 10px 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(59, 130, 246, 0.15);
+    min-width: 190px;
+    max-width: 240px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+}
+
+.floating-legend-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #60a5fa;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 6px;
+    cursor: pointer;
+}
+
+.floating-legend-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.floating-legend-toggle {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: color 0.2s, transform 0.3s ease;
+}
+
+.floating-legend-card.collapsed .floating-legend-toggle {
+    transform: rotate(180deg);
+}
+
+.floating-legend-card.collapsed {
+    padding-bottom: 10px;
+}
+
+.floating-legend-card.collapsed .floating-legend-header {
+    padding-bottom: 0;
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.floating-legend-card.collapsed .floating-legend-body {
+    display: none;
+}
+
+.floating-legend-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.floating-legend-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.floating-legend-item:hover,
+.floating-legend-item.active {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(2px);
+}
+
+.floating-legend-item .label-group {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.floating-legend-item .color-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background-color: var(--status-color);
+    box-shadow: 0 0 6px var(--status-color);
+    flex-shrink: 0;
+}
+
+.floating-legend-item .count-badge {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 10.5px;
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 1px 6px;
+    border-radius: 10px;
+}
+
 /* Drag instructions */
 .map-tip {
     position: absolute;

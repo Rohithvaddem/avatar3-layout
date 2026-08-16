@@ -204,6 +204,21 @@
 
             <!-- Map Viewport -->
             <div class="map-viewport" id="mapViewport">
+                <!-- Floating On-Screen Status Legend Card -->
+                <div class="floating-legend-card" id="floatingLegendCard">
+                    <div class="floating-legend-header" id="floatingLegendHeader" title="Click to collapse/expand legend">
+                        <div class="floating-legend-title">
+                            <i class="fa-solid fa-palette" style="color: #60a5fa;"></i> <span>Plot Status Legend</span>
+                        </div>
+                        <button class="floating-legend-toggle" id="floatingLegendToggle">
+                            <i class="fa-solid fa-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="floating-legend-body" id="floatingLegendBody">
+                        <!-- Populated dynamically by app.js -->
+                    </div>
+                </div>
+
                 <!-- Floating Smart Plot Finder Match Result Banner -->
                 <div class="finder-result-banner" id="finderResultBanner" style="display: none;">
                     <span><i class="fa-solid fa-wand-magic-sparkles" style="color: #60a5fa;"></i> Found <strong

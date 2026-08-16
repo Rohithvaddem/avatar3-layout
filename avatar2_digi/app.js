@@ -321,6 +321,15 @@ function setupMapControls() {
         });
     }
 
+    const floatLegendHeader = document.getElementById('floatingLegendHeader');
+    const floatLegendCard = document.getElementById('floatingLegendCard');
+    if (floatLegendHeader && floatLegendCard) {
+        floatLegendHeader.addEventListener('click', (e) => {
+            e.stopPropagation();
+            floatLegendCard.classList.toggle('collapsed');
+        });
+    }
+
     const goToSatelliteBtn = document.getElementById('goToSatelliteBtn');
     if (goToSatelliteBtn) {
         goToSatelliteBtn.addEventListener('click', (e) => {
@@ -614,45 +623,88 @@ function updateStatistics() {
     }
     
     // Render Sidebar Legend items
-    statusLegendList.innerHTML = `
-        <div class="legend-item" id="legend-AVAILABLE" style="--legend-color: var(--status-available);">
-            <div class="legend-label-group">
-                <div class="legend-color-dot"></div>
-                <span class="legend-name">Available</span>
+    if (statusLegendList) {
+        statusLegendList.innerHTML = `
+            <div class="legend-item" id="legend-AVAILABLE" style="--legend-color: var(--status-available);">
+                <div class="legend-label-group">
+                    <div class="legend-color-dot"></div>
+                    <span class="legend-name">Available</span>
+                </div>
+                <span class="legend-count">${counts.AVAILABLE}</span>
             </div>
-            <span class="legend-count">${counts.AVAILABLE}</span>
-        </div>
-        <div class="legend-item" id="legend-SOLD" style="--legend-color: var(--status-sold);">
-            <div class="legend-label-group">
-                <div class="legend-color-dot"></div>
-                <span class="legend-name">Sold / Booked</span>
+            <div class="legend-item" id="legend-SOLD" style="--legend-color: var(--status-sold);">
+                <div class="legend-label-group">
+                    <div class="legend-color-dot"></div>
+                    <span class="legend-name">Sold / Booked</span>
+                </div>
+                <span class="legend-count">${counts.SOLD}</span>
             </div>
-            <span class="legend-count">${counts.SOLD}</span>
-        </div>
-        <div class="legend-item" id="legend-HOLD" style="--legend-color: var(--status-hold);">
-            <div class="legend-label-group">
-                <div class="legend-color-dot"></div>
-                <span class="legend-name">Hold</span>
+            <div class="legend-item" id="legend-MORTGAGE" style="--legend-color: var(--status-mortgage);">
+                <div class="legend-label-group">
+                    <div class="legend-color-dot"></div>
+                    <span class="legend-name">Mortgage</span>
+                </div>
+                <span class="legend-count">${counts.MORTGAGE}</span>
             </div>
-            <span class="legend-count">${counts.HOLD}</span>
-        </div>
-        <div class="legend-item" id="legend-MORTGAGE" style="--legend-color: var(--status-mortgage);">
-            <div class="legend-label-group">
-                <div class="legend-color-dot"></div>
-                <span class="legend-name">Mortgage</span>
+            <div class="legend-item" id="legend-HOLD" style="--legend-color: var(--status-hold);">
+                <div class="legend-label-group">
+                    <div class="legend-color-dot"></div>
+                    <span class="legend-name">Hold</span>
+                </div>
+                <span class="legend-count">${counts.HOLD}</span>
             </div>
-            <span class="legend-count">${counts.MORTGAGE}</span>
-        </div>
-        <div class="legend-item" id="legend-REGISTERED" style="--legend-color: var(--status-registered);">
-            <div class="legend-label-group">
-                <div class="legend-color-dot"></div>
-                <span class="legend-name">Registered</span>
+            <div class="legend-item" id="legend-REGISTERED" style="--legend-color: var(--status-registered);">
+                <div class="legend-label-group">
+                    <div class="legend-color-dot"></div>
+                    <span class="legend-name">Registered</span>
+                </div>
+                <span class="legend-count">${counts.REGISTERED}</span>
             </div>
-            <span class="legend-count">${counts.REGISTERED}</span>
-        </div>
-    `;
+        `;
+    }
 
-    // Hook listeners for Legend selections
+    // Render Floating Card Items
+    const floatingLegendBody = document.getElementById('floatingLegendBody');
+    if (floatingLegendBody) {
+        floatingLegendBody.innerHTML = `
+            <div class="floating-legend-item ${activeStatusFilters.has('AVAILABLE') ? 'active' : ''}" data-status="AVAILABLE" style="--status-color: var(--status-available);">
+                <div class="label-group"><span class="color-dot"></span><span>AVAILABLE</span></div>
+                <span class="count-badge">${counts.AVAILABLE}</span>
+            </div>
+            <div class="floating-legend-item ${activeStatusFilters.has('SOLD') ? 'active' : ''}" data-status="SOLD" style="--status-color: var(--status-sold);">
+                <div class="label-group"><span class="color-dot"></span><span>SOLD / BOOKED</span></div>
+                <span class="count-badge">${counts.SOLD}</span>
+            </div>
+            <div class="floating-legend-item ${activeStatusFilters.has('MORTGAGE') ? 'active' : ''}" data-status="MORTGAGE" style="--status-color: var(--status-mortgage);">
+                <div class="label-group"><span class="color-dot"></span><span>MORTGAGE</span></div>
+                <span class="count-badge">${counts.MORTGAGE}</span>
+            </div>
+            <div class="floating-legend-item ${activeStatusFilters.has('HOLD') ? 'active' : ''}" data-status="HOLD" style="--status-color: var(--status-hold);">
+                <div class="label-group"><span class="color-dot"></span><span>HOLD</span></div>
+                <span class="count-badge">${counts.HOLD}</span>
+            </div>
+            <div class="floating-legend-item ${activeStatusFilters.has('REGISTERED') ? 'active' : ''}" data-status="REGISTERED" style="--status-color: var(--status-registered);">
+                <div class="label-group"><span class="color-dot"></span><span>REGISTERED</span></div>
+                <span class="count-badge">${counts.REGISTERED}</span>
+            </div>
+        `;
+
+        floatingLegendBody.querySelectorAll('.floating-legend-item').forEach(item => {
+            const st = item.dataset.status;
+            item.addEventListener('click', () => {
+                if (activeStatusFilters.has(st)) {
+                    activeStatusFilters.delete(st);
+                    item.classList.remove('active');
+                } else {
+                    activeStatusFilters.add(st);
+                    item.classList.add('active');
+                }
+                applyFilters();
+            });
+        });
+    }
+
+    // Hook listeners for Sidebar Legend selections
     Object.keys(counts).forEach(status => {
         const item = document.getElementById(`legend-${status}`);
         if (item) {
