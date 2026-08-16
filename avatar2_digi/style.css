@@ -472,7 +472,7 @@ body {
 .floating-legend-card {
     position: absolute;
     top: 16px;
-    left: 16px;
+    right: 20px;
     z-index: 1000;
     background: rgba(15, 23, 42, 0.92);
     backdrop-filter: blur(14px);
