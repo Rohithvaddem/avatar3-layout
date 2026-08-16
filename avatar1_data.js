@@ -1,4 +1,4 @@
-const plotDataRawAvatar1 = [
+﻿const plotDataRawAvatar1 = [
     {
         "plot_no":  "1",
         "plot_size":  "270",
@@ -2094,7 +2094,7 @@ const plotDataRawAvatar1 = [
         "facing":  "East",
         "plot_status":  "REGISTERED",
         "customer_name":  "",
-        "reference_name":  "Avegah consultancy",
+        "reference_name":  "AvegahÂ consultancy",
         "dim_north":  "-",
         "dim_south":  "-",
         "dim_east":  "-",
@@ -2189,7 +2189,7 @@ const plotDataRawAvatar1 = [
         "plot_size":  "403",
         "facing":  "East-West",
         "plot_status":  "REGISTERED",
-        "customer_name":  "Pedamallu Devi Vijai",
+        "customer_name":  "PedamalluÂ DeviÂ Vijai",
         "reference_name":  "",
         "dim_north":  "-",
         "dim_south":  "-",
@@ -3089,7 +3089,7 @@ const plotDataRawAvatar1 = [
         "plot_size":  "165",
         "facing":  "East",
         "plot_status":  "REGISTERED",
-        "customer_name":  "Seeram Siva Sai",
+        "customer_name":  "SeeramÂ SivaÂ Sai",
         "reference_name":  "",
         "dim_north":  "-",
         "dim_south":  "-",

@@ -1,4 +1,4 @@
-const plotDataRawAvatar2 = [
+﻿const plotDataRawAvatar2 = [
     {
         "plot_no":  "1",
         "plot_size":  "303",
