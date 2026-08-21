@@ -2221,6 +2221,18 @@ function setupAdmin() {
         });
     }
 
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+    const togglePasswordIcon = document.getElementById('togglePasswordIcon');
+    if (togglePasswordBtn && loginPassword) {
+        togglePasswordBtn.addEventListener('click', () => {
+            const isPassword = loginPassword.type === 'password';
+            loginPassword.type = isPassword ? 'text' : 'password';
+            if (togglePasswordIcon) {
+                togglePasswordIcon.className = isPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+            }
+        });
+    }
+
     if (loginModalCloseBtn) {
         loginModalCloseBtn.addEventListener('click', () => {
             loginModalBackdrop.classList.remove('show');

@@ -377,9 +377,15 @@
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
                         <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Password</label>
-                        <input type="password" id="loginPassword" required
-                            style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s;"
-                            placeholder="Enter password">
+                        <div style="position: relative; width: 100%;">
+                            <input type="password" id="loginPassword" required
+                                style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 10px 38px 10px 12px; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s;"
+                                placeholder="Enter password">
+                            <button type="button" id="togglePasswordBtn" title="Toggle Password Visibility"
+                                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 14px; padding: 4px;">
+                                <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
+                            </button>
+                        </div>
                     </div>
                     <div id="loginError"
                         style="color: var(--status-registered); font-size: 12px; text-align: left; display: none; font-weight: 600;">
