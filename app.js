@@ -1750,7 +1750,7 @@ function openPlotModal(plotNo) {
             ${emiHtml}
             ${adminCrmHtml}
         </div>
-        <button class="admin-login-btn" id="exportPriceQuoteBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; border-radius: 8px; display: ${(isAdminLoggedIn && canGenerateQuote) ? 'flex' : 'none'}; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+        <button class="admin-login-btn" id="exportPriceQuoteBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; border-radius: 8px; display: ${(isDirectorLoggedIn && canGenerateQuote) ? 'flex' : 'none'}; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
             <i class="fa-solid fa-file-invoice-dollar"></i> Generate Price Quote / PDF
         </button>
         ${editButtonHtml}
@@ -2157,10 +2157,13 @@ function setupMobileSidebar() {
 }
 
 // ----------------------------------------------------
-// Staff Admin CMS Implementation
+// Staff / Director Admin CMS Implementation
 // ----------------------------------------------------
 
-let isAdminLoggedIn = sessionStorage.getItem('isAdminLoggedIn') === 'true';
+let userRole = sessionStorage.getItem('userRole') || (sessionStorage.getItem('isAdminLoggedIn') === 'true' ? 'director' : null);
+let isAdminLoggedIn = !!userRole;
+let isDirectorLoggedIn = userRole === 'director';
+let isStaffLoggedIn = userRole === 'staff';
 
 // Admin DOM elements
 const loginModalBackdrop = document.getElementById('loginModalBackdrop');
@@ -2182,6 +2185,42 @@ function setupAdmin() {
         });
     }
 
+    const tabStaff = document.getElementById('tabStaffLogin');
+    const tabDirector = document.getElementById('tabDirectorLogin');
+    const loginModalTitle = document.getElementById('loginModalTitle');
+    const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+    const loginUsernameLabel = document.getElementById('loginUsernameLabel');
+
+    if (tabStaff && tabDirector) {
+        tabStaff.addEventListener('click', () => {
+            tabStaff.classList.add('active');
+            tabDirector.classList.remove('active');
+            tabStaff.style.background = 'var(--accent)';
+            tabStaff.style.color = '#fff';
+            tabDirector.style.background = 'transparent';
+            tabDirector.style.color = 'var(--text-secondary)';
+            if (loginModalTitle) loginModalTitle.innerHTML = '<i class="fa-solid fa-user-shield"></i> Staff Login';
+            if (loginSubmitBtn) loginSubmitBtn.textContent = 'Login as Staff';
+            if (loginUsernameLabel) loginUsernameLabel.textContent = 'Staff Username';
+            loginUsername.placeholder = 'Enter staff username';
+            loginError.style.display = 'none';
+        });
+
+        tabDirector.addEventListener('click', () => {
+            tabDirector.classList.add('active');
+            tabStaff.classList.remove('active');
+            tabDirector.style.background = 'linear-gradient(135deg, #eab308, #ca8a04)';
+            tabDirector.style.color = '#000';
+            tabStaff.style.background = 'transparent';
+            tabStaff.style.color = 'var(--text-secondary)';
+            if (loginModalTitle) loginModalTitle.innerHTML = '<i class="fa-solid fa-crown" style="color: #facc15;"></i> Director Login';
+            if (loginSubmitBtn) loginSubmitBtn.textContent = 'Login as Director';
+            if (loginUsernameLabel) loginUsernameLabel.textContent = 'Director Login ID';
+            loginUsername.placeholder = 'Enter Director ID (aspireality avatar)';
+            loginError.style.display = 'none';
+        });
+    }
+
     if (loginModalCloseBtn) {
         loginModalCloseBtn.addEventListener('click', () => {
             loginModalBackdrop.classList.remove('show');
@@ -2199,17 +2238,32 @@ function setupAdmin() {
     if (loginForm) {
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const username = loginUsername.value.trim();
+            const username = loginUsername.value.trim().toLowerCase();
             const password = loginPassword.value;
 
-            // Simple login credentials
-            if (username === 'admin' && password === 'admin') {
+            // Credentials check for Director vs Staff
+            if (username === 'aspireality avatar' && password === 'rudravatar123@asp') {
+                userRole = 'director';
                 isAdminLoggedIn = true;
+                isDirectorLoggedIn = true;
+                isStaffLoggedIn = false;
+                sessionStorage.setItem('userRole', 'director');
                 sessionStorage.setItem('isAdminLoggedIn', 'true');
                 loginModalBackdrop.classList.remove('show');
                 setupAdminState();
-                renderPlotDots(); // Refresh mapping to show admin triggers
-                alert('Welcome, Staff! Admin mode has been enabled. You can now edit any plot directly by clicking "Edit Plot Details" inside their modal.');
+                renderPlotDots();
+                alert('Welcome, Director! Full access enabled (including Price Quote Generation).');
+            } else if (username === 'admin' && password === 'admin') {
+                userRole = 'staff';
+                isAdminLoggedIn = true;
+                isDirectorLoggedIn = false;
+                isStaffLoggedIn = true;
+                sessionStorage.setItem('userRole', 'staff');
+                sessionStorage.setItem('isAdminLoggedIn', 'true');
+                loginModalBackdrop.classList.remove('show');
+                setupAdminState();
+                renderPlotDots();
+                alert('Welcome, Staff! Staff access enabled.');
             } else {
                 loginError.style.display = 'block';
             }
@@ -2323,8 +2377,13 @@ function setupAdminState() {
         }
         if (mapperSection) mapperSection.style.display = 'block';
         
+        const roleBadgeHtml = isDirectorLoggedIn 
+            ? `<div style="grid-column: span 2; text-align: center; background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(202, 138, 4, 0.3)); border: 1px solid #facc15; color: #facc15; padding: 6px; border-radius: 8px; font-weight: 800; font-size: 11.5px; display: flex; align-items: center; justify-content: center; gap: 6px;"><i class="fa-solid fa-crown"></i> Director Mode</div>`
+            : `<div style="grid-column: span 2; text-align: center; background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; color: #60a5fa; padding: 6px; border-radius: 8px; font-weight: 800; font-size: 11.5px; display: flex; align-items: center; justify-content: center; gap: 6px;"><i class="fa-solid fa-user-shield"></i> Staff Mode</div>`;
+
         sidebarFooter.innerHTML = `
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%;">
+                ${roleBadgeHtml}
                 <button class="admin-login-btn" id="sidebarShareBtn" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 8px 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; grid-column: span 2;">
                     <i class="fa-solid fa-share-nodes"></i> Share Current Layout Link
                 </button>
@@ -2335,7 +2394,7 @@ function setupAdminState() {
                     <i class="fa-solid fa-rotate-left"></i> Reset
                 </button>
                 <button class="admin-login-btn" id="logoutBtn" style="background-color: var(--status-registered); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 8px 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; grid-column: span 2;">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Admin Logout
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
                 </button>
             </div>
         `;
@@ -2346,7 +2405,11 @@ function setupAdminState() {
         }
 
         function performLogout() {
+            userRole = null;
             isAdminLoggedIn = false;
+            isDirectorLoggedIn = false;
+            isStaffLoggedIn = false;
+            sessionStorage.removeItem('userRole');
             sessionStorage.removeItem('isAdminLoggedIn');
             if (window.lockIntervalId) {
                 clearInterval(window.lockIntervalId);
@@ -2358,7 +2421,7 @@ function setupAdminState() {
             const exitBtn = document.getElementById('exitPitchModeBtn');
             if (exitBtn) exitBtn.remove();
             
-            alert('Admin mode disabled.');
+            alert('Logged out successfully.');
             window.location.reload();
         }
 
