@@ -1267,10 +1267,11 @@ function exportPriceQuote(plotNo) {
                 <table class="q-table">
                     <thead>
                         <tr>
-                            <th style="width: 35%;" contenteditable="true">Project Name</th>
-                            <th style="width: 20%; text-align: center;" contenteditable="true">Plot No.</th>
-                            <th style="width: 20%; text-align: center;" contenteditable="true">Facing</th>
-                            <th style="width: 25%; text-align: right;" contenteditable="true">Per sq.yd.</th>
+                            <th style="width: 30%;" contenteditable="true">Project Name</th>
+                            <th style="width: 15%; text-align: center;" contenteditable="true">Plot No.</th>
+                            <th style="width: 15%; text-align: center;" contenteditable="true">Facing</th>
+                            <th style="width: 20%; text-align: right;" contenteditable="true">Per sq.yd.</th>
+                            <th style="width: 20%; text-align: right;" contenteditable="true">Total Price</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1279,6 +1280,7 @@ function exportPriceQuote(plotNo) {
                             <td style="font-weight: 700; text-align: center;" contenteditable="true">${item.plot_no}</td>
                             <td style="font-weight: 700; text-align: center; text-transform: uppercase;" contenteditable="true">${facingStr}</td>
                             <td class="bg-yellow" style="text-align: right;" id="lblPerSqYd" contenteditable="true">${fmt(defaultBaseRate)}</td>
+                            <td class="bg-yellow" style="text-align: right; font-weight: 700;" id="lblOriginalTotalCost" contenteditable="true">${fmt(Math.round(plotAreaYds * defaultBaseRate))}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1484,6 +1486,7 @@ function exportPriceQuote(plotNo) {
                         const active = document.activeElement;
                         const areaEl = document.getElementById('lblPlotArea');
                         const perSqYdEl = document.getElementById('lblPerSqYd');
+                        const originalTotalCostEl = document.getElementById('lblOriginalTotalCost');
                         const closingPriceEl = document.getElementById('lblClosingPrice');
                         const discountEl = document.getElementById('lblDiscount');
                         const bankRateEl = document.getElementById('lblBankRate');
@@ -1496,7 +1499,15 @@ function exportPriceQuote(plotNo) {
                         const corpusRateEl = document.getElementById('lblCorpusRate');
 
                         const plotArea = parseNum(areaEl ? areaEl.innerText : '200');
-                        const basePerSqYdRate = parseNum(perSqYdEl ? perSqYdEl.innerText : '15499');
+                        let basePerSqYdRate = parseNum(perSqYdEl ? perSqYdEl.innerText : '15499');
+
+                        // If user edits Original Total Price directly, update Per Sq.Yd Rate
+                        if (active === originalTotalCostEl) {
+                            const typedOriginalCost = parseNum(originalTotalCostEl.innerText);
+                            basePerSqYdRate = plotArea > 0 ? Math.round(typedOriginalCost / plotArea) : 0;
+                            if (perSqYdEl) perSqYdEl.innerText = fmt(basePerSqYdRate);
+                        }
+
                         let baseClosingPrice = parseNum(closingPriceEl ? closingPriceEl.innerText : '15499');
                         const bankRate = parseNum(bankRateEl ? bankRateEl.innerText : '3000');
 
@@ -1518,6 +1529,12 @@ function exportPriceQuote(plotNo) {
                             const typedCashRate = parseNum(cashRateEl.innerText);
                             baseClosingPrice = Math.max(0, (typedCashRate + bankRate) - (eastRate + cornerRate + mortgageRate + bankLoanRate));
                             if (closingPriceEl) closingPriceEl.innerText = fmt(baseClosingPrice);
+                        }
+
+                        // Original Total Price based on original Per Sq.Yd Rate and Plot Area
+                        const originalTotalCost = Math.round(plotArea * basePerSqYdRate);
+                        if (originalTotalCostEl && originalTotalCostEl !== active) {
+                            originalTotalCostEl.innerText = fmt(originalTotalCost);
                         }
 
                         // Base plot cost without add-ons
@@ -1619,7 +1636,7 @@ function exportPriceQuote(plotNo) {
                         if (regTotalEl && regTotalEl !== active) regTotalEl.innerText = fmt(totalRegCharges);
                     }
 
-                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblDiscount', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate'].forEach(id => {
+                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblOriginalTotalCost', 'lblDiscount', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate'].forEach(id => {
                         const el = document.getElementById(id);
                         if (el) {
                             el.addEventListener('input', updateCalculations);
