@@ -1288,15 +1288,17 @@ function exportPriceQuote(plotNo) {
                 <table class="q-table">
                     <thead>
                         <tr>
-                            <th style="width: 30%; text-align: center;" contenteditable="true">Total sq.yds</th>
-                            <th style="width: 35%; text-align: right;" contenteditable="true">Closing Price</th>
-                            <th style="width: 35%; text-align: right;" contenteditable="true">Total Amount</th>
+                            <th style="width: 20%; text-align: center;" contenteditable="true">Total sq.yds</th>
+                            <th style="width: 25%; text-align: right;" contenteditable="true">Closing Price</th>
+                            <th style="width: 25%; text-align: right;" contenteditable="true">Discount</th>
+                            <th style="width: 30%; text-align: right;" contenteditable="true">Total Amount</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td class="bg-yellow" style="text-align: center;" id="lblPlotArea" contenteditable="true">${plotAreaYds}</td>
                             <td style="text-align: right;" id="lblClosingPrice" contenteditable="true">${fmt(defaultBaseRate)}</td>
+                            <td class="bg-yellow" style="text-align: right; font-weight: 700; color: #047857;" id="lblDiscount" contenteditable="true">₹ 0</td>
                             <td class="bg-yellow" style="text-align: right;" id="lblTotalAmount" contenteditable="true">${fmt(Math.round(plotAreaYds * defaultBaseRate))}</td>
                         </tr>
                     </tbody>
@@ -1481,7 +1483,9 @@ function exportPriceQuote(plotNo) {
                     function updateCalculations() {
                         const active = document.activeElement;
                         const areaEl = document.getElementById('lblPlotArea');
+                        const perSqYdEl = document.getElementById('lblPerSqYd');
                         const closingPriceEl = document.getElementById('lblClosingPrice');
+                        const discountEl = document.getElementById('lblDiscount');
                         const bankRateEl = document.getElementById('lblBankRate');
                         const cashRateEl = document.getElementById('lblCashRate');
 
@@ -1492,6 +1496,7 @@ function exportPriceQuote(plotNo) {
                         const corpusRateEl = document.getElementById('lblCorpusRate');
 
                         const plotArea = parseNum(areaEl ? areaEl.innerText : '200');
+                        const basePerSqYdRate = parseNum(perSqYdEl ? perSqYdEl.innerText : '15499');
                         let baseClosingPrice = parseNum(closingPriceEl ? closingPriceEl.innerText : '15499');
                         const bankRate = parseNum(bankRateEl ? bankRateEl.innerText : '3000');
 
@@ -1500,6 +1505,13 @@ function exportPriceQuote(plotNo) {
                         const mortgageRate = parseNum(mortgageRateEl ? mortgageRateEl.innerText : '0');
                         const bankLoanRate = parseNum(bankLoanRateEl ? bankLoanRateEl.innerText : '0');
                         const corpusRate = parseNum(corpusRateEl ? corpusRateEl.innerText : '200');
+
+                        // If user edits Discount directly, calculate baseClosingPrice from Per Sq.yd Rate - Discount
+                        if (active === discountEl) {
+                            const typedDiscount = parseNum(discountEl.innerText);
+                            baseClosingPrice = Math.max(0, basePerSqYdRate - typedDiscount);
+                            if (closingPriceEl) closingPriceEl.innerText = fmt(baseClosingPrice);
+                        }
 
                         // If user edits By Cash Rate directly in Payment Structure, update base Closing Price
                         if (active === cashRateEl) {
@@ -1510,6 +1522,12 @@ function exportPriceQuote(plotNo) {
 
                         // Base plot cost without add-ons
                         const baseTotalAmount = Math.round(plotArea * baseClosingPrice);
+
+                        // Calculate Discount per sq.yd (Price Per Sq.Yd - Closing Price)
+                        const discountPerSqYd = Math.max(0, basePerSqYdRate - baseClosingPrice);
+                        if (discountEl && discountEl !== active) {
+                            discountEl.innerText = fmt(discountPerSqYd);
+                        }
 
                         // Individual extra totals
                         const eastTotal = Math.round(plotArea * eastRate);
@@ -1601,7 +1619,7 @@ function exportPriceQuote(plotNo) {
                         if (regTotalEl && regTotalEl !== active) regTotalEl.innerText = fmt(totalRegCharges);
                     }
 
-                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate'].forEach(id => {
+                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblDiscount', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate'].forEach(id => {
                         const el = document.getElementById(id);
                         if (el) {
                             el.addEventListener('input', updateCalculations);
