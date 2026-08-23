@@ -1008,6 +1008,167 @@ function setupAdmin() {
     }
 }
 
+function generateExecutiveSummaryReport() {
+    const dataSource = plotData;
+    const projectMeta = { title: "Aspirealty AVATAR 2 Digital" };
+    const baseRate = 15499;
+
+    let totalPlots = dataSource.length;
+    let totalSqYds = 0;
+    let totalValuation = 0;
+
+    const stats = {
+        AVAILABLE: { count: 0, sqYds: 0, val: 0, color: '#10b981' },
+        SOLD: { count: 0, sqYds: 0, val: 0, color: '#ef4444' },
+        BOOKED: { count: 0, sqYds: 0, val: 0, color: '#3b82f6' },
+        MORTGAGE: { count: 0, sqYds: 0, val: 0, color: '#ff6600' },
+        HOLD: { count: 0, sqYds: 0, val: 0, color: '#f59e0b' },
+        REGISTERED: { count: 0, sqYds: 0, val: 0, color: '#8b5cf6' },
+        RESALE: { count: 0, sqYds: 0, val: 0, color: '#ec4899' }
+    };
+
+    dataSource.forEach(p => {
+        const area = parseFloat(String(p.plot_size || '').replace(/[^0-9.]/g, '')) || 200;
+        let statusKey = String(p.plot_status || 'AVAILABLE').toUpperCase().trim();
+        if (statusKey === 'MORTAGAGE') statusKey = 'MORTGAGE';
+        if (!stats[statusKey]) {
+            stats[statusKey] = { count: 0, sqYds: 0, val: 0, color: '#64748b' };
+        }
+        
+        let plotRate = baseRate;
+        if (p.facing && String(p.facing).toUpperCase().includes('EAST')) plotRate += 200;
+        if ((p.is_corner === true) || (p.facing && String(p.facing).toUpperCase().includes('CORNER'))) plotRate += 500;
+        if (statusKey === 'MORTGAGE') plotRate += 300;
+
+        const plotVal = Math.round(area * plotRate);
+
+        totalSqYds += area;
+        totalValuation += plotVal;
+
+        stats[statusKey].count += 1;
+        stats[statusKey].sqYds += area;
+        stats[statusKey].val += plotVal;
+    });
+
+    const realizedVal = (stats.SOLD ? stats.SOLD.val : 0) + (stats.BOOKED ? stats.BOOKED.val : 0) + (stats.REGISTERED ? stats.REGISTERED.val : 0);
+    const availableVal = stats.AVAILABLE ? stats.AVAILABLE.val : 0;
+    const mortgageVal = stats.MORTGAGE ? stats.MORTGAGE.val : 0;
+
+    const fmt = (v) => '₹ ' + Math.round(v).toLocaleString('en-IN');
+    const todayStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+    let rowsHtml = '';
+    dataSource.forEach(p => {
+        const area = parseFloat(String(p.plot_size || '').replace(/[^0-9.]/g, '')) || 200;
+        let statusKey = String(p.plot_status || 'AVAILABLE').toUpperCase().trim();
+        if (statusKey === 'MORTAGAGE') statusKey = 'MORTGAGE';
+        let plotRate = baseRate;
+        if (p.facing && String(p.facing).toUpperCase().includes('EAST')) plotRate += 200;
+        if ((p.is_corner === true) || (p.facing && String(p.facing).toUpperCase().includes('CORNER'))) plotRate += 500;
+        if (statusKey === 'MORTGAGE') plotRate += 300;
+        const plotVal = Math.round(area * plotRate);
+
+        rowsHtml += `
+            <tr>
+                <td style="text-align: center; font-weight: 700;">#${p.plot_no}</td>
+                <td>${p.plot_size || '200 Sq.Yds'}</td>
+                <td style="text-transform: uppercase;">${p.facing || 'EAST'}</td>
+                <td><span class="status-pill" style="background: ${stats[statusKey]?.color || '#64748b'}">${statusKey}</span></td>
+                <td>${p.customer_name || '-'}</td>
+                <td style="text-align: right;">${fmt(plotRate)}</td>
+                <td style="text-align: right; font-weight: 700;">${fmt(plotVal)}</td>
+            </tr>
+        `;
+    });
+
+    const reportWindow = window.open('', '_blank');
+    if (!reportWindow) {
+        alert('Pop-up blocked! Please allow pop-ups to view Executive Summary Report.');
+        return;
+    }
+
+    reportWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Executive Summary Report - ${projectMeta.title}</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+                body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #0f172a; margin: 0; padding: 24px; }
+                .report-card { max-width: 1100px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
+                .report-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #d97706; padding-bottom: 16px; margin-bottom: 24px; }
+                .report-title { font-size: 22px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px; }
+                .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+                .metric-box { background: #f1f5f9; border-radius: 12px; padding: 16px; border: 1px solid #cbd5e1; }
+                .metric-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px; }
+                .metric-val { font-size: 20px; font-weight: 800; color: #0f172a; }
+                table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 12px; }
+                th, td { border: 1px solid #cbd5e1; padding: 10px 12px; text-align: left; }
+                th { background: #1e293b; color: #ffffff; font-weight: 700; }
+                .status-pill { color: #fff; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 800; }
+                @media print { .no-print { display: none !important; } }
+            </style>
+        </head>
+        <body>
+            <div class="report-card">
+                <div class="report-header">
+                    <div>
+                        <div class="report-title"><i class="fa-solid fa-crown" style="color: #d97706;"></i> ${projectMeta.title} - Director Executive Summary</div>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Confidential Portfolio & Real Estate Valuation Report &bull; Generated: ${todayStr}</div>
+                    </div>
+                    <button class="no-print" onclick="window.print()" style="background: #d97706; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                        <i class="fa-solid fa-print"></i> Print / Save PDF
+                    </button>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-box" style="border-left: 4px solid #0284c7;">
+                        <div class="metric-label">Total Portfolio Value</div>
+                        <div class="metric-val">${fmt(totalValuation)}</div>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">${totalPlots} Plots (${totalSqYds.toLocaleString()} Sq.Yds)</div>
+                    </div>
+                    <div class="metric-box" style="border-left: 4px solid #10b981;">
+                        <div class="metric-label">Available Inventory Value</div>
+                        <div class="metric-val">${fmt(availableVal)}</div>
+                        <div style="font-size: 11px; color: #10b981; margin-top: 4px;">${stats.AVAILABLE?.count || 0} Plots (${(stats.AVAILABLE?.sqYds || 0).toLocaleString()} Sq.Yds)</div>
+                    </div>
+                    <div class="metric-box" style="border-left: 4px solid #ef4444;">
+                        <div class="metric-label">Realized Value (Sold/Booked)</div>
+                        <div class="metric-val">${fmt(realizedVal)}</div>
+                        <div style="font-size: 11px; color: #ef4444; margin-top: 4px;">${(stats.SOLD?.count || 0) + (stats.BOOKED?.count || 0) + (stats.REGISTERED?.count || 0)} Plots Sold</div>
+                    </div>
+                    <div class="metric-box" style="border-left: 4px solid #ff6600;">
+                        <div class="metric-label">Mortgage Blocked Value</div>
+                        <div class="metric-val">${fmt(mortgageVal)}</div>
+                        <div style="font-size: 11px; color: #ff6600; margin-top: 4px;">${stats.MORTGAGE?.count || 0} Plots Blocked</div>
+                    </div>
+                </div>
+
+                <h4 style="margin-bottom: 8px; margin-top: 20px; font-size: 14px;">Inventory Register & Status Breakdown</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 10%; text-align: center;">Plot No</th>
+                            <th style="width: 15%;">Area (Sq.Yd)</th>
+                            <th style="width: 12%;">Facing</th>
+                            <th style="width: 13%;">Status</th>
+                            <th style="width: 25%;">Customer Name</th>
+                            <th style="width: 12%; text-align: right;">Rate / Sq.Yd</th>
+                            <th style="width: 13%; text-align: right;">Total Valuation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+            </div>
+        </body>
+        </html>
+    `);
+    reportWindow.document.close();
+}
+
 function setupAdminState() {
     if (!sidebarFooter) return;
 
@@ -1018,9 +1179,16 @@ function setupAdminState() {
             ? `<div style="text-align: center; background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(202, 138, 4, 0.3)); border: 1px solid #facc15; color: #facc15; padding: 6px; border-radius: 8px; font-weight: 800; font-size: 11.5px; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 4px;"><i class="fa-solid fa-crown"></i> Director Mode</div>`
             : `<div style="text-align: center; background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; color: #60a5fa; padding: 6px; border-radius: 8px; font-weight: 800; font-size: 11.5px; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 4px;"><i class="fa-solid fa-user-shield"></i> Staff Mode</div>`;
 
+        const directorReportBtnHtml = isDirectorLoggedIn ? `
+            <button class="admin-login-btn" id="executiveReportBtn" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color: #000; border: none; font-weight: 800; cursor: pointer; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 12px; margin-bottom: 4px; box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);">
+                <i class="fa-solid fa-file-contract"></i> Executive Summary Report (PDF)
+            </button>
+        ` : '';
+
         sidebarFooter.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; padding: 0 4px;">
                 ${roleBadgeHtml}
+                ${directorReportBtnHtml}
                 <button class="admin-login-btn" id="exportDbBtn" style="background-color: var(--accent); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 13px;">
                     <i class="fa-solid fa-download"></i> Export data.json
                 </button>
@@ -1032,6 +1200,11 @@ function setupAdminState() {
                 </button>
             </div>
         `;
+
+        const execBtn = document.getElementById('executiveReportBtn');
+        if (execBtn) {
+            execBtn.addEventListener('click', generateExecutiveSummaryReport);
+        }
 
         document.getElementById('exportDbBtn').addEventListener('click', () => {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(plotData, null, 4));
