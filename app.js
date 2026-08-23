@@ -1022,8 +1022,8 @@ function exportPriceQuote(plotNo) {
 
     const projectMeta = projectMetadata[currentProject] || { title: currentProject === 'avatar1' ? "Aspirealty AVATAR 1" : "Aspirealty AVATAR 2" };
     
-    // Base Price per sq. yard: Avatar 1 = ₹14,999, Avatar 2 & others = ₹15,499
-    const defaultBaseRate = (currentProject === 'avatar1') ? 14999 : 15499;
+    // Base Price per sq. yard: Avatar 1 = ₹14,499, Avatar 2 & others = ₹15,499
+    const defaultBaseRate = (currentProject === 'avatar1') ? 14499 : 15499;
     const initialEastRate = isEast ? 200 : 0;
     const initialCornerRate = isCorner ? 500 : 0;
     const initialMortgageRate = isMortgage ? 300 : 0;
@@ -1745,7 +1745,7 @@ function openPlotModal(plotNo) {
     const plotAreaYds = parseFloat(String(item.plot_size || '').replace(/[^0-9.]/g, '')) || 200;
     let sqYdRate = 15499; // Default rate per sq. yard (Avatar 2: 15,499)
     if (currentProject === 'avatar1') {
-        sqYdRate = 14999; // Avatar 1 rate per sq. yard: 14,999
+        sqYdRate = 14499; // Avatar 1 rate per sq. yard: 14,499
     } else if (currentProject === 'avatar2') {
         sqYdRate = 15499;
     }
@@ -3571,7 +3571,7 @@ function updateSidebarAndHeaderForProject(project) {
         }
         const sidebarRateInput = document.getElementById('sidebarEmiRateRange');
         if (sidebarRateInput) {
-            sidebarRateInput.value = project === 'avatar1' ? 14999 : 15499;
+            sidebarRateInput.value = project === 'avatar1' ? 14499 : 15499;
             if (typeof window.updateSidebarEmi === 'function') window.updateSidebarEmi();
         }
     } else {
