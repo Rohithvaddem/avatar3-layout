@@ -554,16 +554,26 @@ function openPlotModal(plotNo) {
                 <span class="detail-val">${item.reference_name || 'N/A'}</span>
             </div>
         </div>
+        <button class="btn-director-action" id="openDealSimulatorBtn" style="display: ${isDirectorLoggedIn ? 'flex' : 'none'}; margin-top: 8px;">
+            <i class="fa-solid fa-calculator" style="color: #facc15;"></i> Live Deal Closer &amp; Margin Simulator
+        </button>
+        <button class="admin-login-btn" id="exportAllotmentCertBtn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 8px; cursor: pointer; border-radius: 8px; display: ${isDirectorLoggedIn ? 'flex' : 'none'}; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);">
+            <i class="fa-solid fa-award" style="color: #facc15;"></i> Digital Allotment Certificate (Director Seal)
+        </button>
         ${editButtonHtml}
     `;
-    
-    if (isAdminLoggedIn) {
-        const editBtn = document.getElementById('editPlotBtn');
-        if (editBtn) {
-            editBtn.addEventListener('click', () => {
-                openPlotEditForm(plotNo);
-            });
-        }
+    const openSimBtn = document.getElementById('openDealSimulatorBtn');
+    if (openSimBtn) {
+        openSimBtn.addEventListener('click', () => {
+            openDealSimulator(plotNo);
+        });
+    }
+
+    const exportCertBtn = document.getElementById('exportAllotmentCertBtn');
+    if (exportCertBtn) {
+        exportCertBtn.addEventListener('click', () => {
+            exportDigitalAllotment(plotNo);
+        });
     }
     
     modalBackdrop.classList.add('show');
@@ -602,8 +612,354 @@ function closePlotModal() {
 }
 
 // ----------------------------------------------------
-// Statistics & Legends
+// Director Mode: One-Click Digital Allotment Certificate
 // ----------------------------------------------------
+function exportDigitalAllotment(plotNo, customTerms) {
+    const item = plotData.find(p => String(p.plot_no) === String(plotNo)) || {
+        plot_no: plotNo,
+        plot_size: '200',
+        facing: 'East',
+        plot_status: 'AVAILABLE',
+        customer_name: ''
+    };
+
+    const plotAreaYds = parseFloat(String(item.plot_size || '').replace(/[^0-9.]/g, '')) || 200;
+    const facingStr = item.facing || 'EAST';
+    const customerName = item.customer_name || 'Valued Buyer';
+    const projectMeta = { title: "Aspirealty AVATAR 2" };
+    const defaultBaseRate = 15499;
+
+    const ratePerYd = customTerms && customTerms.netRate ? customTerms.netRate : defaultBaseRate;
+    const totalAmount = customTerms && customTerms.totalAmount ? customTerms.totalAmount : Math.round(plotAreaYds * ratePerYd);
+    
+    const today = new Date();
+    const todayStr = today.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const certNo = `ASP-ALT-${plotNo}-${Date.now().toString().slice(-6)}`;
+    const fmt = (v) => '₹ ' + Math.round(v).toLocaleString('en-IN');
+
+    const bookingAmt = 100000;
+    const amt15 = Math.round(totalAmount * 0.25);
+    const amt45 = Math.max(0, totalAmount - bookingAmt - amt15);
+
+    const qrData = encodeURIComponent(`ASPIREALTY OFFICIAL ALLOTMENT CERTIFICATE\nCert No: ${certNo}\nProject: ${projectMeta.title}\nPlot No: ${plotNo}\nPlot Area: ${plotAreaYds} Sq.Yds\nClient: ${customerName}\nTotal Value: ${fmt(totalAmount)}\nDirector Verified & Approved`);
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${qrData}`;
+
+    const certWindow = window.open('', '_blank');
+    if (!certWindow) {
+        alert("Pop-up blocked! Please allow pop-ups to generate the Digital Allotment Certificate.");
+        return;
+    }
+
+    const shareText = encodeURIComponent(`*ASPIREALTY INFRA DEVELOPERS*\nOfficial Provisional Plot Allotment Certificate\n\n📌 *Project*: ${projectMeta.title}\n🏡 *Plot No*: ${plotNo}\n📐 *Area*: ${plotAreaYds} Sq. Yards (${facingStr} Facing)\n👤 *Client*: ${customerName}\n💰 *Agreed Deal Value*: ${fmt(totalAmount)}\n📜 *Certificate No*: ${certNo}\n\nVerified and digitally authorized by Director.`);
+    const whatsappUrl = `https://wa.me/?text=${shareText}`;
+    const mailtoUrl = `mailto:?subject=${encodeURIComponent(`Provisional Plot Allotment Certificate - Plot #${plotNo}`)}&body=${shareText}`;
+
+    certWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Digital Allotment Certificate - Plot #${plotNo} - ${projectMeta.title}</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Great+Vibes&display=swap');
+                * { box-sizing: border-box; margin: 0; padding: 0; }
+                body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: #334155; padding: 30px 15px; }
+                .cert-container { max-width: 800px; margin: 0 auto; background: #ffffff; border-radius: 16px; border: 8px solid #0f2942; padding: 40px; box-shadow: 0 25px 60px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
+                .cert-container::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 10px; background: linear-gradient(90deg, #d97706, #facc15, #0284c7, #10b981); }
+                .cert-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 25px; }
+                .brand-title { font-size: 24px; font-weight: 800; color: #0f2942; letter-spacing: -0.5px; }
+                .brand-sub { font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+                .cert-badge { background: #fef3c7; border: 1px solid #f59e0b; color: #b45309; padding: 6px 14px; border-radius: 20px; font-weight: 800; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+                .cert-title-block { text-align: center; margin-bottom: 30px; }
+                .cert-title-block h1 { font-size: 26px; font-weight: 800; color: #0f2942; text-transform: uppercase; letter-spacing: 1px; }
+                .cert-title-block p { font-size: 13px; color: #64748b; margin-top: 6px; }
+                .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 25px; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
+                .info-item { display: flex; flex-direction: column; gap: 4px; }
+                .info-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+                .info-val { font-size: 15px; font-weight: 800; color: #0f2942; }
+                .highlight-val { color: #0284c7; }
+                .table-title { font-size: 14px; font-weight: 800; color: #0f2942; margin-bottom: 10px; text-transform: uppercase; }
+                table.cert-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 13px; }
+                table.cert-table th, table.cert-table td { padding: 12px 14px; border: 1px solid #cbd5e1; text-align: left; }
+                table.cert-table th { background: #0f2942; color: #ffffff; font-weight: 700; font-size: 12px; text-transform: uppercase; }
+                .sig-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 35px; padding-top: 20px; border-top: 2px dashed #cbd5e1; }
+                .qr-box { text-align: center; }
+                .qr-box img { width: 90px; height: 90px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 4px; }
+                .signature-box { text-align: right; }
+                .sig-font { font-family: 'Great Vibes', cursive; font-size: 32px; color: #0f2942; margin-bottom: -4px; }
+                .director-stamp { display: inline-flex; align-items: center; gap: 6px; background: #ecfdf5; border: 1.5px solid #10b981; color: #047857; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px; margin-top: 6px; }
+                .actions-bar { margin-top: 30px; text-align: center; display: flex; justify-content: center; gap: 12px; }
+                .btn-act { padding: 12px 24px; border-radius: 10px; border: none; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; transition: transform 0.2s; }
+                .btn-act:hover { transform: translateY(-2px); }
+                .btn-print { background: #0284c7; }
+                .btn-whatsapp { background: #25d366; }
+                .btn-email { background: #6366f1; }
+                @media print {
+                    .actions-bar { display: none !important; }
+                    body { background: #fff; padding: 0; }
+                    .cert-container { border: none; box-shadow: none; padding: 20px; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="cert-container">
+                <div class="cert-header">
+                    <div>
+                        <div class="brand-title"><i class="fa-solid fa-building-columns" style="color: #0284c7;"></i> ASPIREALTY INFRA DEVELOPERS</div>
+                        <div class="brand-sub">Official Provisional Plot Allotment Certificate</div>
+                    </div>
+                    <div class="cert-badge">
+                        <i class="fa-solid fa-shield-halved"></i> DIRECTOR VERIFIED
+                    </div>
+                </div>
+
+                <div class="cert-title-block">
+                    <h1>PROVISIONAL PLOT ALLOTMENT LETTER</h1>
+                    <p>Certificate Serial No: <strong>${certNo}</strong> &bull; Date of Allotment: <strong>${todayStr}</strong></p>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Customer / Allottee Name</span>
+                        <span class="info-val highlight-val">${customerName}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Project Name &amp; Phase</span>
+                        <span class="info-val">${projectMeta.title}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Allotted Plot Number</span>
+                        <span class="info-val highlight-val">Plot #${plotNo}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Plot Area &amp; Facing</span>
+                        <span class="info-val">${plotAreaYds} Sq. Yards (${facingStr} Facing)</span>
+                    </div>
+                </div>
+
+                <div class="table-title">Negotiated Deal &amp; Payment Schedule</div>
+                <table class="cert-table">
+                    <thead>
+                        <tr>
+                            <th>Milestone / Particulars</th>
+                            <th style="text-align: center;">Timeline</th>
+                            <th style="text-align: right;">Amount Payable</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Total Negotiated Deal Value</strong></td>
+                            <td style="text-align: center;">Agreed Rate: ${fmt(ratePerYd)}/sq.yd</td>
+                            <td style="text-align: right; font-weight: 800; color: #0284c7;">${fmt(totalAmount)}</td>
+                        </tr>
+                        <tr>
+                            <td>Booking Advance Received</td>
+                            <td style="text-align: center;">Immediate / Spot</td>
+                            <td style="text-align: right;">₹ 1,00,000</td>
+                        </tr>
+                        <tr>
+                            <td>15-Day Milestone Payment (25%)</td>
+                            <td style="text-align: center;">Within 15 Days</td>
+                            <td style="text-align: right;">${fmt(amt15)}</td>
+                        </tr>
+                        <tr>
+                            <td>Final Balance Payment (100%)</td>
+                            <td style="text-align: center;">Within 45 Days / Registration</td>
+                            <td style="text-align: right;">${fmt(amt45)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div style="font-size: 11px; color: #64748b; line-height: 1.5; margin-bottom: 20px; background: #f8fafc; padding: 12px; border-radius: 8px; border-left: 3px solid #0284c7;">
+                    <strong>Terms &amp; Conditions:</strong> This provisional allotment is issued subject to receipt of scheduled payment milestones. Registration charges and extra corpus fund (₹200/sq.yd) are payable separately at the time of sale deed execution as per government tariffs.
+                </div>
+
+                <div class="sig-footer">
+                    <div class="qr-box">
+                        <img src="${qrUrl}" alt="QR Verification Code">
+                        <div style="font-size: 10px; font-weight: 700; color: #64748b; margin-top: 4px;">SCAN TO VERIFY CERTIFICATE</div>
+                    </div>
+                    <div class="signature-box">
+                        <div class="sig-font">Aspirealty Director</div>
+                        <div style="font-size: 12px; font-weight: 800; color: #0f2942;">AUTHORIZED DIRECTOR SIGNATURE</div>
+                        <div class="director-stamp">
+                            <i class="fa-solid fa-certificate"></i> DIGITALLY SEALED &amp; APPROVED
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions-bar">
+                    <button class="btn-act btn-print" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / Save PDF</button>
+                    <a href="${whatsappUrl}" target="_blank" class="btn-act btn-whatsapp"><i class="fa-brands fa-whatsapp"></i> Share on WhatsApp</a>
+                    <a href="${mailtoUrl}" class="btn-act btn-email"><i class="fa-solid fa-envelope"></i> Send Email</a>
+                </div>
+            </div>
+        </body>
+        </html>
+    `);
+    certWindow.document.close();
+}
+
+// ----------------------------------------------------
+// Director Mode: Live Deal Closer & Margin Simulator
+// ----------------------------------------------------
+function openDealSimulator(plotNo) {
+    const item = plotData.find(p => String(p.plot_no) === String(plotNo)) || {
+        plot_no: plotNo,
+        plot_size: '200',
+        facing: 'East',
+        plot_status: 'AVAILABLE',
+        customer_name: ''
+    };
+
+    const plotAreaYds = parseFloat(String(item.plot_size || '').replace(/[^0-9.]/g, '')) || 200;
+    const facingStr = item.facing || 'EAST';
+    const isEast = facingStr.toUpperCase().includes('EAST');
+    const isMortgage = (item.plot_status && String(item.plot_status).toUpperCase().includes('MORTGAGE')) || (item.remarks && String(item.remarks).toUpperCase().includes('MORTGAGE'));
+    const isCorner = (item.is_corner === true) || (item.remarks && String(item.remarks).toUpperCase().includes('CORNER'));
+
+    const defaultBaseRate = 15499;
+    const eastRate = isEast ? 200 : 0;
+    const cornerRate = isCorner ? 500 : 0;
+    const mortgageRate = isMortgage ? 300 : 0;
+    const standardEffectiveRate = defaultBaseRate + eastRate + cornerRate + mortgageRate;
+
+    const modalBackdrop = document.getElementById('dealSimulatorModalBackdrop');
+    const modalBody = document.getElementById('dealSimulatorBody');
+    if (!modalBackdrop || !modalBody) return;
+
+    const fmt = (v) => '₹ ' + Math.round(v).toLocaleString('en-IN');
+
+    modalBody.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+            <!-- Plot Summary Card -->
+            <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); padding: 12px 14px; border-radius: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Target Plot</span>
+                    <div style="font-size: 18px; font-weight: 800; color: #facc15;">Plot #${item.plot_no} (${plotAreaYds} Sq.Yds)</div>
+                </div>
+                <div>
+                    <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Standard Rate Card</span>
+                    <div style="font-size: 15px; font-weight: 700; color: #fff;">${fmt(standardEffectiveRate)} / sq.yd</div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="sim-control-group">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="font-size: 12px; font-weight: 700; color: #fff;">Target Negotiated Rate / Sq.yd</label>
+                    <span id="simRateDisplay" style="font-size: 16px; font-weight: 800; color: #facc15;">${fmt(standardEffectiveRate)}</span>
+                </div>
+                <input type="range" id="simRateRange" class="sim-slider" min="10000" max="25000" step="50" value="${standardEffectiveRate}">
+            </div>
+
+            <div class="sim-control-group">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="font-size: 12px; font-weight: 700; color: #fff;">Spot Payment Discount (Flat)</label>
+                    <span id="simSpotDiscountDisplay" style="font-size: 14px; font-weight: 700; color: #34d399;">₹ 0</span>
+                </div>
+                <input type="range" id="simSpotDiscountRange" class="sim-slider" min="0" max="200000" step="5000" value="0">
+            </div>
+
+            <div class="sim-control-group" style="gap: 10px;">
+                <label style="font-size: 11.5px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Director Special Waivers</label>
+                ${isEast ? `
+                <label class="sim-toggle-switch">
+                    <span>Waive East Facing Premium (₹200/sq.yd)</span>
+                    <input type="checkbox" id="simWaiveEast">
+                </label>` : ''}
+                ${isCorner ? `
+                <label class="sim-toggle-switch">
+                    <span>Waive Corner Plot Premium (₹500/sq.yd)</span>
+                    <input type="checkbox" id="simWaiveCorner">
+                </label>` : ''}
+                ${isMortgage ? `
+                <label class="sim-toggle-switch">
+                    <span>Waive Mortgage Plot Charge (₹300/sq.yd)</span>
+                    <input type="checkbox" id="simWaiveMortgage">
+                </label>` : ''}
+            </div>
+
+            <!-- Live Results Banner -->
+            <div style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9)); border: 1px solid rgba(250, 204, 21, 0.3); padding: 14px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">Final Negotiated Deal Amount</span>
+                    <span id="simTotalDealVal" style="font-size: 20px; font-weight: 800; color: #34d399;">${fmt(Math.round(plotAreaYds * standardEffectiveRate))}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">Total Buyer Savings</span>
+                    <span id="simTotalSavingsVal" style="font-size: 14px; font-weight: 700; color: #60a5fa;">₹ 0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08);">
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">Profitability Status</span>
+                    <span id="simMarginBadge" class="margin-badge margin-high"><i class="fa-solid fa-circle-check"></i> High Margin (100%)</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 8px; margin-top: 6px;">
+                <button id="btnSimGenerateCert" class="btn-director-action" style="flex: 1; margin-top: 0;">
+                    <i class="fa-solid fa-award"></i> Generate Allotment Cert
+                </button>
+            </div>
+        </div>
+    `;
+
+    modalBackdrop.classList.add('show');
+
+    const rateRange = document.getElementById('simRateRange');
+    const spotRange = document.getElementById('simSpotDiscountRange');
+    const waiveEast = document.getElementById('simWaiveEast');
+    const waiveCorner = document.getElementById('simWaiveCorner');
+    const waiveMortgage = document.getElementById('simWaiveMortgage');
+
+    function updateSimCalculations() {
+        let currentRate = parseFloat(rateRange.value) || standardEffectiveRate;
+        const spotDisc = parseFloat(spotRange.value) || 0;
+
+        if (waiveEast && waiveEast.checked) currentRate = Math.max(0, currentRate - 200);
+        if (waiveCorner && waiveCorner.checked) currentRate = Math.max(0, currentRate - 500);
+        if (waiveMortgage && waiveMortgage.checked) currentRate = Math.max(0, currentRate - 300);
+
+        document.getElementById('simRateDisplay').textContent = fmt(currentRate);
+        document.getElementById('simSpotDiscountDisplay').textContent = fmt(spotDisc);
+
+        const totalDealAmount = Math.max(0, Math.round((plotAreaYds * currentRate) - spotDisc));
+        const standardTotalAmount = Math.round(plotAreaYds * standardEffectiveRate);
+        const totalSavings = Math.max(0, standardTotalAmount - totalDealAmount);
+
+        document.getElementById('simTotalDealVal').textContent = fmt(totalDealAmount);
+        document.getElementById('simTotalSavingsVal').textContent = fmt(totalSavings);
+
+        const marginPct = Math.round((totalDealAmount / standardTotalAmount) * 100);
+        const marginBadge = document.getElementById('simMarginBadge');
+        if (marginBadge) {
+            if (marginPct >= 90) {
+                marginBadge.className = 'margin-badge margin-high';
+                marginBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> High Margin (${marginPct}%)`;
+            } else if (marginPct >= 78) {
+                marginBadge.className = 'margin-badge margin-mod';
+                marginBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Moderate Margin (${marginPct}%)`;
+            } else {
+                marginBadge.className = 'margin-badge margin-low';
+                marginBadge.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Tight Margin (${marginPct}%)`;
+            }
+        }
+
+        return { netRate: currentRate, totalAmount: totalDealAmount };
+    }
+
+    [rateRange, spotRange, waiveEast, waiveCorner, waiveMortgage].forEach(el => {
+        if (el) el.addEventListener('input', updateSimCalculations);
+    });
+
+    document.getElementById('btnSimGenerateCert').addEventListener('click', () => {
+        const terms = updateSimCalculations();
+        modalBackdrop.classList.remove('show');
+        exportDigitalAllotment(plotNo, terms);
+    });
+}
 
 function updateStatistics() {
     const totalCount = plotData.length;
@@ -707,7 +1063,20 @@ function updateStatistics() {
         });
     }
 
-    // Hook listeners for Sidebar Legend selections
+    const simCloseBtn = document.getElementById('dealSimulatorCloseBtn');
+    const simBackdrop = document.getElementById('dealSimulatorModalBackdrop');
+    if (simCloseBtn) {
+        simCloseBtn.addEventListener('click', () => {
+            simBackdrop.classList.remove('show');
+        });
+    }
+    if (simBackdrop) {
+        simBackdrop.addEventListener('click', (e) => {
+            if (e.target === simBackdrop) simBackdrop.classList.remove('show');
+        });
+    }
+
+    // Attach form listeners for Sidebar Legend selections
     Object.keys(counts).forEach(status => {
         const item = document.getElementById(`legend-${status}`);
         if (item) {
@@ -1008,167 +1377,6 @@ function setupAdmin() {
     }
 }
 
-function generateExecutiveSummaryReport() {
-    const dataSource = plotData;
-    const projectMeta = { title: "Aspirealty AVATAR 2 Digital" };
-    const baseRate = 15499;
-
-    let totalPlots = dataSource.length;
-    let totalSqYds = 0;
-    let totalValuation = 0;
-
-    const stats = {
-        AVAILABLE: { count: 0, sqYds: 0, val: 0, color: '#10b981' },
-        SOLD: { count: 0, sqYds: 0, val: 0, color: '#ef4444' },
-        BOOKED: { count: 0, sqYds: 0, val: 0, color: '#3b82f6' },
-        MORTGAGE: { count: 0, sqYds: 0, val: 0, color: '#ff6600' },
-        HOLD: { count: 0, sqYds: 0, val: 0, color: '#f59e0b' },
-        REGISTERED: { count: 0, sqYds: 0, val: 0, color: '#8b5cf6' },
-        RESALE: { count: 0, sqYds: 0, val: 0, color: '#ec4899' }
-    };
-
-    dataSource.forEach(p => {
-        const area = parseFloat(String(p.plot_size || '').replace(/[^0-9.]/g, '')) || 200;
-        let statusKey = String(p.plot_status || 'AVAILABLE').toUpperCase().trim();
-        if (statusKey === 'MORTAGAGE') statusKey = 'MORTGAGE';
-        if (!stats[statusKey]) {
-            stats[statusKey] = { count: 0, sqYds: 0, val: 0, color: '#64748b' };
-        }
-        
-        let plotRate = baseRate;
-        if (p.facing && String(p.facing).toUpperCase().includes('EAST')) plotRate += 200;
-        if ((p.is_corner === true) || (p.facing && String(p.facing).toUpperCase().includes('CORNER'))) plotRate += 500;
-        if (statusKey === 'MORTGAGE') plotRate += 300;
-
-        const plotVal = Math.round(area * plotRate);
-
-        totalSqYds += area;
-        totalValuation += plotVal;
-
-        stats[statusKey].count += 1;
-        stats[statusKey].sqYds += area;
-        stats[statusKey].val += plotVal;
-    });
-
-    const realizedVal = (stats.SOLD ? stats.SOLD.val : 0) + (stats.BOOKED ? stats.BOOKED.val : 0) + (stats.REGISTERED ? stats.REGISTERED.val : 0);
-    const availableVal = stats.AVAILABLE ? stats.AVAILABLE.val : 0;
-    const mortgageVal = stats.MORTGAGE ? stats.MORTGAGE.val : 0;
-
-    const fmt = (v) => '₹ ' + Math.round(v).toLocaleString('en-IN');
-    const todayStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-
-    let rowsHtml = '';
-    dataSource.forEach(p => {
-        const area = parseFloat(String(p.plot_size || '').replace(/[^0-9.]/g, '')) || 200;
-        let statusKey = String(p.plot_status || 'AVAILABLE').toUpperCase().trim();
-        if (statusKey === 'MORTAGAGE') statusKey = 'MORTGAGE';
-        let plotRate = baseRate;
-        if (p.facing && String(p.facing).toUpperCase().includes('EAST')) plotRate += 200;
-        if ((p.is_corner === true) || (p.facing && String(p.facing).toUpperCase().includes('CORNER'))) plotRate += 500;
-        if (statusKey === 'MORTGAGE') plotRate += 300;
-        const plotVal = Math.round(area * plotRate);
-
-        rowsHtml += `
-            <tr>
-                <td style="text-align: center; font-weight: 700;">#${p.plot_no}</td>
-                <td>${p.plot_size || '200 Sq.Yds'}</td>
-                <td style="text-transform: uppercase;">${p.facing || 'EAST'}</td>
-                <td><span class="status-pill" style="background: ${stats[statusKey]?.color || '#64748b'}">${statusKey}</span></td>
-                <td>${p.customer_name || '-'}</td>
-                <td style="text-align: right;">${fmt(plotRate)}</td>
-                <td style="text-align: right; font-weight: 700;">${fmt(plotVal)}</td>
-            </tr>
-        `;
-    });
-
-    const reportWindow = window.open('', '_blank');
-    if (!reportWindow) {
-        alert('Pop-up blocked! Please allow pop-ups to view Executive Summary Report.');
-        return;
-    }
-
-    reportWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Executive Summary Report - ${projectMeta.title}</title>
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-                body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #0f172a; margin: 0; padding: 24px; }
-                .report-card { max-width: 1100px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
-                .report-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #d97706; padding-bottom: 16px; margin-bottom: 24px; }
-                .report-title { font-size: 22px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px; }
-                .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
-                .metric-box { background: #f1f5f9; border-radius: 12px; padding: 16px; border: 1px solid #cbd5e1; }
-                .metric-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px; }
-                .metric-val { font-size: 20px; font-weight: 800; color: #0f172a; }
-                table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 12px; }
-                th, td { border: 1px solid #cbd5e1; padding: 10px 12px; text-align: left; }
-                th { background: #1e293b; color: #ffffff; font-weight: 700; }
-                .status-pill { color: #fff; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 800; }
-                @media print { .no-print { display: none !important; } }
-            </style>
-        </head>
-        <body>
-            <div class="report-card">
-                <div class="report-header">
-                    <div>
-                        <div class="report-title"><i class="fa-solid fa-crown" style="color: #d97706;"></i> ${projectMeta.title} - Director Executive Summary</div>
-                        <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Confidential Portfolio & Real Estate Valuation Report &bull; Generated: ${todayStr}</div>
-                    </div>
-                    <button class="no-print" onclick="window.print()" style="background: #d97706; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer;">
-                        <i class="fa-solid fa-print"></i> Print / Save PDF
-                    </button>
-                </div>
-
-                <div class="metrics-grid">
-                    <div class="metric-box" style="border-left: 4px solid #0284c7;">
-                        <div class="metric-label">Total Portfolio Value</div>
-                        <div class="metric-val">${fmt(totalValuation)}</div>
-                        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">${totalPlots} Plots (${totalSqYds.toLocaleString()} Sq.Yds)</div>
-                    </div>
-                    <div class="metric-box" style="border-left: 4px solid #10b981;">
-                        <div class="metric-label">Available Inventory Value</div>
-                        <div class="metric-val">${fmt(availableVal)}</div>
-                        <div style="font-size: 11px; color: #10b981; margin-top: 4px;">${stats.AVAILABLE?.count || 0} Plots (${(stats.AVAILABLE?.sqYds || 0).toLocaleString()} Sq.Yds)</div>
-                    </div>
-                    <div class="metric-box" style="border-left: 4px solid #ef4444;">
-                        <div class="metric-label">Realized Value (Sold/Booked)</div>
-                        <div class="metric-val">${fmt(realizedVal)}</div>
-                        <div style="font-size: 11px; color: #ef4444; margin-top: 4px;">${(stats.SOLD?.count || 0) + (stats.BOOKED?.count || 0) + (stats.REGISTERED?.count || 0)} Plots Sold</div>
-                    </div>
-                    <div class="metric-box" style="border-left: 4px solid #ff6600;">
-                        <div class="metric-label">Mortgage Blocked Value</div>
-                        <div class="metric-val">${fmt(mortgageVal)}</div>
-                        <div style="font-size: 11px; color: #ff6600; margin-top: 4px;">${stats.MORTGAGE?.count || 0} Plots Blocked</div>
-                    </div>
-                </div>
-
-                <h4 style="margin-bottom: 8px; margin-top: 20px; font-size: 14px;">Inventory Register & Status Breakdown</h4>
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 10%; text-align: center;">Plot No</th>
-                            <th style="width: 15%;">Area (Sq.Yd)</th>
-                            <th style="width: 12%;">Facing</th>
-                            <th style="width: 13%;">Status</th>
-                            <th style="width: 25%;">Customer Name</th>
-                            <th style="width: 12%; text-align: right;">Rate / Sq.Yd</th>
-                            <th style="width: 13%; text-align: right;">Total Valuation</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rowsHtml}
-                    </tbody>
-                </table>
-            </div>
-        </body>
-        </html>
-    `);
-    reportWindow.document.close();
-}
-
 function setupAdminState() {
     if (!sidebarFooter) return;
 
@@ -1179,16 +1387,9 @@ function setupAdminState() {
             ? `<div style="text-align: center; background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(202, 138, 4, 0.3)); border: 1px solid #facc15; color: #facc15; padding: 6px; border-radius: 8px; font-weight: 800; font-size: 11.5px; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 4px;"><i class="fa-solid fa-crown"></i> Director Mode</div>`
             : `<div style="text-align: center; background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; color: #60a5fa; padding: 6px; border-radius: 8px; font-weight: 800; font-size: 11.5px; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 4px;"><i class="fa-solid fa-user-shield"></i> Staff Mode</div>`;
 
-        const directorReportBtnHtml = isDirectorLoggedIn ? `
-            <button class="admin-login-btn" id="executiveReportBtn" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color: #000; border: none; font-weight: 800; cursor: pointer; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 12px; margin-bottom: 4px; box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);">
-                <i class="fa-solid fa-file-contract"></i> Executive Summary Report (PDF)
-            </button>
-        ` : '';
-
         sidebarFooter.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; padding: 0 4px;">
                 ${roleBadgeHtml}
-                ${directorReportBtnHtml}
                 <button class="admin-login-btn" id="exportDbBtn" style="background-color: var(--accent); color: #fff; border: none; font-weight: 700; cursor: pointer; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-size: 13px;">
                     <i class="fa-solid fa-download"></i> Export data.json
                 </button>
@@ -1200,11 +1401,6 @@ function setupAdminState() {
                 </button>
             </div>
         `;
-
-        const execBtn = document.getElementById('executiveReportBtn');
-        if (execBtn) {
-            execBtn.addEventListener('click', generateExecutiveSummaryReport);
-        }
 
         document.getElementById('exportDbBtn').addEventListener('click', () => {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(plotData, null, 4));
