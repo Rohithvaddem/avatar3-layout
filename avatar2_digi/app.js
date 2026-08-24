@@ -598,6 +598,19 @@ modalCloseBtn.addEventListener('click', closePlotModal);
 modalBackdrop.addEventListener('click', (e) => {
     if (e.target === modalBackdrop) closePlotModal();
 });
+
+const plotModalEl = document.getElementById('plotModal');
+if (plotModalEl) {
+    ['wheel', 'mousewheel', 'DOMMouseScroll', 'touchmove'].forEach(evt => {
+        plotModalEl.addEventListener(evt, (e) => {
+            e.stopPropagation();
+        }, { passive: true });
+    });
+    if (typeof L !== 'undefined' && L.DomEvent) {
+        L.DomEvent.disableScrollPropagation(plotModalEl);
+        L.DomEvent.disableClickPropagation(plotModalEl);
+    }
+}
 mapViewport.addEventListener('click', (e) => {
     if (e.target === mapViewport || e.target === mapContainer || e.target === mapImage) {
         closePlotModal();

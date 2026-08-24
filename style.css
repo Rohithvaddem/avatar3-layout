@@ -990,17 +990,19 @@ body {
     top: 16px;
     left: 16px;
     right: auto;
-    width: 280px;
+    width: 300px;
     max-width: calc(100% - 32px);
     max-height: calc(100vh - 32px);
     overflow-y: auto;
-    background-color: rgba(15, 22, 38, 0.95);
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    background-color: rgba(15, 22, 38, 0.96);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 16px;
     padding: 18px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 25px rgba(14, 165, 233, 0.2);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(14, 165, 233, 0.25);
     pointer-events: auto;
     transform: translateX(-60px);
     opacity: 0;
@@ -1008,21 +1010,22 @@ body {
 }
 
 #plotModal::-webkit-scrollbar {
-    width: 5px;
+    width: 6px;
 }
 
 #plotModal::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.3);
     border-radius: 8px;
 }
 
 #plotModal::-webkit-scrollbar-thumb {
-    background: rgba(250, 204, 21, 0.4);
+    background: linear-gradient(180deg, #facc15, #eab308);
     border-radius: 8px;
+    box-shadow: 0 0 8px rgba(250, 204, 21, 0.5);
 }
 
 #plotModal::-webkit-scrollbar-thumb:hover {
-    background: rgba(250, 204, 21, 0.7);
+    background: #fde047;
 }
 
 #plotModal .modal-header {
