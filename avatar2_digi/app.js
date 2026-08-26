@@ -527,6 +527,9 @@ function openPlotModal(plotNo) {
         `;
     }
     
+    const statusUpper = String(item.plot_status || '').toUpperCase().trim();
+    const isDealSimulatorAllowed = isDirectorLoggedIn && (statusUpper === 'AVAILABLE' || statusUpper === 'RESALE');
+
     modalBody.innerHTML = `
         <div class="detail-card">
             <div class="detail-row">
@@ -554,7 +557,7 @@ function openPlotModal(plotNo) {
                 <span class="detail-val">${item.reference_name || 'N/A'}</span>
             </div>
         </div>
-        <button class="btn-director-action" id="openDealSimulatorBtn" style="display: ${isDirectorLoggedIn ? 'flex' : 'none'}; margin-top: 8px;">
+        <button class="btn-director-action" id="openDealSimulatorBtn" style="display: ${isDealSimulatorAllowed ? 'flex' : 'none'}; margin-top: 8px;">
             <i class="fa-solid fa-calculator" style="color: #facc15;"></i> Live Deal Closer &amp; Margin Simulator
         </button>
         <button class="admin-login-btn" id="exportAllotmentCertBtn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 8px; cursor: pointer; border-radius: 8px; display: ${isDirectorLoggedIn ? 'flex' : 'none'}; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);">

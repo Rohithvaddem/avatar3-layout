@@ -1859,6 +1859,12 @@ function openDealSimulator(plotNo) {
         customer_name: ''
     };
 
+    const statusUpper = String(item.plot_status || '').toUpperCase().trim();
+    if (statusUpper !== 'AVAILABLE' && statusUpper !== 'RESALE') {
+        alert('Live Deal Closer is only available for Available and Resale plots.');
+        return;
+    }
+
     const plotAreaYds = parseFloat(String(item.plot_size || '').replace(/[^0-9.]/g, '')) || 200;
     const facingStr = item.facing || 'EAST';
     const isEast = facingStr.toUpperCase().includes('EAST');
@@ -2111,7 +2117,9 @@ function openPlotModal(plotNo) {
     const estimatedPlotCost = plotAreaYds * sqYdRate;
     const plotStatusUpper = String(item.plot_status || '').toUpperCase().trim();
     const isAvailable = plotStatusUpper === 'AVAILABLE';
-    const canGenerateQuote = (plotStatusUpper === 'AVAILABLE' || plotStatusUpper === 'HOLD' || plotStatusUpper === 'MORTGAGE' || plotStatusUpper === 'MORTAGAGE');
+    const isResale = plotStatusUpper === 'RESALE';
+    const isDealSimulatorAllowed = isDirectorLoggedIn && (isAvailable || isResale);
+    const canGenerateQuote = (plotStatusUpper === 'AVAILABLE' || plotStatusUpper === 'HOLD' || plotStatusUpper === 'MORTGAGE' || plotStatusUpper === 'MORTAGAGE' || plotStatusUpper === 'RESALE');
 
     let emiHtml = '';
 
@@ -2147,7 +2155,7 @@ function openPlotModal(plotNo) {
         <button class="admin-login-btn" id="exportPriceQuoteBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; border-radius: 8px; display: ${(isDirectorLoggedIn && canGenerateQuote) ? 'flex' : 'none'}; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
             <i class="fa-solid fa-file-invoice-dollar"></i> Generate Price Quote / PDF
         </button>
-        <button class="btn-director-action" id="openDealSimulatorBtn" style="display: ${isDirectorLoggedIn ? 'flex' : 'none'}; margin-top: 8px;">
+        <button class="btn-director-action" id="openDealSimulatorBtn" style="display: ${isDealSimulatorAllowed ? 'flex' : 'none'}; margin-top: 8px;">
             <i class="fa-solid fa-calculator" style="color: #facc15;"></i> Live Deal Closer &amp; Margin Simulator
         </button>
         <button class="admin-login-btn" id="exportAllotmentCertBtn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 8px; cursor: pointer; border-radius: 8px; display: ${(isDirectorLoggedIn && canGenerateQuote) ? 'flex' : 'none'}; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);">
