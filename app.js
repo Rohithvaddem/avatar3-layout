@@ -1029,6 +1029,9 @@ function exportPriceQuote(plotNo, customTerms) {
     const stdCornerRate = isCorner ? 500 : 0;
     const stdMortgageRate = isMortgage ? 300 : 0;
 
+    const stdFullListRate = defaultBaseRate + stdEastRate + stdCornerRate + stdMortgageRate;
+    const stdFullListTotal = Math.round(plotAreaYds * stdFullListRate);
+
     const waiveEast = customTerms ? !!customTerms.waiveEast : false;
     const waiveCorner = customTerms ? !!customTerms.waiveCorner : false;
     const waiveMortgage = customTerms ? !!customTerms.waiveMortgage : false;
@@ -1041,13 +1044,11 @@ function exportPriceQuote(plotNo, customTerms) {
     const spotDiscount = (customTerms && customTerms.spotDiscount !== undefined) ? customTerms.spotDiscount : 0;
 
     const initialEffectiveRate = closingRate + initialEastRate + initialCornerRate + initialMortgageRate;
-    const baseTotalAmount = Math.round(plotAreaYds * closingRate);
-    const initialTotalAmount = (customTerms && customTerms.totalAmount !== undefined) 
+    const grandTotalAmount = (customTerms && customTerms.totalAmount !== undefined) 
         ? customTerms.totalAmount 
         : Math.max(0, Math.round(plotAreaYds * initialEffectiveRate) - spotDiscount);
 
-    const waivedPremiumsRate = (stdEastRate - initialEastRate) + (stdCornerRate - initialCornerRate) + (stdMortgageRate - initialMortgageRate);
-    const initialDiscountPerSqYd = Math.max(0, defaultBaseRate - closingRate) + waivedPremiumsRate + (plotAreaYds > 0 ? Math.round(spotDiscount / plotAreaYds) : 0);
+    const initialDiscountPerSqYd = Math.max(0, stdFullListRate - Math.round(grandTotalAmount / plotAreaYds));
 
     const initialBankTotal = Math.round(plotAreaYds * 3000);
     const initialCashTotal = Math.max(0, initialTotalAmount - initialBankTotal);
@@ -1317,18 +1318,18 @@ function exportPriceQuote(plotNo, customTerms) {
                     <tbody>
                         <tr>
                             <td contenteditable="true">East Plot Premium</td>
-                            <td style="text-align: center;" id="lblEastRate" contenteditable="true">${(isEast && !waiveEast) ? '₹ 200' : '₹ 0'}</td>
-                            <td style="text-align: right;" id="lblEastTotal" contenteditable="true">${fmt((isEast && !waiveEast) ? plotAreaYds * 200 : 0)}</td>
+                            <td style="text-align: center;" id="lblEastRate" contenteditable="true">${isEast ? '₹ 200' : '₹ 0'}</td>
+                            <td style="text-align: right;" id="lblEastTotal" contenteditable="true">${fmt(isEast ? plotAreaYds * 200 : 0)}</td>
                         </tr>
                         <tr>
                             <td contenteditable="true">Corner Plot Premium</td>
-                            <td style="text-align: center;" id="lblCornerRate" contenteditable="true">${(isCorner && !waiveCorner) ? '₹ 500' : '₹ 0'}</td>
-                            <td style="text-align: right;" id="lblCornerTotal" contenteditable="true">${fmt((isCorner && !waiveCorner) ? plotAreaYds * 500 : 0)}</td>
+                            <td style="text-align: center;" id="lblCornerRate" contenteditable="true">${isCorner ? '₹ 500' : '₹ 0'}</td>
+                            <td style="text-align: right;" id="lblCornerTotal" contenteditable="true">${fmt(isCorner ? plotAreaYds * 500 : 0)}</td>
                         </tr>
                         <tr>
                             <td contenteditable="true">Mortgage Plot Charge</td>
-                            <td style="text-align: center;" id="lblMortgageRate" contenteditable="true">${(isMortgage && !waiveMortgage) ? '₹ 300' : '₹ 0'}</td>
-                            <td style="text-align: right;" id="lblMortgageTotal" contenteditable="true">${fmt((isMortgage && !waiveMortgage) ? plotAreaYds * 300 : 0)}</td>
+                            <td style="text-align: center;" id="lblMortgageRate" contenteditable="true">${isMortgage ? '₹ 300' : '₹ 0'}</td>
+                            <td style="text-align: right;" id="lblMortgageTotal" contenteditable="true">${fmt(isMortgage ? plotAreaYds * 300 : 0)}</td>
                         </tr>
                         <tr>
                             <td contenteditable="true">Bank Loan Processing Extra</td>
@@ -1337,8 +1338,8 @@ function exportPriceQuote(plotNo, customTerms) {
                         </tr>
                         <tr class="bg-green">
                             <td style="font-weight: 800;" contenteditable="true">TOTAL PLOT VALUE (WITH ADD-ONS)</td>
-                            <td style="text-align: center; font-weight: 800;" id="lblTotalValueRate" contenteditable="true">${fmt(initialEffectiveRate)}</td>
-                            <td style="text-align: right; font-weight: 800;" id="lblTotalValueTotal" contenteditable="true">${fmt(initialTotalAmount)}</td>
+                            <td style="text-align: center; font-weight: 800;" id="lblTotalValueRate" contenteditable="true">${fmt(stdFullListRate)}</td>
+                            <td style="text-align: right; font-weight: 800;" id="lblTotalValueTotal" contenteditable="true">${fmt(stdFullListTotal)}</td>
                         </tr>
                         <tr>
                             <td contenteditable="true">Extra Corpus Fund (Not Included in Plot Cost)</td>
@@ -1364,7 +1365,7 @@ function exportPriceQuote(plotNo, customTerms) {
                             <td class="bg-yellow" style="text-align: center;" id="lblPlotArea" contenteditable="true">${plotAreaYds}</td>
                             <td style="text-align: right;" id="lblClosingPrice" contenteditable="true">${fmt(closingRate)}</td>
                             <td class="bg-yellow" style="text-align: right; font-weight: 700; color: #047857;" id="lblDiscount" contenteditable="true">${fmt(initialDiscountPerSqYd)}</td>
-                            <td class="bg-yellow" style="text-align: right;" id="lblTotalAmount" contenteditable="true">${fmt(baseTotalAmount)}</td>
+                            <td class="bg-yellow" style="text-align: right;" id="lblTotalAmount" contenteditable="true">${fmt(grandTotalAmount)}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1527,12 +1528,8 @@ function exportPriceQuote(plotNo, customTerms) {
                             if (perSqYdEl) perSqYdEl.innerText = fmt(basePerSqYdRate);
                         }
 
-                        let baseClosingPrice = parseNum(closingPriceEl ? closingPriceEl.innerText : '15499');
+                        let baseClosingPrice = parseNum(closingPriceEl ? closingPriceEl.innerText : String(basePerSqYdRate));
                         const bankRate = parseNum(bankRateEl ? bankRateEl.innerText : '3000');
-
-                        const stdEastRate = ${isEast ? 200 : 0};
-                        const stdCornerRate = ${isCorner ? 500 : 0};
-                        const stdMortgageRate = ${isMortgage ? 300 : 0};
 
                         const eastRate = parseNum(eastRateEl ? eastRateEl.innerText : '0');
                         const cornerRate = parseNum(cornerRateEl ? cornerRateEl.innerText : '0');
@@ -1540,15 +1537,14 @@ function exportPriceQuote(plotNo, customTerms) {
                         const bankLoanRate = parseNum(bankLoanRateEl ? bankLoanRateEl.innerText : '0');
                         const corpusRate = parseNum(corpusRateEl ? corpusRateEl.innerText : '200');
 
-                        const waivedEast = Math.max(0, stdEastRate - eastRate);
-                        const waivedCorner = Math.max(0, stdCornerRate - cornerRate);
-                        const waivedMortgage = Math.max(0, stdMortgageRate - mortgageRate);
-                        const totalWaivedPremiums = waivedEast + waivedCorner + waivedMortgage;
+                        // Standard List Price Rate (no discount in Extras section)
+                        const stdFullListRate = basePerSqYdRate + eastRate + cornerRate + mortgageRate + bankLoanRate;
+                        const stdFullListTotal = Math.round(plotArea * stdFullListRate);
 
-                        // If user edits Discount directly, calculate baseClosingPrice from (Per Sq.yd Rate + Waived Premiums) - Discount
+                        // If user edits Discount directly, calculate baseClosingPrice from stdFullListRate - Discount
                         if (active === discountEl) {
                             const typedDiscount = parseNum(discountEl.innerText);
-                            baseClosingPrice = Math.max(0, (basePerSqYdRate + totalWaivedPremiums) - typedDiscount);
+                            baseClosingPrice = Math.max(0, stdFullListRate - typedDiscount);
                             if (closingPriceEl) closingPriceEl.innerText = fmt(baseClosingPrice);
                         }
 
@@ -1565,67 +1561,50 @@ function exportPriceQuote(plotNo, customTerms) {
                             originalTotalCostEl.innerText = fmt(originalTotalCost);
                         }
 
-                        // Base plot cost without add-ons
-                        const baseTotalAmount = Math.round(plotArea * baseClosingPrice);
+                        // Extras Section TOTAL PLOT VALUE (WITH ADD-ONS) ALWAYS displays full undiscounted list price
+                        const totalValueRateEl = document.getElementById('lblTotalValueRate');
+                        if (totalValueRateEl && totalValueRateEl !== active) totalValueRateEl.innerText = fmt(stdFullListRate);
 
-                        // Calculate Discount per sq.yd (Base Rate - Closing Price + Waived Premium Charges)
-                        const discountPerSqYd = Math.max(0, basePerSqYdRate - baseClosingPrice) + totalWaivedPremiums;
+                        const totalValueTotalEl = document.getElementById('lblTotalValueTotal');
+                        if (totalValueTotalEl && totalValueTotalEl !== active) totalValueTotalEl.innerText = fmt(stdFullListTotal);
+
+                        // Calculate Discount per sq.yd (stdFullListRate - baseClosingPrice)
+                        const discountPerSqYd = Math.max(0, stdFullListRate - baseClosingPrice);
                         if (discountEl && discountEl !== active) {
                             discountEl.innerText = fmt(discountPerSqYd);
                         }
 
-                        // Individual extra totals
-                        const eastTotal = Math.round(plotArea * eastRate);
-                        const cornerTotal = Math.round(plotArea * cornerRate);
-                        const mortgageTotal = Math.round(plotArea * mortgageRate);
-                        const bankLoanTotal = Math.round(plotArea * bankLoanRate);
-                        const corpusTotal = Math.round(plotArea * corpusRate);
-
-                        // Total Plot Value including particulars/add-ons (excluding Corpus Fund)
-                        const effectiveRate = baseClosingPrice + eastRate + cornerRate + mortgageRate + bankLoanRate;
-                        const totalValueAmount = Math.round(plotArea * effectiveRate);
-
-                        const bankTotal = Math.round(plotArea * bankRate);
-                        const cashRate = Math.max(0, effectiveRate - bankRate);
-                        const cashTotal = Math.max(0, totalValueAmount - bankTotal);
-
-                        const bookingAmt = 100000;
-                        const amt1 = Math.round(totalValueAmount * 0.25);
-                        const amt2 = Math.max(0, totalValueAmount - bookingAmt - amt1);
-
-                        const reg75 = Math.round(bankTotal * 0.075);
-                        const mutation = Math.max(800, Math.round(bankTotal * 0.001));
-                        const totalRegCharges = reg75 + 1000 + 100 + 50 + 5000 + mutation;
-
-                        // Update Base Total Amount in Price Quotation table
+                        // Grand Total Amount after discount in Price Quotation section
+                        const grandTotalAmount = Math.round(plotArea * baseClosingPrice);
                         const totalAmtEl = document.getElementById('lblTotalAmount');
-                        if (totalAmtEl && totalAmtEl !== active) totalAmtEl.innerText = fmt(baseTotalAmount);
+                        if (totalAmtEl && totalAmtEl !== active) totalAmtEl.innerText = fmt(grandTotalAmount);
 
                         // Update Extras totals
                         const eastTotalEl = document.getElementById('lblEastTotal');
-                        if (eastTotalEl && eastTotalEl !== active) eastTotalEl.innerText = fmt(eastTotal);
+                        if (eastTotalEl && eastTotalEl !== active) eastTotalEl.innerText = fmt(Math.round(plotArea * eastRate));
 
                         const cornerTotalEl = document.getElementById('lblCornerTotal');
-                        if (cornerTotalEl && cornerTotalEl !== active) cornerTotalEl.innerText = fmt(cornerTotal);
+                        if (cornerTotalEl && cornerTotalEl !== active) cornerTotalEl.innerText = fmt(Math.round(plotArea * cornerRate));
 
                         const mortgageTotalEl = document.getElementById('lblMortgageTotal');
-                        if (mortgageTotalEl && mortgageTotalEl !== active) mortgageTotalEl.innerText = fmt(mortgageTotal);
+                        if (mortgageTotalEl && mortgageTotalEl !== active) mortgageTotalEl.innerText = fmt(Math.round(plotArea * mortgageRate));
 
                         const bankLoanTotalEl = document.getElementById('lblBankLoanTotal');
-                        if (bankLoanTotalEl && bankLoanTotalEl !== active) bankLoanTotalEl.innerText = fmt(bankLoanTotal);
-
-                        // Update Total Plot Value (With Add-ons) box
-                        const totalValueRateEl = document.getElementById('lblTotalValueRate');
-                        if (totalValueRateEl && totalValueRateEl !== active) totalValueRateEl.innerText = fmt(effectiveRate);
-
-                        const totalValueTotalEl = document.getElementById('lblTotalValueTotal');
-                        if (totalValueTotalEl && totalValueTotalEl !== active) totalValueTotalEl.innerText = fmt(totalValueAmount);
+                        if (bankLoanTotalEl && bankLoanTotalEl !== active) bankLoanTotalEl.innerText = fmt(Math.round(plotArea * bankLoanRate));
 
                         // Update Corpus Fund total (not added into plot total value)
                         const corpusTotalEl = document.getElementById('lblCorpusTotal');
-                        if (corpusTotalEl && corpusTotalEl !== active) corpusTotalEl.innerText = fmt(corpusTotal);
+                        if (corpusTotalEl && corpusTotalEl !== active) corpusTotalEl.innerText = fmt(Math.round(plotArea * corpusRate));
 
-                        // Update Payment Structure (Sq.Yds, Rates & Totals)
+                        // Update Payment Structure (Bank + Cash) based on Grand Total Amount after discount
+                        const bankTotal = Math.round(plotArea * bankRate);
+                        const cashRate = Math.max(0, baseClosingPrice - bankRate + eastRate + cornerRate + mortgageRate + bankLoanRate);
+                        const cashTotal = Math.max(0, grandTotalAmount - bankTotal);
+
+                        const bookingAmt = 100000;
+                        const amt1 = Math.round(grandTotalAmount * 0.25);
+                        const amt2 = Math.max(0, grandTotalAmount - bookingAmt - amt1);
+
                         const bankSqYdEl = document.getElementById('lblBankSqYd');
                         if (bankSqYdEl && bankSqYdEl !== active) bankSqYdEl.innerText = plotArea;
 
