@@ -1192,7 +1192,7 @@ function exportPriceQuote(plotNo, customTerms) {
                     print-color-adjust: exact !important;
                 }
                 .bg-blue {
-                    background: #9be0ff !important;
+                    background: #c2ecff !important;
                     font-weight: 700;
                     color: #0f172a !important;
                     -webkit-print-color-adjust: exact !important;
