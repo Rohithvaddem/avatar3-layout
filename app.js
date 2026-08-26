@@ -1419,20 +1419,20 @@ function exportPriceQuote(plotNo, customTerms) {
                         <tr>
                             <td id="lblDateBooking" class="bg-blue" contenteditable="true"></td>
                             <td class="bg-blue" contenteditable="true"></td>
-                            <td style="text-align: center;" class="bg-blue" contenteditable="true"></td>
-                            <td style="text-align: right;" class="bg-blue" contenteditable="true"></td>
-                        </tr>
-                        <tr>
-                            <td id="lblDatePart2" class="bg-blue" contenteditable="true"></td>
-                            <td class="bg-blue" contenteditable="true"></td>
                             <td style="text-align: center;" id="lblPct1" class="bg-blue" contenteditable="true"></td>
                             <td style="text-align: right;" id="lblAmt1" class="bg-blue" contenteditable="true"></td>
                         </tr>
                         <tr>
+                            <td id="lblDatePart2" class="bg-blue" contenteditable="true"></td>
+                            <td class="bg-blue" contenteditable="true"></td>
+                            <td style="text-align: center;" id="lblPct2" class="bg-blue" contenteditable="true"></td>
+                            <td style="text-align: right;" id="lblAmt2" class="bg-blue" contenteditable="true"></td>
+                        </tr>
+                        <tr>
                             <td id="lblDatePart3" class="bg-blue" contenteditable="true"></td>
                             <td class="bg-blue" contenteditable="true"></td>
-                            <td style="text-align: center;" class="bg-blue" contenteditable="true"></td>
-                            <td style="text-align: right;" id="lblAmt2" class="bg-blue" contenteditable="true"></td>
+                            <td style="text-align: center;" id="lblPct3" class="bg-blue" contenteditable="true"></td>
+                            <td style="text-align: right;" id="lblAmt3" class="bg-blue" contenteditable="true"></td>
                         </tr>
                         <tr class="bg-yellow-highlight">
                             <td colspan="3" style="text-align: right; font-weight: 800;" contenteditable="true">TOTAL</td>
@@ -1648,7 +1648,44 @@ function exportPriceQuote(plotNo, customTerms) {
                         const structTotalEl = document.getElementById('lblStructTotal');
                         if (structTotalEl && structTotalEl !== active) structTotalEl.innerText = fmt(grandTotalAmount);
 
-                        // Update Payment Schedule Total
+                        // Update Payment Schedule Live Percentage & Amount Calculation
+                        [1, 2, 3].forEach(idx => {
+                            const pctEl = document.getElementById('lblPct' + idx);
+                            const amtEl = document.getElementById('lblAmt' + idx);
+
+                            if (pctEl && amtEl) {
+                                if (active === pctEl) {
+                                    const rawPctStr = pctEl.innerText.replace(/[^0-9.]/g, '');
+                                    if (rawPctStr !== '') {
+                                        const pctVal = parseFloat(rawPctStr);
+                                        if (!isNaN(pctVal) && grandTotalAmount > 0) {
+                                            const calcAmt = Math.round(grandTotalAmount * (pctVal / 100));
+                                            amtEl.innerText = fmt(calcAmt);
+                                        }
+                                    }
+                                } else if (active === amtEl) {
+                                    const rawAmtStr = amtEl.innerText.replace(/[^0-9.]/g, '');
+                                    if (rawAmtStr !== '') {
+                                        const amtVal = parseFloat(rawAmtStr);
+                                        if (!isNaN(amtVal) && grandTotalAmount > 0) {
+                                            const calcPct = (amtVal / grandTotalAmount) * 100;
+                                            const pctFormatted = (calcPct % 1 === 0 ? calcPct.toFixed(0) : calcPct.toFixed(1)) + '%';
+                                            pctEl.innerText = pctFormatted;
+                                        }
+                                    }
+                                } else if (pctEl.innerText.trim() !== '') {
+                                    const rawPctStr = pctEl.innerText.replace(/[^0-9.]/g, '');
+                                    if (rawPctStr !== '') {
+                                        const pctVal = parseFloat(rawPctStr);
+                                        if (!isNaN(pctVal) && grandTotalAmount > 0) {
+                                            const calcAmt = Math.round(grandTotalAmount * (pctVal / 100));
+                                            amtEl.innerText = fmt(calcAmt);
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
                         const scheduleTotalEl = document.getElementById('lblScheduleTotal');
                         if (scheduleTotalEl && scheduleTotalEl !== active) scheduleTotalEl.innerText = fmt(grandTotalAmount);
 
