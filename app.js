@@ -1531,20 +1531,28 @@ function exportPriceQuote(plotNo, customTerms) {
                         let baseClosingPrice = parseNum(closingPriceEl ? closingPriceEl.innerText : String(basePerSqYdRate));
                         const bankRate = parseNum(bankRateEl ? bankRateEl.innerText : '3000');
 
+                        const stdEastRate = ${isEast ? 200 : 0};
+                        const stdCornerRate = ${isCorner ? 500 : 0};
+                        const stdMortgageRate = ${isMortgage ? 300 : 0};
+
                         const eastRate = parseNum(eastRateEl ? eastRateEl.innerText : '0');
                         const cornerRate = parseNum(cornerRateEl ? cornerRateEl.innerText : '0');
                         const mortgageRate = parseNum(mortgageRateEl ? mortgageRateEl.innerText : '0');
                         const bankLoanRate = parseNum(bankLoanRateEl ? bankLoanRateEl.innerText : '0');
                         const corpusRate = parseNum(corpusRateEl ? corpusRateEl.innerText : '200');
 
-                        // Standard List Price Rate (no discount in Extras section)
-                        const stdFullListRate = basePerSqYdRate + eastRate + cornerRate + mortgageRate + bankLoanRate;
+                        // Standard List Price Rate (Base Rate + Standard Add-ons)
+                        const stdFullListRate = basePerSqYdRate + stdEastRate + stdCornerRate + stdMortgageRate;
                         const stdFullListTotal = Math.round(plotArea * stdFullListRate);
+
+                        // Net buyer closing rate including any remaining add-ons
+                        let netClosingRate = baseClosingPrice + eastRate + cornerRate + mortgageRate + bankLoanRate;
 
                         // If user edits Discount directly, calculate baseClosingPrice from stdFullListRate - Discount
                         if (active === discountEl) {
                             const typedDiscount = parseNum(discountEl.innerText);
-                            baseClosingPrice = Math.max(0, stdFullListRate - typedDiscount);
+                            netClosingRate = Math.max(0, stdFullListRate - typedDiscount);
+                            baseClosingPrice = Math.max(0, netClosingRate - (eastRate + cornerRate + mortgageRate + bankLoanRate));
                             if (closingPriceEl) closingPriceEl.innerText = fmt(baseClosingPrice);
                         }
 
@@ -1552,6 +1560,7 @@ function exportPriceQuote(plotNo, customTerms) {
                         if (active === cashRateEl) {
                             const typedCashRate = parseNum(cashRateEl.innerText);
                             baseClosingPrice = Math.max(0, (typedCashRate + bankRate) - (eastRate + cornerRate + mortgageRate + bankLoanRate));
+                            netClosingRate = baseClosingPrice + eastRate + cornerRate + mortgageRate + bankLoanRate;
                             if (closingPriceEl) closingPriceEl.innerText = fmt(baseClosingPrice);
                         }
 
@@ -1568,14 +1577,14 @@ function exportPriceQuote(plotNo, customTerms) {
                         const totalValueTotalEl = document.getElementById('lblTotalValueTotal');
                         if (totalValueTotalEl && totalValueTotalEl !== active) totalValueTotalEl.innerText = fmt(stdFullListTotal);
 
-                        // Calculate Discount per sq.yd (stdFullListRate - baseClosingPrice)
-                        const discountPerSqYd = Math.max(0, stdFullListRate - baseClosingPrice);
+                        // Calculate Discount per sq.yd (stdFullListRate - netClosingRate) - Includes any zeroed/removed add-ons!
+                        const discountPerSqYd = Math.max(0, stdFullListRate - netClosingRate);
                         if (discountEl && discountEl !== active) {
                             discountEl.innerText = fmt(discountPerSqYd);
                         }
 
                         // Grand Total Amount after discount in Price Quotation section
-                        const grandTotalAmount = Math.round(plotArea * baseClosingPrice);
+                        const grandTotalAmount = Math.round(plotArea * netClosingRate);
                         const totalAmtEl = document.getElementById('lblTotalAmount');
                         if (totalAmtEl && totalAmtEl !== active) totalAmtEl.innerText = fmt(grandTotalAmount);
 
