@@ -1396,7 +1396,7 @@ function exportPriceQuote(plotNo, customTerms) {
                         </tr>
                         <tr class="bg-green">
                             <td colspan="3" style="text-align: right; font-weight: 800;" contenteditable="true">Total</td>
-                            <td style="text-align: right;" id="lblStructTotal" contenteditable="true">${fmt(initialTotalAmount)}</td>
+                            <td style="text-align: right;" id="lblStructTotal" contenteditable="true">${fmt(grandTotalAmount)}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1433,7 +1433,7 @@ function exportPriceQuote(plotNo, customTerms) {
                         </tr>
                         <tr class="bg-green">
                             <td colspan="3" style="text-align: right; font-weight: 800;" contenteditable="true">TOTAL</td>
-                            <td style="text-align: right;" id="lblScheduleTotal" contenteditable="true">${fmt(initialTotalAmount)}</td>
+                            <td style="text-align: right;" id="lblScheduleTotal" contenteditable="true">${fmt(grandTotalAmount)}</td>
                         </tr>
                     </tbody>
                 </table>
