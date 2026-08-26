@@ -1273,14 +1273,6 @@ function exportPriceQuote(plotNo, customTerms) {
             </style>
         </head>
         <body>
-            <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; max-width: 820px; margin: 0 auto 15px auto;">
-                <button onclick="window.print()" class="btn-print-quote">
-                    <i class="fa-solid fa-print"></i> Print / Save as PDF
-                </button>
-                <button onclick="if(window.opener && typeof window.opener.exportPriceQuote==='function'){ window.close(); window.opener.exportPriceQuote('${item.plot_no}'); } else { location.reload(); }" class="btn-print-quote" style="background: linear-gradient(135deg, #475569 0%, #334155 100%);">
-                    <i class="fa-solid fa-rotate-right"></i> Refresh / Reset Sheet
-                </button>
-            </div>
             <div class="quote-container">
                 <div class="quote-banner">
                     <span contenteditable="true">Price Quote</span>
