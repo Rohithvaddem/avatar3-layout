@@ -1299,27 +1299,6 @@ function exportPriceQuote(plotNo, customTerms) {
                     </tbody>
                 </table>
 
-                <!-- Price Quotation Table -->
-                <div class="section-header-banner" style="margin-top: 10px;" contenteditable="true">Price Quotation</div>
-                <table class="q-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 20%; text-align: center;" contenteditable="true">Total sq.yds</th>
-                            <th style="width: 25%; text-align: right;" contenteditable="true">Closing Price</th>
-                            <th style="width: 25%; text-align: right;" contenteditable="true">Discount</th>
-                            <th style="width: 30%; text-align: right;" contenteditable="true">Total Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="bg-yellow" style="text-align: center;" id="lblPlotArea" contenteditable="true">${plotAreaYds}</td>
-                            <td style="text-align: right;" id="lblClosingPrice" contenteditable="true">${fmt(closingRate)}</td>
-                            <td class="bg-yellow" style="text-align: right; font-weight: 700; color: #047857;" id="lblDiscount" contenteditable="true">${fmt(initialDiscountPerSqYd)}</td>
-                            <td class="bg-yellow" style="text-align: right;" id="lblTotalAmount" contenteditable="true">${fmt(baseTotalAmount)}</td>
-                        </tr>
-                    </tbody>
-                </table>
-
                 <!-- Extras & Additional Charges Table -->
                 <div class="section-header-banner" style="margin-top: 10px;" contenteditable="true">Extras &amp; Premium Charges (If Applicable)</div>
                 <table class="q-table">
@@ -1360,6 +1339,27 @@ function exportPriceQuote(plotNo, customTerms) {
                             <td contenteditable="true">Extra Corpus Fund (Not Included in Plot Cost)</td>
                             <td style="text-align: center;" id="lblCorpusRate" contenteditable="true">₹ 200</td>
                             <td style="text-align: right;" id="lblCorpusTotal" contenteditable="true">${fmt(plotAreaYds * 200)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Price Quotation Table -->
+                <div class="section-header-banner" style="margin-top: 10px;" contenteditable="true">Price Quotation</div>
+                <table class="q-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%; text-align: center;" contenteditable="true">Total sq.yds</th>
+                            <th style="width: 25%; text-align: right;" contenteditable="true">Closing Price</th>
+                            <th style="width: 25%; text-align: right;" contenteditable="true">Discount</th>
+                            <th style="width: 30%; text-align: right;" contenteditable="true">Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="bg-yellow" style="text-align: center;" id="lblPlotArea" contenteditable="true">${plotAreaYds}</td>
+                            <td style="text-align: right;" id="lblClosingPrice" contenteditable="true">${fmt(closingRate)}</td>
+                            <td class="bg-yellow" style="text-align: right; font-weight: 700; color: #047857;" id="lblDiscount" contenteditable="true">${fmt(initialDiscountPerSqYd)}</td>
+                            <td class="bg-yellow" style="text-align: right;" id="lblTotalAmount" contenteditable="true">${fmt(baseTotalAmount)}</td>
                         </tr>
                     </tbody>
                 </table>
