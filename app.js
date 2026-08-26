@@ -131,13 +131,7 @@ const mapperPlotList = document.getElementById('mapperPlotList');
 const mapperExportBtn = document.getElementById('mapperExportBtn');
 
 // Initial Load Setup
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startAppMain);
-} else {
-    startAppMain();
-}
-
-function startAppMain() {
+window.addEventListener('DOMContentLoaded', () => {
     // Parse URL parameters BEFORE initApp so the correct project loads
     const urlParams = new URLSearchParams(window.location.search);
     const targetProj = urlParams.get('project');
@@ -189,7 +183,7 @@ function startAppMain() {
             document.body.insertBefore(customerBanner, document.body.firstChild);
         }
     }
-}
+});
 
 // Main App Initialization
 function initApp() {
@@ -998,179 +992,6 @@ function applyFilters() {
 // Details Modal Functions
 // ----------------------------------------------------
 
-function closePlotModal() {
-    if (modalBackdrop) modalBackdrop.classList.remove('show');
-}
-
-function openPlotModal(plotNo) {
-    const dataSource = avatarDataPool[currentProject] || [];
-    const item = dataSource.find(p => String(p.plot_no) === String(plotNo)) || {
-        plot_no: plotNo,
-        plot_size: '200',
-        facing: 'East',
-        plot_status: 'AVAILABLE',
-        dim_north: 'N/A',
-        dim_south: 'N/A',
-        dim_east: 'N/A',
-        dim_west: 'N/A',
-        customer_name: ''
-    };
-    
-    const status = item.plot_status || 'AVAILABLE';
-    const color = getStatusColor(status);
-    
-    let priceQuoteBtnHtml = `
-        <button class="admin-login-btn" id="modalPriceQuoteBtn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: none; font-weight: 800; width: 100%; margin-top: 12px; cursor: pointer; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 13.5px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
-            <i class="fa-solid fa-file-invoice-dollar"></i> Generate Price Quote / PDF
-        </button>
-    `;
-
-    let editButtonHtml = '';
-    if (isAdminLoggedIn) {
-        editButtonHtml = `
-            <button class="admin-login-btn" id="editPlotBtn" style="background: var(--bg-tertiary); color: #fff; border: 1px solid var(--border-color); font-weight: 700; width: 100%; margin-top: 8px; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; font-size: 12px;">
-                <i class="fa-solid fa-pen-to-square"></i> Edit Plot Details
-            </button>
-        `;
-    }
-    
-    modalBody.innerHTML = `
-        <div class="detail-card" style="display: flex; flex-direction: column; gap: 10px;">
-            <div class="detail-row" style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="detail-label" style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Plot Number</span>
-                <span class="detail-val" style="font-size: 20px; font-weight: 800; color: var(--accent);">#${item.plot_no}</span>
-            </div>
-            <div class="detail-row" style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="detail-label" style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Status</span>
-                <span class="status-badge" style="background-color: ${color}; color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 11px;">${status}</span>
-            </div>
-            <div class="detail-row" style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="detail-label" style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Plot Area</span>
-                <span class="detail-val" style="font-weight: 700; color: #fff;">${item.plot_size ? item.plot_size + ' Sq. Yards' : '200 Sq. Yards'}</span>
-            </div>
-            <div class="detail-row" style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="detail-label" style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Facing Direction</span>
-                <span class="detail-val" style="font-weight: 700; color: #fff;">${item.facing || 'East'}</span>
-            </div>
-            ${item.customer_name ? `
-            <div class="detail-row" style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="detail-label" style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Customer Name</span>
-                <span class="detail-val" style="font-weight: 700; color: #38bdf8;">${item.customer_name}</span>
-            </div>
-            ` : ''}
-            <div class="detail-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
-                <span class="detail-label" style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">Boundary Dimensions</span>
-                <div style="width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px; font-weight: 600; padding: 6px 8px; background: rgba(255,255,255,0.03); border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); color: var(--text-secondary);">
-                    <div>North: <strong style="color: #fff;">${item.dim_north || 'N/A'}</strong></div>
-                    <div>South: <strong style="color: #fff;">${item.dim_south || 'N/A'}</strong></div>
-                    <div>East: <strong style="color: #fff;">${item.dim_east || 'N/A'}</strong></div>
-                    <div>West: <strong style="color: #fff;">${item.dim_west || 'N/A'}</strong></div>
-                </div>
-            </div>
-            ${priceQuoteBtnHtml}
-            ${editButtonHtml}
-        </div>
-    `;
-    
-    const quoteBtn = document.getElementById('modalPriceQuoteBtn');
-    if (quoteBtn) {
-        quoteBtn.addEventListener('click', () => {
-            exportPriceQuote(plotNo);
-        });
-    }
-
-    if (isAdminLoggedIn) {
-        const editBtn = document.getElementById('editPlotBtn');
-        if (editBtn) {
-            editBtn.addEventListener('click', () => {
-                openPlotEditForm(plotNo);
-            });
-        }
-    }
-    
-    if (modalBackdrop) modalBackdrop.classList.add('show');
-}
-
-if (modalCloseBtn) {
-    modalCloseBtn.addEventListener('click', closePlotModal);
-}
-if (modalBackdrop) {
-    modalBackdrop.addEventListener('click', (e) => {
-        if (e.target === modalBackdrop) closePlotModal();
-    });
-}
-
-function openPlotEditForm(plotNo) {
-    const dataSource = avatarDataPool[currentProject] || [];
-    const item = dataSource.find(p => String(p.plot_no) === String(plotNo)) || {
-        plot_no: plotNo,
-        plot_size: '200',
-        facing: 'East',
-        plot_status: 'AVAILABLE'
-    };
-
-    modalBody.innerHTML = `
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h4 style="margin: 0; font-size: 15px; color: var(--accent);">Edit Plot #${plotNo}</h4>
-                <button id="cancelEditBtn" style="background: none; border: none; color: var(--text-muted); cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Plot Status</label>
-                <select id="editStatus" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none; width: 100%;">
-                    <option value="AVAILABLE" ${item.plot_status === 'AVAILABLE' ? 'selected' : ''}>AVAILABLE</option>
-                    <option value="SOLD" ${item.plot_status === 'SOLD' ? 'selected' : ''}>SOLD</option>
-                    <option value="BOOKED" ${item.plot_status === 'BOOKED' ? 'selected' : ''}>BOOKED</option>
-                    <option value="MORTGAGE" ${item.plot_status === 'MORTGAGE' ? 'selected' : ''}>MORTGAGE</option>
-                    <option value="HOLD" ${item.plot_status === 'HOLD' ? 'selected' : ''}>HOLD</option>
-                </select>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Plot Size (Sq. Yards)</label>
-                <input type="text" id="editSize" value="${item.plot_size || ''}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none;">
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Facing Direction</label>
-                <input type="text" id="editFacing" value="${item.facing || ''}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none;">
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Customer Name</label>
-                <input type="text" id="editCustomer" value="${item.customer_name || ''}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none;" placeholder="Full name">
-            </div>
-            <button id="savePlotEditBtn" class="admin-login-btn" style="background: var(--status-available); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 10px; padding: 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <i class="fa-solid fa-save"></i> Save Changes
-            </button>
-        </div>
-    `;
-
-    const cancelBtn = document.getElementById('cancelEditBtn');
-    if (cancelBtn) cancelBtn.addEventListener('click', () => openPlotModal(plotNo));
-
-    const saveBtn = document.getElementById('savePlotEditBtn');
-    if (saveBtn) saveBtn.addEventListener('click', () => savePlotEdits(plotNo));
-}
-
-function savePlotEdits(plotNo) {
-    const editStatus = document.getElementById('editStatus').value;
-    const editSize = document.getElementById('editSize').value.trim();
-    const editFacing = document.getElementById('editFacing').value.trim();
-    const editCustomer = document.getElementById('editCustomer').value.trim();
-
-    const dataSource = avatarDataPool[currentProject] || [];
-    let item = dataSource.find(p => String(p.plot_no) === String(plotNo));
-
-    if (item) {
-        item.plot_status = editStatus;
-        if (editSize) item.plot_size = editSize;
-        if (editFacing) item.facing = editFacing;
-        item.customer_name = editCustomer;
-    }
-
-    renderPlotDots();
-    updateStatistics();
-    openPlotModal(plotNo);
-}
-
 function formatNotesList(notes) {
     if (!Array.isArray(notes) || notes.length === 0) return '<div style="color: var(--text-muted); font-style: italic;">No notes recorded.</div>';
     return notes.map(note => `<div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; margin-bottom: 4px; font-size: 11px; word-break: break-word;">${note}</div>`).join('');
@@ -1586,11 +1407,11 @@ function exportPriceQuote(plotNo, customTerms) {
                 <!-- Payment Schedule Table -->
                 <div class="section-header-banner" style="margin-top: 10px; display: flex; align-items: center; justify-content: center; position: relative;" contenteditable="true">
                     <span>Payment Schedule</span>
-                    <button id="btnAddScheduleRow" class="no-print" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #0f172a; color: #ffffff; border: none; border-radius: 4px; padding: 3px 10px; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Add Row">
-                        <i class="fa-solid fa-plus"></i> Row
+                    <button id="btnAddScheduleRow" class="no-print" title="Add New Payment Schedule Row" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #0f172a; color: #ffffff; border: none; font-size: 11px; font-weight: 800; padding: 2px 10px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+                        <i class="fa-solid fa-plus"></i> Add Row
                     </button>
                 </div>
-                <table class="q-table" id="tblPaymentSchedule">
+                <table class="q-table">
                     <thead>
                         <tr>
                             <th style="width: 20%;" contenteditable="true">Date</th>
@@ -1599,26 +1420,26 @@ function exportPriceQuote(plotNo, customTerms) {
                             <th style="width: 20%; text-align: right;" contenteditable="true">Amount</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="bodyPaymentSchedule">
                         <tr>
-                            <td id="lblDateBooking" class="bg-blue" contenteditable="true"></td>
+                            <td class="bg-blue" contenteditable="true"></td>
                             <td class="bg-blue" contenteditable="true"></td>
                             <td style="text-align: center;" id="lblPct1" class="bg-blue" contenteditable="true"></td>
                             <td style="text-align: right;" id="lblAmt1" class="bg-blue" contenteditable="true"></td>
                         </tr>
                         <tr>
-                            <td id="lblDatePart2" class="bg-blue" contenteditable="true"></td>
+                            <td class="bg-blue" contenteditable="true"></td>
                             <td class="bg-blue" contenteditable="true"></td>
                             <td style="text-align: center;" id="lblPct2" class="bg-blue" contenteditable="true"></td>
                             <td style="text-align: right;" id="lblAmt2" class="bg-blue" contenteditable="true"></td>
                         </tr>
                         <tr>
-                            <td id="lblDatePart3" class="bg-blue" contenteditable="true"></td>
+                            <td class="bg-blue" contenteditable="true"></td>
                             <td class="bg-blue" contenteditable="true"></td>
                             <td style="text-align: center;" id="lblPct3" class="bg-blue" contenteditable="true"></td>
                             <td style="text-align: right;" id="lblAmt3" class="bg-blue" contenteditable="true"></td>
                         </tr>
-                        <tr class="bg-yellow-highlight">
+                        <tr id="rowScheduleTotal" class="bg-yellow-highlight">
                             <td colspan="3" style="text-align: right; font-weight: 800;" contenteditable="true">TOTAL</td>
                             <td style="text-align: right;" id="lblScheduleTotal" contenteditable="true">${fmt(grandTotalAmount)}</td>
                         </tr>
@@ -1832,113 +1653,119 @@ function exportPriceQuote(plotNo, customTerms) {
                         const structTotalEl = document.getElementById('lblStructTotal');
                         if (structTotalEl && structTotalEl !== active) structTotalEl.innerText = fmt(grandTotalAmount);
 
-                        // Update Payment Schedule Live Percentage & Amount Calculation
-                        for (let idx = 1; idx <= scheduleRowCount; idx++) {
-                            const pctEl = document.getElementById('lblPct' + idx);
-                            const amtEl = document.getElementById('lblAmt' + idx);
+                    let scheduleRowCount = 3;
 
-                            if (pctEl && amtEl) {
-                                if (active === pctEl) {
-                                    const rawPctStr = pctEl.innerText.replace(/[^0-9.]/g, '');
-                                    if (rawPctStr !== '') {
-                                        const pctVal = parseFloat(rawPctStr);
-                                        if (!isNaN(pctVal) && grandTotalAmount > 0) {
-                                            const calcAmt = Math.round(grandTotalAmount * (pctVal / 100));
-                                            amtEl.innerText = fmt(calcAmt);
-                                        }
-                                    } else {
-                                        amtEl.innerText = '';
+                    function bindScheduleCell(pctEl, amtEl) {
+                        if (!pctEl || !amtEl) return;
+                        [pctEl, amtEl].forEach(el => {
+                            el.addEventListener('input', updateCalculations);
+                            el.addEventListener('keyup', updateCalculations);
+                            el.addEventListener('blur', function() {
+                                if (el === pctEl) {
+                                    const raw = pctEl.innerText.replace(/[^0-9.]/g, '');
+                                    if (raw !== '') {
+                                        const num = parseFloat(raw);
+                                        if (!isNaN(num)) pctEl.innerText = (num % 1 === 0 ? num.toFixed(0) : num.toFixed(1)) + '%';
                                     }
-                                } else if (active === amtEl) {
-                                    const rawAmtStr = amtEl.innerText.replace(/[^0-9.]/g, '');
-                                    if (rawAmtStr !== '') {
-                                        const amtVal = parseFloat(rawAmtStr);
-                                        if (!isNaN(amtVal) && grandTotalAmount > 0) {
-                                            const calcPct = (amtVal / grandTotalAmount) * 100;
-                                            const pctFormatted = (calcPct % 1 === 0 ? calcPct.toFixed(0) : calcPct.toFixed(1)) + '%';
-                                            pctEl.innerText = pctFormatted;
-                                        }
-                                    } else {
-                                        pctEl.innerText = '';
+                                } else if (el === amtEl) {
+                                    const val = parseNum(amtEl.innerText);
+                                    if (val > 0) amtEl.innerText = fmt(val);
+                                }
+                                updateCalculations();
+                            });
+                        });
+                    }
+
+                    // Update Payment Schedule Live Percentage & Amount Calculation
+                    for (let idx = 1; idx <= scheduleRowCount; idx++) {
+                        const pctEl = document.getElementById('lblPct' + idx);
+                        const amtEl = document.getElementById('lblAmt' + idx);
+
+                        if (pctEl && amtEl) {
+                            if (active === pctEl) {
+                                const rawPctStr = pctEl.innerText.replace(/[^0-9.]/g, '');
+                                if (rawPctStr !== '') {
+                                    const pctVal = parseFloat(rawPctStr);
+                                    if (!isNaN(pctVal) && grandTotalAmount > 0) {
+                                        const calcAmt = Math.round(grandTotalAmount * (pctVal / 100));
+                                        amtEl.innerText = fmt(calcAmt);
                                     }
-                                } else if (pctEl.innerText.trim() !== '') {
-                                    const rawPctStr = pctEl.innerText.replace(/[^0-9.]/g, '');
-                                    if (rawPctStr !== '') {
-                                        const pctVal = parseFloat(rawPctStr);
-                                        if (!isNaN(pctVal) && grandTotalAmount > 0) {
-                                            const calcAmt = Math.round(grandTotalAmount * (pctVal / 100));
-                                            amtEl.innerText = fmt(calcAmt);
-                                        }
+                                } else {
+                                    amtEl.innerText = '';
+                                }
+                            } else if (active === amtEl) {
+                                const rawAmtStr = amtEl.innerText.replace(/[^0-9.]/g, '');
+                                if (rawAmtStr !== '') {
+                                    const amtVal = parseFloat(rawAmtStr);
+                                    if (!isNaN(amtVal) && grandTotalAmount > 0) {
+                                        const calcPct = (amtVal / grandTotalAmount) * 100;
+                                        const pctFormatted = (calcPct % 1 === 0 ? calcPct.toFixed(0) : calcPct.toFixed(1)) + '%';
+                                        pctEl.innerText = pctFormatted;
+                                    }
+                                } else {
+                                    pctEl.innerText = '';
+                                }
+                            } else if (pctEl.innerText.trim() !== '') {
+                                const rawPctStr = pctEl.innerText.replace(/[^0-9.]/g, '');
+                                if (rawPctStr !== '') {
+                                    const pctVal = parseFloat(rawPctStr);
+                                    if (!isNaN(pctVal) && grandTotalAmount > 0) {
+                                        const calcAmt = Math.round(grandTotalAmount * (pctVal / 100));
+                                        amtEl.innerText = fmt(calcAmt);
                                     }
                                 }
                             }
                         }
-
-                        const scheduleTotalEl = document.getElementById('lblScheduleTotal');
-                        if (scheduleTotalEl && scheduleTotalEl !== active) scheduleTotalEl.innerText = fmt(grandTotalAmount);
-
-                        // Update Registration Charges
-                        const reg75El = document.getElementById('lblReg75');
-                        if (reg75El && reg75El !== active) reg75El.innerText = fmt(reg75);
-
-                        const mutationEl = document.getElementById('lblMutation');
-                        if (mutationEl && mutationEl !== active) mutationEl.innerText = mutation.toLocaleString('en-IN');
-
-                        const regTotalEl = document.getElementById('lblRegTotal');
-                        if (regTotalEl && regTotalEl !== active) regTotalEl.innerText = fmt(totalRegCharges);
                     }
 
-                    let scheduleRowCount = 3;
+                    const scheduleTotalEl = document.getElementById('lblScheduleTotal');
+                    if (scheduleTotalEl && scheduleTotalEl !== active) scheduleTotalEl.innerText = fmt(grandTotalAmount);
 
-                    function bindCellEvents(id) {
+                    // Registration listeners for initial elements
+                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblOriginalTotalCost', 'lblDiscount', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate'].forEach(id => {
                         const el = document.getElementById(id);
-                        if (!el) return;
-                        el.addEventListener('input', updateCalculations);
-                        el.addEventListener('keyup', updateCalculations);
-                        el.addEventListener('blur', function() {
-                            if (id.startsWith('lblPct')) {
-                                const raw = el.innerText.replace(/[^0-9.]/g, '');
-                                if (raw !== '') {
-                                    const num = parseFloat(raw);
-                                    if (!isNaN(num)) el.innerText = (num % 1 === 0 ? num.toFixed(0) : num.toFixed(1)) + '%';
-                                }
-                            } else {
+                        if (el) {
+                            el.addEventListener('input', updateCalculations);
+                            el.addEventListener('keyup', updateCalculations);
+                            el.addEventListener('blur', function() {
                                 const val = parseNum(el.innerText);
                                 if (val > 0) el.innerText = fmt(val);
-                            }
-                            updateCalculations();
-                        });
+                                updateCalculations();
+                            });
+                        }
+                    });
+
+                    // Bind initial 3 rows of Payment Schedule
+                    for (let idx = 1; idx <= 3; idx++) {
+                        bindScheduleCell(document.getElementById('lblPct' + idx), document.getElementById('lblAmt' + idx));
                     }
 
-                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblOriginalTotalCost', 'lblDiscount', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate', 'lblPct1', 'lblPct2', 'lblPct3', 'lblAmt1', 'lblAmt2', 'lblAmt3'].forEach(bindCellEvents);
-
+                    // Add Row button handler
                     const btnAddRow = document.getElementById('btnAddScheduleRow');
                     if (btnAddRow) {
                         btnAddRow.addEventListener('click', function(e) {
                             e.preventDefault();
                             scheduleRowCount++;
-                            const table = document.getElementById('tblPaymentSchedule');
-                            if (!table) return;
-                            const tbody = table.querySelector('tbody');
-                            const totalRow = tbody.querySelector('.bg-yellow-highlight');
+                            const newPctId = 'lblPct' + scheduleRowCount;
+                            const newAmtId = 'lblAmt' + scheduleRowCount;
 
-                            const newRow = document.createElement('tr');
-                            newRow.innerHTML = `
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
                                 <td class="bg-blue" contenteditable="true"></td>
                                 <td class="bg-blue" contenteditable="true"></td>
-                                <td style="text-align: center;" id="lblPct\${scheduleRowCount}" class="bg-blue" contenteditable="true"></td>
-                                <td style="text-align: right;" id="lblAmt\${scheduleRowCount}" class="bg-blue" contenteditable="true"></td>
+                                <td style="text-align: center;" id="${newPctId}" class="bg-blue" contenteditable="true"></td>
+                                <td style="text-align: right;" id="${newAmtId}" class="bg-blue" contenteditable="true"></td>
                             `;
 
-                            if (totalRow) {
-                                tbody.insertBefore(newRow, totalRow);
-                            } else {
-                                tbody.appendChild(newRow);
+                            const totalRow = document.getElementById('rowScheduleTotal');
+                            if (totalRow && totalRow.parentNode) {
+                                totalRow.parentNode.insertBefore(tr, totalRow);
+                                const newPctEl = document.getElementById(newPctId);
+                                const newAmtEl = document.getElementById(newAmtId);
+                                bindScheduleCell(newPctEl, newAmtEl);
+                                const firstTd = tr.querySelector('td');
+                                if (firstTd) firstTd.focus();
                             }
-
-                            bindCellEvents('lblPct' + scheduleRowCount);
-                            bindCellEvents('lblAmt' + scheduleRowCount);
-                            updateCalculations();
                         });
                     }
                 }
