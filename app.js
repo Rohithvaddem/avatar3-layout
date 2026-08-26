@@ -1191,11 +1191,15 @@ function exportPriceQuote(plotNo, customTerms) {
                     -webkit-print-color-adjust: exact !important;
                     print-color-adjust: exact !important;
                 }
-                .bg-yellow {
-                    background: #fef08a !important;
+                .bg-blue {
+                    background: #9be0ff !important;
                     font-weight: 700;
+                    color: #0f172a !important;
                     -webkit-print-color-adjust: exact !important;
                     print-color-adjust: exact !important;
+                }
+                .bg-yellow {
+                    background: transparent;
                 }
                 .bg-green {
                     background: #dcfce7 !important;
@@ -1275,11 +1279,11 @@ function exportPriceQuote(plotNo, customTerms) {
                 <table class="q-table">
                     <tr>
                         <td style="width: 20%; font-weight: 700; background: #f8fafc;" contenteditable="true">Client Name</td>
-                        <td style="width: 80%; font-weight: 700;" id="lblClientName" contenteditable="true">${customerName || '-'}</td>
+                        <td style="width: 80%; font-weight: 700;" class="bg-blue" id="lblClientName" contenteditable="true">${customerName || '-'}</td>
                     </tr>
                     <tr>
                         <td style="font-weight: 700; background: #f8fafc;" contenteditable="true">Address</td>
-                        <td id="lblAddress" contenteditable="true">-</td>
+                        <td id="lblAddress" class="bg-blue" contenteditable="true">-</td>
                     </tr>
                 </table>
 
@@ -1299,8 +1303,8 @@ function exportPriceQuote(plotNo, customTerms) {
                             <td style="font-weight: 800;" contenteditable="true">${projectMeta.title}</td>
                             <td style="font-weight: 700; text-align: center;" contenteditable="true">${item.plot_no}</td>
                             <td style="font-weight: 700; text-align: center; text-transform: uppercase;" contenteditable="true">${facingStr}</td>
-                            <td class="bg-yellow" style="text-align: right;" id="lblPerSqYd" contenteditable="true">${fmt(defaultBaseRate)}</td>
-                            <td class="bg-yellow" style="text-align: right; font-weight: 700;" id="lblOriginalTotalCost" contenteditable="true">${fmt(Math.round(plotAreaYds * defaultBaseRate))}</td>
+                            <td style="text-align: right;" id="lblPerSqYd" contenteditable="true">${fmt(defaultBaseRate)}</td>
+                            <td style="text-align: right; font-weight: 700;" id="lblOriginalTotalCost" contenteditable="true">${fmt(Math.round(plotAreaYds * defaultBaseRate))}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1318,23 +1322,23 @@ function exportPriceQuote(plotNo, customTerms) {
                     <tbody>
                         <tr>
                             <td contenteditable="true">East Plot Premium</td>
-                            <td style="text-align: center;" id="lblEastRate" contenteditable="true">${isEast ? '₹ 200' : '₹ 0'}</td>
-                            <td style="text-align: right;" id="lblEastTotal" contenteditable="true">${fmt(isEast ? plotAreaYds * 200 : 0)}</td>
+                            <td style="text-align: center;" class="bg-blue" id="lblEastRate" contenteditable="true">${isEast ? '₹ 200' : '₹ 0'}</td>
+                            <td style="text-align: right;" class="bg-blue" id="lblEastTotal" contenteditable="true">${fmt(isEast ? plotAreaYds * 200 : 0)}</td>
                         </tr>
                         <tr>
                             <td contenteditable="true">Corner Plot Premium</td>
-                            <td style="text-align: center;" id="lblCornerRate" contenteditable="true">${isCorner ? '₹ 500' : '₹ 0'}</td>
-                            <td style="text-align: right;" id="lblCornerTotal" contenteditable="true">${fmt(isCorner ? plotAreaYds * 500 : 0)}</td>
+                            <td style="text-align: center;" class="bg-blue" id="lblCornerRate" contenteditable="true">${isCorner ? '₹ 500' : '₹ 0'}</td>
+                            <td style="text-align: right;" class="bg-blue" id="lblCornerTotal" contenteditable="true">${fmt(isCorner ? plotAreaYds * 500 : 0)}</td>
                         </tr>
                         <tr>
                             <td contenteditable="true">Mortgage Plot Charge</td>
-                            <td style="text-align: center;" id="lblMortgageRate" contenteditable="true">${isMortgage ? '₹ 300' : '₹ 0'}</td>
-                            <td style="text-align: right;" id="lblMortgageTotal" contenteditable="true">${fmt(isMortgage ? plotAreaYds * 300 : 0)}</td>
+                            <td style="text-align: center;" class="bg-blue" id="lblMortgageRate" contenteditable="true">${isMortgage ? '₹ 300' : '₹ 0'}</td>
+                            <td style="text-align: right;" class="bg-blue" id="lblMortgageTotal" contenteditable="true">${fmt(isMortgage ? plotAreaYds * 300 : 0)}</td>
                         </tr>
                         <tr>
                             <td contenteditable="true">Bank Loan Processing Extra</td>
-                            <td style="text-align: center;" id="lblBankLoanRate" contenteditable="true">₹ 0</td>
-                            <td style="text-align: right;" id="lblBankLoanTotal" contenteditable="true">₹ 0</td>
+                            <td style="text-align: center;" class="bg-blue" id="lblBankLoanRate" contenteditable="true">₹ 0</td>
+                            <td style="text-align: right;" class="bg-blue" id="lblBankLoanTotal" contenteditable="true">₹ 0</td>
                         </tr>
                         <tr class="bg-green">
                             <td style="font-weight: 800;" contenteditable="true">TOTAL PLOT VALUE (WITH ADD-ONS)</td>
@@ -1343,8 +1347,8 @@ function exportPriceQuote(plotNo, customTerms) {
                         </tr>
                         <tr>
                             <td contenteditable="true">Extra Corpus Fund (Not Included in Plot Cost)</td>
-                            <td style="text-align: center;" id="lblCorpusRate" contenteditable="true">₹ 200</td>
-                            <td style="text-align: right;" id="lblCorpusTotal" contenteditable="true">${fmt(plotAreaYds * 200)}</td>
+                            <td style="text-align: center;" class="bg-blue" id="lblCorpusRate" contenteditable="true">₹ 200</td>
+                            <td style="text-align: right;" class="bg-blue" id="lblCorpusTotal" contenteditable="true">${fmt(plotAreaYds * 200)}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1362,10 +1366,10 @@ function exportPriceQuote(plotNo, customTerms) {
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="bg-yellow" style="text-align: center;" id="lblPlotArea" contenteditable="true">${plotAreaYds}</td>
-                            <td style="text-align: right;" id="lblClosingPrice" contenteditable="true">${fmt(closingRate)}</td>
-                            <td class="bg-yellow" style="text-align: right; font-weight: 700; color: #047857;" id="lblDiscount" contenteditable="true">${fmt(initialDiscountPerSqYd)}</td>
-                            <td class="bg-yellow" style="text-align: right;" id="lblTotalAmount" contenteditable="true">${fmt(grandTotalAmount)}</td>
+                            <td class="bg-blue" style="text-align: center;" id="lblPlotArea" contenteditable="true">${plotAreaYds}</td>
+                            <td class="bg-blue" style="text-align: right;" id="lblClosingPrice" contenteditable="true">${fmt(closingRate)}</td>
+                            <td class="bg-blue" style="text-align: right; font-weight: 700; color: #047857;" id="lblDiscount" contenteditable="true">${fmt(initialDiscountPerSqYd)}</td>
+                            <td class="bg-blue" style="text-align: right;" id="lblTotalAmount" contenteditable="true">${fmt(grandTotalAmount)}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1383,16 +1387,16 @@ function exportPriceQuote(plotNo, customTerms) {
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong contenteditable="true">By A/C Transfer</strong></td>
-                            <td style="text-align: center;" id="lblBankSqYd" contenteditable="true">${plotAreaYds}</td>
-                            <td class="bg-yellow" style="text-align: right;" id="lblBankRate" contenteditable="true">₹ 3,000</td>
-                            <td style="text-align: right;" id="lblBankTotal" contenteditable="true">${fmt(initialBankTotal)}</td>
+                            <td class="bg-blue"><strong contenteditable="true">By A/C Transfer</strong></td>
+                            <td style="text-align: center;" class="bg-blue" id="lblBankSqYd" contenteditable="true">${plotAreaYds}</td>
+                            <td class="bg-blue" style="text-align: right;" id="lblBankRate" contenteditable="true">₹ 3,000</td>
+                            <td style="text-align: right;" class="bg-blue" id="lblBankTotal" contenteditable="true">${fmt(initialBankTotal)}</td>
                         </tr>
                         <tr>
-                            <td><strong contenteditable="true">By Cash</strong></td>
-                            <td style="text-align: center;" id="lblCashSqYd" contenteditable="true">${plotAreaYds}</td>
-                            <td class="bg-yellow" style="text-align: right;" id="lblCashRate" contenteditable="true">${fmt(initialCashRate)}</td>
-                            <td style="text-align: right;" id="lblCashTotal" contenteditable="true">${fmt(initialCashTotal)}</td>
+                            <td class="bg-blue"><strong contenteditable="true">By Cash</strong></td>
+                            <td style="text-align: center;" class="bg-blue" id="lblCashSqYd" contenteditable="true">${plotAreaYds}</td>
+                            <td class="bg-blue" style="text-align: right;" id="lblCashRate" contenteditable="true">${fmt(initialCashRate)}</td>
+                            <td style="text-align: right;" class="bg-blue" id="lblCashTotal" contenteditable="true">${fmt(initialCashTotal)}</td>
                         </tr>
                         <tr class="bg-green">
                             <td colspan="3" style="text-align: right; font-weight: 800;" contenteditable="true">Total</td>
@@ -1414,22 +1418,22 @@ function exportPriceQuote(plotNo, customTerms) {
                     </thead>
                     <tbody>
                         <tr>
-                            <td id="lblDateBooking" contenteditable="true">${todayStr}</td>
-                            <td><strong contenteditable="true">BOOKING AMOUNT</strong></td>
-                            <td style="text-align: center;" contenteditable="true">-</td>
-                            <td style="text-align: right;" contenteditable="true">₹ 1,00,000</td>
+                            <td id="lblDateBooking" class="bg-blue" contenteditable="true">${todayStr}</td>
+                            <td class="bg-blue"><strong contenteditable="true">BOOKING AMOUNT</strong></td>
+                            <td style="text-align: center;" class="bg-blue" contenteditable="true">-</td>
+                            <td style="text-align: right;" class="bg-blue" contenteditable="true">₹ 1,00,000</td>
                         </tr>
                         <tr>
-                            <td id="lblDatePart2" contenteditable="true">-</td>
-                            <td><strong id="lblScheduleLabel1" contenteditable="true">WITHIN 15 DAYS</strong></td>
-                            <td style="text-align: center;" id="lblPct1" contenteditable="true">25%</td>
-                            <td style="text-align: right;" id="lblAmt1" contenteditable="true">${fmt(initialAmt1)}</td>
+                            <td id="lblDatePart2" class="bg-blue" contenteditable="true">-</td>
+                            <td class="bg-blue"><strong id="lblScheduleLabel1" contenteditable="true">WITHIN 15 DAYS</strong></td>
+                            <td style="text-align: center;" id="lblPct1" class="bg-blue" contenteditable="true">25%</td>
+                            <td style="text-align: right;" id="lblAmt1" class="bg-blue" contenteditable="true">${fmt(initialAmt1)}</td>
                         </tr>
                         <tr>
-                            <td id="lblDatePart3" contenteditable="true">-</td>
-                            <td><strong id="lblScheduleLabel2" contenteditable="true">WITHIN 45 DAYS</strong></td>
-                            <td style="text-align: center;" contenteditable="true">100%</td>
-                            <td style="text-align: right;" id="lblAmt2" contenteditable="true">${fmt(initialAmt2)}</td>
+                            <td id="lblDatePart3" class="bg-blue" contenteditable="true">-</td>
+                            <td class="bg-blue"><strong id="lblScheduleLabel2" contenteditable="true">WITHIN 45 DAYS</strong></td>
+                            <td style="text-align: center;" class="bg-blue" contenteditable="true">100%</td>
+                            <td style="text-align: right;" id="lblAmt2" class="bg-blue" contenteditable="true">${fmt(initialAmt2)}</td>
                         </tr>
                         <tr class="bg-green">
                             <td colspan="3" style="text-align: right; font-weight: 800;" contenteditable="true">TOTAL</td>
