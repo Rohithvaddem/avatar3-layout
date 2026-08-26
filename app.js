@@ -1198,8 +1198,12 @@ function exportPriceQuote(plotNo, customTerms) {
                     -webkit-print-color-adjust: exact !important;
                     print-color-adjust: exact !important;
                 }
-                .bg-yellow {
-                    background: transparent;
+                .bg-yellow, .bg-yellow-highlight {
+                    background: #fef08a !important;
+                    font-weight: 800;
+                    color: #0f172a !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                 }
                 .bg-green {
                     background: #f8fafc !important;
@@ -1340,7 +1344,7 @@ function exportPriceQuote(plotNo, customTerms) {
                             <td style="text-align: center;" class="bg-blue" id="lblBankLoanRate" contenteditable="true">₹ 0</td>
                             <td style="text-align: right;" class="bg-blue" id="lblBankLoanTotal" contenteditable="true">₹ 0</td>
                         </tr>
-                        <tr class="bg-green">
+                        <tr class="bg-yellow-highlight">
                             <td style="font-weight: 800;" contenteditable="true">TOTAL PLOT VALUE (WITH ADD-ONS)</td>
                             <td style="text-align: center; font-weight: 800;" id="lblTotalValueRate" contenteditable="true">${fmt(stdFullListRate)}</td>
                             <td style="text-align: right; font-weight: 800;" id="lblTotalValueTotal" contenteditable="true">${fmt(stdFullListTotal)}</td>
