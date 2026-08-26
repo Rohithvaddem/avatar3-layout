@@ -1698,6 +1698,10 @@ function exportPriceQuote(plotNo, customTerms) {
                         if (scheduleTotalEl && scheduleTotalEl !== active) scheduleTotalEl.innerText = fmt(grandTotalAmount);
 
                         // Update Registration Charges
+                        const reg75 = Math.round(bankTotal * 0.075);
+                        const mutation = Math.max(800, Math.round(bankTotal * 0.001));
+                        const totalRegCharges = reg75 + 1000 + 100 + 50 + 5000 + mutation;
+
                         const reg75El = document.getElementById('lblReg75');
                         if (reg75El && reg75El !== active) reg75El.innerText = fmt(reg75);
 
