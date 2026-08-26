@@ -1308,7 +1308,7 @@ function exportPriceQuote(plotNo, customTerms) {
                             <td style="font-weight: 700; text-align: center;" contenteditable="true">${item.plot_no}</td>
                             <td style="font-weight: 700; text-align: center; text-transform: uppercase;" contenteditable="true">${facingStr}</td>
                             <td style="text-align: right;" id="lblPerSqYd" contenteditable="true">${fmt(defaultBaseRate)}</td>
-                            <td style="text-align: right; font-weight: 700;" id="lblOriginalTotalCost" contenteditable="true">${fmt(Math.round(plotAreaYds * defaultBaseRate))}</td>
+                            <td class="bg-yellow-highlight" style="text-align: right; font-weight: 700;" id="lblOriginalTotalCost" contenteditable="true">${fmt(Math.round(plotAreaYds * defaultBaseRate))}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1368,7 +1368,7 @@ function exportPriceQuote(plotNo, customTerms) {
                             <td class="bg-blue" style="text-align: center;" id="lblPlotArea" contenteditable="true">${plotAreaYds}</td>
                             <td class="bg-blue" style="text-align: right;" id="lblClosingPrice" contenteditable="true">${fmt(closingRate)}</td>
                             <td class="bg-blue" style="text-align: right; font-weight: 700;" id="lblDiscount" contenteditable="true">${fmt(initialDiscountPerSqYd)}</td>
-                            <td class="bg-blue" style="text-align: right;" id="lblTotalAmount" contenteditable="true">${fmt(grandTotalAmount)}</td>
+                            <td class="bg-yellow-highlight" style="text-align: right;" id="lblTotalAmount" contenteditable="true">${fmt(grandTotalAmount)}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1397,7 +1397,7 @@ function exportPriceQuote(plotNo, customTerms) {
                             <td class="bg-blue" style="text-align: right;" id="lblCashRate" contenteditable="true">${fmt(initialCashRate)}</td>
                             <td style="text-align: right;" class="bg-blue" id="lblCashTotal" contenteditable="true">${fmt(initialCashTotal)}</td>
                         </tr>
-                        <tr class="bg-green">
+                        <tr class="bg-yellow-highlight">
                             <td colspan="3" style="text-align: right; font-weight: 800;" contenteditable="true">Total</td>
                             <td style="text-align: right;" id="lblStructTotal" contenteditable="true">${fmt(grandTotalAmount)}</td>
                         </tr>
@@ -1434,7 +1434,7 @@ function exportPriceQuote(plotNo, customTerms) {
                             <td style="text-align: center;" class="bg-blue" contenteditable="true">100%</td>
                             <td style="text-align: right;" id="lblAmt2" class="bg-blue" contenteditable="true">${fmt(initialAmt2)}</td>
                         </tr>
-                        <tr class="bg-green">
+                        <tr class="bg-yellow-highlight">
                             <td colspan="3" style="text-align: right; font-weight: 800;" contenteditable="true">TOTAL</td>
                             <td style="text-align: right;" id="lblScheduleTotal" contenteditable="true">${fmt(grandTotalAmount)}</td>
                         </tr>
@@ -1486,7 +1486,7 @@ function exportPriceQuote(plotNo, customTerms) {
                             <td contenteditable="true">MUTATION 0.1%</td>
                             <td style="text-align: right; font-weight: 700;" id="lblMutation" contenteditable="true">${initialMutation.toLocaleString('en-IN')}</td>
                         </tr>
-                        <tr class="bg-green">
+                        <tr class="bg-yellow-highlight">
                             <td style="font-weight: 800;" contenteditable="true">TOTAL REGISTRATION CHARGES</td>
                             <td style="text-align: right;" id="lblRegTotal" contenteditable="true">${fmt(initialRegTotal)}</td>
                         </tr>
