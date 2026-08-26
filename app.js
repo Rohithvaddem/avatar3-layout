@@ -1987,9 +1987,13 @@ function openDealSimulator(plotNo) {
         let currentRate = parseFloat(rateRange.value) || standardEffectiveRate;
         const spotDisc = parseFloat(spotRange.value) || 0;
 
-        if (waiveEast && waiveEast.checked) currentRate = Math.max(0, currentRate - 200);
-        if (waiveCorner && waiveCorner.checked) currentRate = Math.max(0, currentRate - 500);
-        if (waiveMortgage && waiveMortgage.checked) currentRate = Math.max(0, currentRate - 300);
+        const isEastWaived = waiveEast ? waiveEast.checked : false;
+        const isCornerWaived = waiveCorner ? waiveCorner.checked : false;
+        const isMortgageWaived = waiveMortgage ? waiveMortgage.checked : false;
+
+        if (isEastWaived) currentRate = Math.max(0, currentRate - 200);
+        if (isCornerWaived) currentRate = Math.max(0, currentRate - 500);
+        if (isMortgageWaived) currentRate = Math.max(0, currentRate - 300);
 
         document.getElementById('simRateDisplay').textContent = fmt(currentRate);
         document.getElementById('simSpotDiscountDisplay').textContent = fmt(spotDisc);
