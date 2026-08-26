@@ -1414,7 +1414,7 @@ function exportPriceQuote(plotNo, customTerms) {
                             <th style="width: 20%; text-align: center;" contenteditable="true">Percentage (%)</th>
                             <th style="width: 20%; text-align: right;" contenteditable="true">
                                 Amount 
-                                <button id="btnAddScheduleRow" class="no-print" title="Add Payment Row" style="margin-left: 6px; background: #2563eb; color: #ffffff; border: none; border-radius: 4px; padding: 2px 7px; font-size: 13px; font-weight: 800; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;">+</button>
+                                <button id="btnAddScheduleRow" class="no-print" style="background:#2563eb; color:#fff; border:none; border-radius:50%; width:20px; height:20px; line-height:18px; text-align:center; font-size:14px; font-weight:800; cursor:pointer; margin-left:6px; vertical-align:middle;" title="Add Row">+</button>
                             </th>
                         </tr>
                     </thead>
@@ -1652,8 +1652,7 @@ function exportPriceQuote(plotNo, customTerms) {
                         if (structTotalEl && structTotalEl !== active) structTotalEl.innerText = fmt(grandTotalAmount);
 
                         // Update Payment Schedule Live Percentage & Amount Calculation
-                        const allPctEls = document.querySelectorAll('[id^="lblPct"]');
-                        allPctEls.forEach(pctEl => {
+                        document.querySelectorAll('[id^="lblPct"]').forEach(pctEl => {
                             const idx = pctEl.id.replace('lblPct', '');
                             const amtEl = document.getElementById('lblAmt' + idx);
 
@@ -1666,8 +1665,6 @@ function exportPriceQuote(plotNo, customTerms) {
                                             const calcAmt = Math.round(grandTotalAmount * (pctVal / 100));
                                             amtEl.innerText = fmt(calcAmt);
                                         }
-                                    } else {
-                                        amtEl.innerText = '';
                                     }
                                 } else if (active === amtEl) {
                                     const rawAmtStr = amtEl.innerText.replace(/[^0-9.]/g, '');
@@ -1678,8 +1675,6 @@ function exportPriceQuote(plotNo, customTerms) {
                                             const pctFormatted = (calcPct % 1 === 0 ? calcPct.toFixed(0) : calcPct.toFixed(1)) + '%';
                                             pctEl.innerText = pctFormatted;
                                         }
-                                    } else {
-                                        pctEl.innerText = '';
                                     }
                                 } else if (pctEl.innerText.trim() !== '') {
                                     const rawPctStr = pctEl.innerText.replace(/[^0-9.]/g, '');
@@ -1698,10 +1693,6 @@ function exportPriceQuote(plotNo, customTerms) {
                         if (scheduleTotalEl && scheduleTotalEl !== active) scheduleTotalEl.innerText = fmt(grandTotalAmount);
 
                         // Update Registration Charges
-                        const reg75 = Math.round(bankTotal * 0.075);
-                        const mutation = Math.max(800, Math.round(bankTotal * 0.001));
-                        const totalRegCharges = reg75 + 1000 + 100 + 50 + 5000 + mutation;
-
                         const reg75El = document.getElementById('lblReg75');
                         if (reg75El && reg75El !== active) reg75El.innerText = fmt(reg75);
 
@@ -1712,61 +1703,70 @@ function exportPriceQuote(plotNo, customTerms) {
                         if (regTotalEl && regTotalEl !== active) regTotalEl.innerText = fmt(totalRegCharges);
                     }
 
-                    function bindCellListeners(el) {
-                        if (!el) return;
-                        el.addEventListener('input', updateCalculations);
-                        el.addEventListener('keyup', updateCalculations);
-                        el.addEventListener('blur', function() {
-                            if (el.id.startsWith('lblPct')) {
-                                const raw = el.innerText.replace(/[^0-9.]/g, '');
-                                if (raw !== '') {
-                                    const num = parseFloat(raw);
-                                    if (!isNaN(num)) el.innerText = (num % 1 === 0 ? num.toFixed(0) : num.toFixed(1)) + '%';
+                    function bindCellEvents(id) {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            el.addEventListener('input', updateCalculations);
+                            el.addEventListener('keyup', updateCalculations);
+                            el.addEventListener('blur', function() {
+                                if (id.startsWith('lblPct')) {
+                                    const raw = el.innerText.replace(/[^0-9.]/g, '');
+                                    if (raw !== '') {
+                                        const num = parseFloat(raw);
+                                        if (!isNaN(num)) el.innerText = (num % 1 === 0 ? num.toFixed(0) : num.toFixed(1)) + '%';
+                                    }
+                                } else {
+                                    const val = parseNum(el.innerText);
+                                    if (val > 0) el.innerText = fmt(val);
                                 }
-                            } else {
-                                const val = parseNum(el.innerText);
-                                if (val > 0) el.innerText = fmt(val);
-                            }
-                            updateCalculations();
-                        });
+                                updateCalculations();
+                            });
+                        }
                     }
 
-                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblOriginalTotalCost', 'lblDiscount', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate', 'lblPct1', 'lblPct2', 'lblPct3', 'lblAmt1', 'lblAmt2', 'lblAmt3'].forEach(id => {
-                        bindCellListeners(document.getElementById(id));
-                    });
+                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblOriginalTotalCost', 'lblDiscount', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate', 'lblPct1', 'lblPct2', 'lblPct3', 'lblAmt1', 'lblAmt2', 'lblAmt3'].forEach(bindCellEvents);
 
-                    // Logic to dynamically add new rows to Payment Schedule
-                    let currentScheduleRowCount = 3;
-                    const btnAddScheduleRow = document.getElementById('btnAddScheduleRow');
-                    if (btnAddScheduleRow) {
-                        btnAddScheduleRow.addEventListener('click', function(e) {
+                    let dynamicRowCounter = 3;
+                    const btnAddRow = document.getElementById('btnAddScheduleRow');
+                    if (btnAddRow) {
+                        btnAddRow.addEventListener('click', function(e) {
                             e.preventDefault();
-                            e.stopPropagation();
-                            currentScheduleRowCount++;
-                            const nextId = currentScheduleRowCount;
+                            dynamicRowCounter++;
+                            const newPctId = 'lblPct' + dynamicRowCounter;
+                            const newAmtId = 'lblAmt' + dynamicRowCounter;
+                            const newDateId = 'lblDatePart' + dynamicRowCounter;
 
-                            const tbl = document.getElementById('tblPaymentSchedule');
-                            if (!tbl) return;
+                            const tableBody = document.querySelector('#tblPaymentSchedule tbody');
+                            const totalRow = document.getElementById('trScheduleTotal');
 
-                            const tbody = tbl.querySelector('tbody');
-                            const trTotal = document.getElementById('trScheduleTotal');
-
-                            const newTr = document.createElement('tr');
-                            newTr.innerHTML = `
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td id="${newDateId}" class="bg-blue" contenteditable="true"></td>
                                 <td class="bg-blue" contenteditable="true"></td>
-                                <td class="bg-blue" contenteditable="true"></td>
-                                <td style="text-align: center;" id="lblPct\${nextId}" class="bg-blue" contenteditable="true"></td>
-                                <td style="text-align: right;" id="lblAmt\${nextId}" class="bg-blue" contenteditable="true"></td>
+                                <td style="text-align: center;" id="${newPctId}" class="bg-blue" contenteditable="true"></td>
+                                <td style="text-align: right; position: relative;" id="${newAmtId}" class="bg-blue" contenteditable="true">
+                                </td>
+                                <td class="no-print" style="width: 25px; text-align: center; border: none; background: transparent;">
+                                    <button class="btn-del-row no-print" style="background:#ef4444; color:#fff; border:none; border-radius:50%; width:18px; height:18px; line-height:16px; text-align:center; font-size:12px; font-weight:800; cursor:pointer;" title="Delete Row">&times;</button>
+                                </td>
                             `;
 
-                            if (trTotal) {
-                                tbody.insertBefore(newTr, trTotal);
+                            if (totalRow) {
+                                tableBody.insertBefore(tr, totalRow);
                             } else {
-                                tbody.appendChild(newTr);
+                                tableBody.appendChild(tr);
                             }
 
-                            bindCellListeners(document.getElementById('lblPct' + nextId));
-                            bindCellListeners(document.getElementById('lblAmt' + nextId));
+                            bindCellEvents(newPctId);
+                            bindCellEvents(newAmtId);
+
+                            const btnDel = tr.querySelector('.btn-del-row');
+                            if (btnDel) {
+                                btnDel.addEventListener('click', function() {
+                                    tr.remove();
+                                    updateCalculations();
+                                });
+                            }
 
                             updateCalculations();
                         });
