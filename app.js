@@ -1407,7 +1407,7 @@ function exportPriceQuote(plotNo, customTerms) {
                 <!-- Payment Schedule Table -->
                 <div class="section-header-banner" style="margin-top: 10px; display: flex; align-items: center; justify-content: center; position: relative;" contenteditable="true">
                     <span>Payment Schedule</span>
-                    <button id="btnAddScheduleRow" class="no-print" title="Add New Payment Schedule Row" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #0f172a; color: #ffffff; border: none; font-size: 11px; font-weight: 800; padding: 2px 10px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+                    <button id="btnAddScheduleRow" contenteditable="false" class="no-print" title="Add New Payment Schedule Row" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #0f172a; color: #ffffff; border: none; font-size: 11px; font-weight: 800; padding: 2px 10px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
                         <i class="fa-solid fa-plus"></i> Add Row
                     </button>
                 </div>
@@ -1718,57 +1718,128 @@ function exportPriceQuote(plotNo, customTerms) {
                         }
                     }
 
+                    updateScheduleRows(grandTotalAmount, active);
+
                     const scheduleTotalEl = document.getElementById('lblScheduleTotal');
                     if (scheduleTotalEl && scheduleTotalEl !== active) scheduleTotalEl.innerText = fmt(grandTotalAmount);
+                }
 
-                    // Registration listeners for initial elements
-                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblOriginalTotalCost', 'lblDiscount', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate'].forEach(id => {
-                        const el = document.getElementById(id);
-                        if (el) {
-                            el.addEventListener('input', updateCalculations);
-                            el.addEventListener('keyup', updateCalculations);
-                            el.addEventListener('blur', function() {
-                                const val = parseNum(el.innerText);
-                                if (val > 0) el.innerText = fmt(val);
-                                updateCalculations();
-                            });
-                        }
-                    });
+                let scheduleRowCount = 3;
 
-                    // Bind initial 3 rows of Payment Schedule
-                    for (let idx = 1; idx <= 3; idx++) {
-                        bindScheduleCell(document.getElementById('lblPct' + idx), document.getElementById('lblAmt' + idx));
-                    }
-
-                    // Add Row button handler
-                    const btnAddRow = document.getElementById('btnAddScheduleRow');
-                    if (btnAddRow) {
-                        btnAddRow.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            scheduleRowCount++;
-                            const newPctId = 'lblPct' + scheduleRowCount;
-                            const newAmtId = 'lblAmt' + scheduleRowCount;
-
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = \`
-                                <td class="bg-blue" contenteditable="true"></td>
-                                <td class="bg-blue" contenteditable="true"></td>
-                                <td style="text-align: center;" id="\${newPctId}" class="bg-blue" contenteditable="true"></td>
-                                <td style="text-align: right;" id="\${newAmtId}" class="bg-blue" contenteditable="true"></td>
-                            \`;
-
-                            const totalRow = document.getElementById('rowScheduleTotal');
-                            if (totalRow && totalRow.parentNode) {
-                                totalRow.parentNode.insertBefore(tr, totalRow);
-                                const newPctEl = document.getElementById(newPctId);
-                                const newAmtEl = document.getElementById(newAmtId);
-                                bindScheduleCell(newPctEl, newAmtEl);
-                                const firstTd = tr.querySelector('td');
-                                if (firstTd) firstTd.focus();
+                function bindScheduleCell(pctEl, amtEl) {
+                    if (!pctEl || !amtEl) return;
+                    [pctEl, amtEl].forEach(el => {
+                        el.addEventListener('input', updateCalculations);
+                        el.addEventListener('keyup', updateCalculations);
+                        el.addEventListener('blur', function() {
+                            if (el === pctEl) {
+                                const raw = pctEl.innerText.replace(/[^0-9.]/g, '');
+                                if (raw !== '') {
+                                    const num = parseFloat(raw);
+                                    if (!isNaN(num)) pctEl.innerText = (num % 1 === 0 ? num.toFixed(0) : num.toFixed(1)) + '%';
+                                }
+                            } else if (el === amtEl) {
+                                const val = parseNum(amtEl.innerText);
+                                if (val > 0) amtEl.innerText = fmt(val);
                             }
+                            updateCalculations();
                         });
+                    });
+                }
+
+                // Update Payment Schedule Live Percentage & Amount Calculation across all rows
+                function updateScheduleRows(grandTotalAmount, active) {
+                    for (let idx = 1; idx <= scheduleRowCount; idx++) {
+                        const pctEl = document.getElementById('lblPct' + idx);
+                        const amtEl = document.getElementById('lblAmt' + idx);
+
+                        if (pctEl && amtEl) {
+                            if (active === pctEl) {
+                                const rawPctStr = pctEl.innerText.replace(/[^0-9.]/g, '');
+                                if (rawPctStr !== '') {
+                                    const pctVal = parseFloat(rawPctStr);
+                                    if (!isNaN(pctVal) && grandTotalAmount > 0) {
+                                        const calcAmt = Math.round(grandTotalAmount * (pctVal / 100));
+                                        amtEl.innerText = fmt(calcAmt);
+                                    }
+                                } else {
+                                    amtEl.innerText = '';
+                                }
+                            } else if (active === amtEl) {
+                                const rawAmtStr = amtEl.innerText.replace(/[^0-9.]/g, '');
+                                if (rawAmtStr !== '') {
+                                    const amtVal = parseFloat(rawAmtStr);
+                                    if (!isNaN(amtVal) && grandTotalAmount > 0) {
+                                        const calcPct = (amtVal / grandTotalAmount) * 100;
+                                        const pctFormatted = (calcPct % 1 === 0 ? calcPct.toFixed(0) : calcPct.toFixed(1)) + '%';
+                                        pctEl.innerText = pctFormatted;
+                                    }
+                                } else {
+                                    pctEl.innerText = '';
+                                }
+                            } else if (pctEl.innerText.trim() !== '') {
+                                const rawPctStr = pctEl.innerText.replace(/[^0-9.]/g, '');
+                                if (rawPctStr !== '') {
+                                    const pctVal = parseFloat(rawPctStr);
+                                    if (!isNaN(pctVal) && grandTotalAmount > 0) {
+                                        const calcAmt = Math.round(grandTotalAmount * (pctVal / 100));
+                                        amtEl.innerText = fmt(calcAmt);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
+
+                // Registration listeners for initial elements
+                ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblOriginalTotalCost', 'lblDiscount', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.addEventListener('input', updateCalculations);
+                        el.addEventListener('keyup', updateCalculations);
+                        el.addEventListener('blur', function() {
+                            const val = parseNum(el.innerText);
+                            if (val > 0) el.innerText = fmt(val);
+                            updateCalculations();
+                        });
+                    }
+                });
+
+                // Bind initial 3 rows of Payment Schedule
+                for (let idx = 1; idx <= 3; idx++) {
+                    bindScheduleCell(document.getElementById('lblPct' + idx), document.getElementById('lblAmt' + idx));
+                }
+
+                // Add Row button handler
+                const btnAddRow = document.getElementById('btnAddScheduleRow');
+                if (btnAddRow) {
+                    btnAddRow.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        scheduleRowCount++;
+                        const newPctId = 'lblPct' + scheduleRowCount;
+                        const newAmtId = 'lblAmt' + scheduleRowCount;
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = \`
+                            <td class="bg-blue" contenteditable="true"></td>
+                            <td class="bg-blue" contenteditable="true"></td>
+                            <td style="text-align: center;" id="\${newPctId}" class="bg-blue" contenteditable="true"></td>
+                            <td style="text-align: right;" id="\${newAmtId}" class="bg-blue" contenteditable="true"></td>
+                        \`;
+
+                        const totalRow = document.getElementById('rowScheduleTotal');
+                        if (totalRow && totalRow.parentNode) {
+                            totalRow.parentNode.insertBefore(tr, totalRow);
+                            const newPctEl = document.getElementById(newPctId);
+                            const newAmtEl = document.getElementById(newAmtId);
+                            bindScheduleCell(newPctEl, newAmtEl);
+                            const firstTd = tr.querySelector('td');
+                            if (firstTd) firstTd.focus();
+                        }
+                    });
+                }
+            }
                 attachLiveRecalculation();
             </script>
         </body>
