@@ -1444,7 +1444,6 @@ function setupAdminState() {
             alert('Logged out successfully.');
             window.location.reload();
         });
-    }
 
         let banner = document.getElementById('adminBanner');
         if (!banner) {

@@ -1750,12 +1750,12 @@ function exportPriceQuote(plotNo, customTerms) {
                             const newAmtId = 'lblAmt' + scheduleRowCount;
 
                             const tr = document.createElement('tr');
-                            tr.innerHTML = `
+                            tr.innerHTML = \`
                                 <td class="bg-blue" contenteditable="true"></td>
                                 <td class="bg-blue" contenteditable="true"></td>
-                                <td style="text-align: center;" id="${newPctId}" class="bg-blue" contenteditable="true"></td>
-                                <td style="text-align: right;" id="${newAmtId}" class="bg-blue" contenteditable="true"></td>
-                            `;
+                                <td style="text-align: center;" id="\${newPctId}" class="bg-blue" contenteditable="true"></td>
+                                <td style="text-align: right;" id="\${newAmtId}" class="bg-blue" contenteditable="true"></td>
+                            \`;
 
                             const totalRow = document.getElementById('rowScheduleTotal');
                             if (totalRow && totalRow.parentNode) {
