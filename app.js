@@ -1345,11 +1345,6 @@ function exportPriceQuote(plotNo, customTerms) {
                             <td style="text-align: center; font-weight: 800;" id="lblTotalValueRate" contenteditable="true">${fmt(stdFullListRate)}</td>
                             <td style="text-align: right; font-weight: 800;" id="lblTotalValueTotal" contenteditable="true">${fmt(stdFullListTotal)}</td>
                         </tr>
-                        <tr>
-                            <td contenteditable="true">Extra Corpus Fund (Not Included in Plot Cost)</td>
-                            <td style="text-align: center;" class="bg-blue" id="lblCorpusRate" contenteditable="true">₹ 200</td>
-                            <td style="text-align: right;" class="bg-blue" id="lblCorpusTotal" contenteditable="true">${fmt(plotAreaYds * 200)}</td>
-                        </tr>
                     </tbody>
                 </table>
 
@@ -1438,6 +1433,17 @@ function exportPriceQuote(plotNo, customTerms) {
                         <tr class="bg-green">
                             <td colspan="3" style="text-align: right; font-weight: 800;" contenteditable="true">TOTAL</td>
                             <td style="text-align: right;" id="lblScheduleTotal" contenteditable="true">${fmt(grandTotalAmount)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Extra Corpus Fund Table -->
+                <table class="q-table" style="margin-top: 10px;">
+                    <tbody>
+                        <tr>
+                            <td style="width: 45%; font-weight: 700;" contenteditable="true">Extra Corpus Fund (Not Included in Plot Cost)</td>
+                            <td style="width: 25%; text-align: center;" class="bg-blue" id="lblCorpusRate" contenteditable="true">₹ 200</td>
+                            <td style="width: 30%; text-align: right;" class="bg-blue" id="lblCorpusTotal" contenteditable="true">${fmt(plotAreaYds * 200)}</td>
                         </tr>
                     </tbody>
                 </table>
