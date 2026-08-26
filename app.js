@@ -1620,7 +1620,7 @@ function exportPriceQuote(plotNo, customTerms) {
                         if (cashTotalEl && cashTotalEl !== active) cashTotalEl.innerText = fmt(cashTotal);
 
                         const structTotalEl = document.getElementById('lblStructTotal');
-                        if (structTotalEl && structTotalEl !== active) structTotalEl.innerText = fmt(totalValueAmount);
+                        if (structTotalEl && structTotalEl !== active) structTotalEl.innerText = fmt(grandTotalAmount);
 
                         // Update Payment Schedule
                         const amt1El = document.getElementById('lblAmt1');
@@ -1630,7 +1630,7 @@ function exportPriceQuote(plotNo, customTerms) {
                         if (amt2El && amt2El !== active) amt2El.innerText = fmt(amt2);
 
                         const scheduleTotalEl = document.getElementById('lblScheduleTotal');
-                        if (scheduleTotalEl && scheduleTotalEl !== active) scheduleTotalEl.innerText = fmt(totalValueAmount);
+                        if (scheduleTotalEl && scheduleTotalEl !== active) scheduleTotalEl.innerText = fmt(grandTotalAmount);
 
                         // Update Registration Charges
                         const reg75El = document.getElementById('lblReg75');
