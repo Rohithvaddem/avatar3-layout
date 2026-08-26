@@ -1968,9 +1968,6 @@ function openDealSimulator(plotNo) {
                 <button id="btnApplyDealToQuote" class="admin-login-btn" style="flex: 1; background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; font-weight: 700; padding: 12px; border-radius: 8px; cursor: pointer;">
                     <i class="fa-solid fa-file-invoice-dollar"></i> Export Quote Sheet
                 </button>
-                <button id="btnSimGenerateCert" class="btn-director-action" style="flex: 1; margin-top: 0;">
-                    <i class="fa-solid fa-award"></i> Generate Allotment Cert
-                </button>
             </div>
         </div>
     `;
@@ -2038,12 +2035,6 @@ function openDealSimulator(plotNo) {
         const terms = updateSimCalculations();
         modalBackdrop.classList.remove('show');
         exportPriceQuote(plotNo, terms);
-    });
-
-    document.getElementById('btnSimGenerateCert').addEventListener('click', () => {
-        const terms = updateSimCalculations();
-        modalBackdrop.classList.remove('show');
-        exportDigitalAllotment(plotNo, terms);
     });
 }
 
@@ -2183,9 +2174,6 @@ function openPlotModal(plotNo) {
         <button class="btn-director-action" id="openDealSimulatorBtn" style="display: ${isDealSimulatorAllowed ? 'flex' : 'none'}; margin-top: 8px;">
             <i class="fa-solid fa-calculator" style="color: #facc15;"></i> Live Deal Closer &amp; Margin Simulator
         </button>
-        <button class="admin-login-btn" id="exportAllotmentCertBtn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 8px; cursor: pointer; border-radius: 8px; display: ${(isDirectorLoggedIn && canGenerateQuote) ? 'flex' : 'none'}; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 14px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);">
-            <i class="fa-solid fa-award" style="color: #facc15;"></i> Digital Allotment Certificate (Director Seal)
-        </button>
         ${editButtonHtml}
     `;
 
@@ -2247,13 +2235,6 @@ function openPlotModal(plotNo) {
     if (openSimBtn) {
         openSimBtn.addEventListener('click', () => {
             openDealSimulator(plotNo);
-        });
-    }
-
-    const exportCertBtn = document.getElementById('exportAllotmentCertBtn');
-    if (exportCertBtn) {
-        exportCertBtn.addEventListener('click', () => {
-            exportDigitalAllotment(plotNo);
         });
     }
 
