@@ -1409,30 +1409,30 @@ function exportPriceQuote(plotNo, customTerms) {
                 <table class="q-table">
                     <thead>
                         <tr>
-                            <th style="width: 25%;" contenteditable="true">Date</th>
-                            <th style="width: 35%;" contenteditable="true">Particulars</th>
+                            <th style="width: 20%;" contenteditable="true">Date</th>
+                            <th style="width: 40%;" contenteditable="true">Particulars</th>
                             <th style="width: 20%; text-align: center;" contenteditable="true">Percentage (%)</th>
                             <th style="width: 20%; text-align: right;" contenteditable="true">Amount</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td id="lblDateBooking" class="bg-blue" contenteditable="true">${todayStr}</td>
-                            <td class="bg-blue"><strong contenteditable="true">BOOKING AMOUNT</strong></td>
-                            <td style="text-align: center;" class="bg-blue" contenteditable="true">-</td>
-                            <td style="text-align: right;" class="bg-blue" contenteditable="true">₹ 1,00,000</td>
+                            <td id="lblDateBooking" class="bg-blue" contenteditable="true"></td>
+                            <td class="bg-blue" contenteditable="true"></td>
+                            <td style="text-align: center;" class="bg-blue" contenteditable="true"></td>
+                            <td style="text-align: right;" class="bg-blue" contenteditable="true"></td>
                         </tr>
                         <tr>
-                            <td id="lblDatePart2" class="bg-blue" contenteditable="true">-</td>
-                            <td class="bg-blue"><strong id="lblScheduleLabel1" contenteditable="true">WITHIN 15 DAYS</strong></td>
-                            <td style="text-align: center;" id="lblPct1" class="bg-blue" contenteditable="true">25%</td>
-                            <td style="text-align: right;" id="lblAmt1" class="bg-blue" contenteditable="true">${fmt(initialAmt1)}</td>
+                            <td id="lblDatePart2" class="bg-blue" contenteditable="true"></td>
+                            <td class="bg-blue" contenteditable="true"></td>
+                            <td style="text-align: center;" id="lblPct1" class="bg-blue" contenteditable="true"></td>
+                            <td style="text-align: right;" id="lblAmt1" class="bg-blue" contenteditable="true"></td>
                         </tr>
                         <tr>
-                            <td id="lblDatePart3" class="bg-blue" contenteditable="true">-</td>
-                            <td class="bg-blue"><strong id="lblScheduleLabel2" contenteditable="true">WITHIN 45 DAYS</strong></td>
-                            <td style="text-align: center;" class="bg-blue" contenteditable="true">100%</td>
-                            <td style="text-align: right;" id="lblAmt2" class="bg-blue" contenteditable="true">${fmt(initialAmt2)}</td>
+                            <td id="lblDatePart3" class="bg-blue" contenteditable="true"></td>
+                            <td class="bg-blue" contenteditable="true"></td>
+                            <td style="text-align: center;" class="bg-blue" contenteditable="true"></td>
+                            <td style="text-align: right;" id="lblAmt2" class="bg-blue" contenteditable="true"></td>
                         </tr>
                         <tr class="bg-yellow-highlight">
                             <td colspan="3" style="text-align: right; font-weight: 800;" contenteditable="true">TOTAL</td>
@@ -1648,13 +1648,7 @@ function exportPriceQuote(plotNo, customTerms) {
                         const structTotalEl = document.getElementById('lblStructTotal');
                         if (structTotalEl && structTotalEl !== active) structTotalEl.innerText = fmt(grandTotalAmount);
 
-                        // Update Payment Schedule
-                        const amt1El = document.getElementById('lblAmt1');
-                        if (amt1El && amt1El !== active) amt1El.innerText = fmt(amt1);
-
-                        const amt2El = document.getElementById('lblAmt2');
-                        if (amt2El && amt2El !== active) amt2El.innerText = fmt(amt2);
-
+                        // Update Payment Schedule Total
                         const scheduleTotalEl = document.getElementById('lblScheduleTotal');
                         if (scheduleTotalEl && scheduleTotalEl !== active) scheduleTotalEl.innerText = fmt(grandTotalAmount);
 
