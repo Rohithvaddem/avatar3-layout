@@ -979,12 +979,14 @@ body {
     pointer-events: none;
     opacity: 0;
     visibility: hidden;
+    display: none;
     transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 #modalBackdrop.show {
     opacity: 1;
     visibility: visible;
+    display: block;
     pointer-events: auto;
 }
 
@@ -1077,7 +1079,7 @@ body {
     background-color: rgba(5, 7, 10, 0.75);
     backdrop-filter: blur(4px);
     z-index: 2000;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     opacity: 0;
@@ -1089,6 +1091,7 @@ body {
 #loginModalBackdrop.show {
     opacity: 1;
     visibility: visible;
+    display: flex;
     pointer-events: auto;
 }
 
@@ -1118,7 +1121,7 @@ body {
     background-color: rgba(5, 7, 10, 0.75);
     backdrop-filter: blur(4px);
     z-index: 2050;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     opacity: 0;
@@ -1130,6 +1133,7 @@ body {
 #dealSimulatorModalBackdrop.show {
     opacity: 1;
     visibility: visible;
+    display: flex;
     pointer-events: auto;
 }
 
@@ -1157,7 +1161,7 @@ body {
     background-color: rgba(5, 7, 10, 0.75);
     backdrop-filter: blur(4px);
     z-index: 2000;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     opacity: 0;
@@ -1170,6 +1174,7 @@ body {
 #interestModalBackdrop.active {
     opacity: 1;
     visibility: visible;
+    display: flex;
     pointer-events: auto;
 }
 
