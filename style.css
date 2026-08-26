@@ -1343,6 +1343,11 @@ body {
     color: var(--accent) !important;
 }
 
+/* Hide floating plot legend in Satellite Mode */
+body.satellite-mode-active .floating-legend-card {
+    display: none !important;
+}
+
 /* Satellite Toggle Button */
 .satellite-toggle-btn {
     display: flex;

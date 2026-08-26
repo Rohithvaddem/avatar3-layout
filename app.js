@@ -3344,6 +3344,8 @@ function toggleSatelliteView() {
     
     if (projectNav) projectNav.style.display = 'block'; // Always show project nav
     
+    document.body.classList.toggle('satellite-mode-active', isSatelliteActive);
+    
     if (isSatelliteActive) {
         if (btnSchematic) btnSchematic.classList.remove('active');
         if (btnSatellite) btnSatellite.classList.add('active');
