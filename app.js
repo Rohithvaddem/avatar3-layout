@@ -4742,19 +4742,19 @@ function startRealtimeCloudSync() {
 }
 
 // Global DOM Ready initializer for Interactive Features
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAppFeatures);
+} else {
+    initAppFeatures();
+}
+
+function initAppFeatures() {
     setupMapTipTimer();
     setupInterestModal();
     setupSiteVisitBooking();
     setupSidebarEmiCalculator();
     setupSmartPlotFinder();
     startRealtimeCloudSync();
-});
-setupMapTipTimer();
-setupInterestModal();
-setupSiteVisitBooking();
-setupSidebarEmiCalculator();
-setupSmartPlotFinder();
-startRealtimeCloudSync();
+}
 
 

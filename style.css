@@ -978,11 +978,14 @@ body {
     z-index: 1050;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 #modalBackdrop.show {
     opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 #plotModal {
@@ -1003,7 +1006,7 @@ body {
     border-radius: 16px;
     padding: 18px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(14, 165, 233, 0.25);
-    pointer-events: auto;
+    pointer-events: none;
     transform: translateX(-60px);
     opacity: 0;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
@@ -1061,6 +1064,7 @@ body {
 #modalBackdrop.show #plotModal {
     transform: translateX(0);
     opacity: 1;
+    pointer-events: auto;
 }
 
 /* Staff Login Centered Modal Styling */
@@ -1077,12 +1081,14 @@ body {
     align-items: center;
     justify-content: center;
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 #loginModalBackdrop.show {
     opacity: 1;
+    visibility: visible;
     pointer-events: auto;
 }
 
@@ -1116,12 +1122,14 @@ body {
     align-items: center;
     justify-content: center;
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 #dealSimulatorModalBackdrop.show {
     opacity: 1;
+    visibility: visible;
     pointer-events: auto;
 }
 
@@ -1153,13 +1161,15 @@ body {
     align-items: center;
     justify-content: center;
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 #interestModalBackdrop.show,
 #interestModalBackdrop.active {
     opacity: 1;
+    visibility: visible;
     pointer-events: auto;
 }
 
