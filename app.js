@@ -998,6 +998,179 @@ function applyFilters() {
 // Details Modal Functions
 // ----------------------------------------------------
 
+function closePlotModal() {
+    if (modalBackdrop) modalBackdrop.classList.remove('show');
+}
+
+function openPlotModal(plotNo) {
+    const dataSource = avatarDataPool[currentProject] || [];
+    const item = dataSource.find(p => String(p.plot_no) === String(plotNo)) || {
+        plot_no: plotNo,
+        plot_size: '200',
+        facing: 'East',
+        plot_status: 'AVAILABLE',
+        dim_north: 'N/A',
+        dim_south: 'N/A',
+        dim_east: 'N/A',
+        dim_west: 'N/A',
+        customer_name: ''
+    };
+    
+    const status = item.plot_status || 'AVAILABLE';
+    const color = getStatusColor(status);
+    
+    let priceQuoteBtnHtml = `
+        <button class="admin-login-btn" id="modalPriceQuoteBtn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: none; font-weight: 800; width: 100%; margin-top: 12px; cursor: pointer; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 13.5px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
+            <i class="fa-solid fa-file-invoice-dollar"></i> Generate Price Quote / PDF
+        </button>
+    `;
+
+    let editButtonHtml = '';
+    if (isAdminLoggedIn) {
+        editButtonHtml = `
+            <button class="admin-login-btn" id="editPlotBtn" style="background: var(--bg-tertiary); color: #fff; border: 1px solid var(--border-color); font-weight: 700; width: 100%; margin-top: 8px; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; font-size: 12px;">
+                <i class="fa-solid fa-pen-to-square"></i> Edit Plot Details
+            </button>
+        `;
+    }
+    
+    modalBody.innerHTML = `
+        <div class="detail-card" style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="detail-row" style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="detail-label" style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Plot Number</span>
+                <span class="detail-val" style="font-size: 20px; font-weight: 800; color: var(--accent);">#${item.plot_no}</span>
+            </div>
+            <div class="detail-row" style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="detail-label" style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Status</span>
+                <span class="status-badge" style="background-color: ${color}; color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 11px;">${status}</span>
+            </div>
+            <div class="detail-row" style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="detail-label" style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Plot Area</span>
+                <span class="detail-val" style="font-weight: 700; color: #fff;">${item.plot_size ? item.plot_size + ' Sq. Yards' : '200 Sq. Yards'}</span>
+            </div>
+            <div class="detail-row" style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="detail-label" style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Facing Direction</span>
+                <span class="detail-val" style="font-weight: 700; color: #fff;">${item.facing || 'East'}</span>
+            </div>
+            ${item.customer_name ? `
+            <div class="detail-row" style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="detail-label" style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Customer Name</span>
+                <span class="detail-val" style="font-weight: 700; color: #38bdf8;">${item.customer_name}</span>
+            </div>
+            ` : ''}
+            <div class="detail-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                <span class="detail-label" style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">Boundary Dimensions</span>
+                <div style="width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px; font-weight: 600; padding: 6px 8px; background: rgba(255,255,255,0.03); border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); color: var(--text-secondary);">
+                    <div>North: <strong style="color: #fff;">${item.dim_north || 'N/A'}</strong></div>
+                    <div>South: <strong style="color: #fff;">${item.dim_south || 'N/A'}</strong></div>
+                    <div>East: <strong style="color: #fff;">${item.dim_east || 'N/A'}</strong></div>
+                    <div>West: <strong style="color: #fff;">${item.dim_west || 'N/A'}</strong></div>
+                </div>
+            </div>
+            ${priceQuoteBtnHtml}
+            ${editButtonHtml}
+        </div>
+    `;
+    
+    const quoteBtn = document.getElementById('modalPriceQuoteBtn');
+    if (quoteBtn) {
+        quoteBtn.addEventListener('click', () => {
+            exportPriceQuote(plotNo);
+        });
+    }
+
+    if (isAdminLoggedIn) {
+        const editBtn = document.getElementById('editPlotBtn');
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                openPlotEditForm(plotNo);
+            });
+        }
+    }
+    
+    if (modalBackdrop) modalBackdrop.classList.add('show');
+}
+
+if (modalCloseBtn) {
+    modalCloseBtn.addEventListener('click', closePlotModal);
+}
+if (modalBackdrop) {
+    modalBackdrop.addEventListener('click', (e) => {
+        if (e.target === modalBackdrop) closePlotModal();
+    });
+}
+
+function openPlotEditForm(plotNo) {
+    const dataSource = avatarDataPool[currentProject] || [];
+    const item = dataSource.find(p => String(p.plot_no) === String(plotNo)) || {
+        plot_no: plotNo,
+        plot_size: '200',
+        facing: 'East',
+        plot_status: 'AVAILABLE'
+    };
+
+    modalBody.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h4 style="margin: 0; font-size: 15px; color: var(--accent);">Edit Plot #${plotNo}</h4>
+                <button id="cancelEditBtn" style="background: none; border: none; color: var(--text-muted); cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Plot Status</label>
+                <select id="editStatus" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none; width: 100%;">
+                    <option value="AVAILABLE" ${item.plot_status === 'AVAILABLE' ? 'selected' : ''}>AVAILABLE</option>
+                    <option value="SOLD" ${item.plot_status === 'SOLD' ? 'selected' : ''}>SOLD</option>
+                    <option value="BOOKED" ${item.plot_status === 'BOOKED' ? 'selected' : ''}>BOOKED</option>
+                    <option value="MORTGAGE" ${item.plot_status === 'MORTGAGE' ? 'selected' : ''}>MORTGAGE</option>
+                    <option value="HOLD" ${item.plot_status === 'HOLD' ? 'selected' : ''}>HOLD</option>
+                </select>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Plot Size (Sq. Yards)</label>
+                <input type="text" id="editSize" value="${item.plot_size || ''}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none;">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Facing Direction</label>
+                <input type="text" id="editFacing" value="${item.facing || ''}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none;">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Customer Name</label>
+                <input type="text" id="editCustomer" value="${item.customer_name || ''}" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none;" placeholder="Full name">
+            </div>
+            <button id="savePlotEditBtn" class="admin-login-btn" style="background: var(--status-available); color: #fff; border: none; font-weight: 700; width: 100%; margin-top: 10px; padding: 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fa-solid fa-save"></i> Save Changes
+            </button>
+        </div>
+    `;
+
+    const cancelBtn = document.getElementById('cancelEditBtn');
+    if (cancelBtn) cancelBtn.addEventListener('click', () => openPlotModal(plotNo));
+
+    const saveBtn = document.getElementById('savePlotEditBtn');
+    if (saveBtn) saveBtn.addEventListener('click', () => savePlotEdits(plotNo));
+}
+
+function savePlotEdits(plotNo) {
+    const editStatus = document.getElementById('editStatus').value;
+    const editSize = document.getElementById('editSize').value.trim();
+    const editFacing = document.getElementById('editFacing').value.trim();
+    const editCustomer = document.getElementById('editCustomer').value.trim();
+
+    const dataSource = avatarDataPool[currentProject] || [];
+    let item = dataSource.find(p => String(p.plot_no) === String(plotNo));
+
+    if (item) {
+        item.plot_status = editStatus;
+        if (editSize) item.plot_size = editSize;
+        if (editFacing) item.facing = editFacing;
+        item.customer_name = editCustomer;
+    }
+
+    renderPlotDots();
+    updateStatistics();
+    openPlotModal(plotNo);
+}
+
 function formatNotesList(notes) {
     if (!Array.isArray(notes) || notes.length === 0) return '<div style="color: var(--text-muted); font-style: italic;">No notes recorded.</div>';
     return notes.map(note => `<div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; margin-bottom: 4px; font-size: 11px; word-break: break-word;">${note}</div>`).join('');
