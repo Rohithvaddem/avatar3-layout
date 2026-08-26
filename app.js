@@ -1051,12 +1051,12 @@ function exportPriceQuote(plotNo, customTerms) {
     const initialDiscountPerSqYd = Math.max(0, stdFullListRate - Math.round(grandTotalAmount / plotAreaYds));
 
     const initialBankTotal = Math.round(plotAreaYds * 3000);
-    const initialCashTotal = Math.max(0, initialTotalAmount - initialBankTotal);
+    const initialCashTotal = Math.max(0, grandTotalAmount - initialBankTotal);
     const initialCashRate = plotAreaYds > 0 ? Math.max(0, Math.round(initialCashTotal / plotAreaYds)) : 0;
 
     const initialBooking = 100000;
-    const initialAmt1 = Math.round(initialTotalAmount * 0.25);
-    const initialAmt2 = Math.max(0, initialTotalAmount - initialBooking - initialAmt1);
+    const initialAmt1 = Math.round(grandTotalAmount * 0.25);
+    const initialAmt2 = Math.max(0, grandTotalAmount - initialBooking - initialAmt1);
 
     const initialReg75 = Math.round(initialBankTotal * 0.075);
     const initialMutation = Math.max(800, Math.round(initialBankTotal * 0.001));
