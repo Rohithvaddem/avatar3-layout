@@ -1570,12 +1570,15 @@ function exportPriceQuote(plotNo, customTerms) {
                             originalTotalCostEl.innerText = fmt(originalTotalCost);
                         }
 
-                        // Extras Section TOTAL PLOT VALUE (WITH ADD-ONS) ALWAYS displays full undiscounted list price
+                        // TOTAL PLOT VALUE (WITH ADD-ONS) in Extras section updates dynamically from current add-on rates
+                        const currentExtrasValueRate = basePerSqYdRate + eastRate + cornerRate + mortgageRate + bankLoanRate;
+                        const currentExtrasValueTotal = Math.round(plotArea * currentExtrasValueRate);
+
                         const totalValueRateEl = document.getElementById('lblTotalValueRate');
-                        if (totalValueRateEl && totalValueRateEl !== active) totalValueRateEl.innerText = fmt(stdFullListRate);
+                        if (totalValueRateEl && totalValueRateEl !== active) totalValueRateEl.innerText = fmt(currentExtrasValueRate);
 
                         const totalValueTotalEl = document.getElementById('lblTotalValueTotal');
-                        if (totalValueTotalEl && totalValueTotalEl !== active) totalValueTotalEl.innerText = fmt(stdFullListTotal);
+                        if (totalValueTotalEl && totalValueTotalEl !== active) totalValueTotalEl.innerText = fmt(currentExtrasValueTotal);
 
                         // Calculate Discount per sq.yd (stdFullListRate - netClosingRate) - Includes any zeroed/removed add-ons!
                         const discountPerSqYd = Math.max(0, stdFullListRate - netClosingRate);
