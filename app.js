@@ -997,7 +997,7 @@ function formatNotesList(notes) {
     return notes.map(note => `<div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; margin-bottom: 4px; font-size: 11px; word-break: break-word;">${note}</div>`).join('');
 }
 
-function exportPriceQuote(plotNo) {
+function exportPriceQuote(plotNo, customTerms) {
     const item = plotData.find(p => String(p.plot_no) === String(plotNo)) || {
         plot_no: plotNo,
         plot_size: '200',
@@ -1024,15 +1024,29 @@ function exportPriceQuote(plotNo) {
     
     // Base Price per sq. yard: Avatar 1 = ₹14,499, Avatar 2 & others = ₹15,499
     const defaultBaseRate = (currentProject === 'avatar1') ? 14499 : 15499;
-    const initialEastRate = isEast ? 200 : 0;
-    const initialCornerRate = isCorner ? 500 : 0;
-    const initialMortgageRate = isMortgage ? 300 : 0;
-    const initialEffectiveRate = defaultBaseRate + initialEastRate + initialCornerRate + initialMortgageRate;
 
-    const initialTotalAmount = Math.round(plotAreaYds * initialEffectiveRate);
+    const waiveEast = customTerms ? !!customTerms.waiveEast : false;
+    const waiveCorner = customTerms ? !!customTerms.waiveCorner : false;
+    const waiveMortgage = customTerms ? !!customTerms.waiveMortgage : false;
+
+    const initialEastRate = (isEast && !waiveEast) ? 200 : 0;
+    const initialCornerRate = (isCorner && !waiveCorner) ? 500 : 0;
+    const initialMortgageRate = (isMortgage && !waiveMortgage) ? 300 : 0;
+
+    const closingRate = (customTerms && customTerms.netRate !== undefined) ? customTerms.netRate : defaultBaseRate;
+    const spotDiscount = (customTerms && customTerms.spotDiscount !== undefined) ? customTerms.spotDiscount : 0;
+
+    const initialEffectiveRate = closingRate + initialEastRate + initialCornerRate + initialMortgageRate;
+    const baseTotalAmount = Math.round(plotAreaYds * closingRate);
+    const initialTotalAmount = (customTerms && customTerms.totalAmount !== undefined) 
+        ? customTerms.totalAmount 
+        : Math.max(0, Math.round(plotAreaYds * initialEffectiveRate) - spotDiscount);
+
+    const initialDiscountPerSqYd = Math.max(0, defaultBaseRate - closingRate) + (plotAreaYds > 0 ? Math.round(spotDiscount / plotAreaYds) : 0);
+
     const initialBankTotal = Math.round(plotAreaYds * 3000);
     const initialCashTotal = Math.max(0, initialTotalAmount - initialBankTotal);
-    const initialCashRate = Math.max(0, initialEffectiveRate - 3000);
+    const initialCashRate = plotAreaYds > 0 ? Math.max(0, Math.round(initialCashTotal / plotAreaYds)) : 0;
 
     const initialBooking = 100000;
     const initialAmt1 = Math.round(initialTotalAmount * 0.25);
@@ -1299,9 +1313,9 @@ function exportPriceQuote(plotNo) {
                     <tbody>
                         <tr>
                             <td class="bg-yellow" style="text-align: center;" id="lblPlotArea" contenteditable="true">${plotAreaYds}</td>
-                            <td style="text-align: right;" id="lblClosingPrice" contenteditable="true">${fmt(defaultBaseRate)}</td>
-                            <td class="bg-yellow" style="text-align: right; font-weight: 700; color: #047857;" id="lblDiscount" contenteditable="true">₹ 0</td>
-                            <td class="bg-yellow" style="text-align: right;" id="lblTotalAmount" contenteditable="true">${fmt(Math.round(plotAreaYds * defaultBaseRate))}</td>
+                            <td style="text-align: right;" id="lblClosingPrice" contenteditable="true">${fmt(closingRate)}</td>
+                            <td class="bg-yellow" style="text-align: right; font-weight: 700; color: #047857;" id="lblDiscount" contenteditable="true">${fmt(initialDiscountPerSqYd)}</td>
+                            <td class="bg-yellow" style="text-align: right;" id="lblTotalAmount" contenteditable="true">${fmt(baseTotalAmount)}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1319,18 +1333,18 @@ function exportPriceQuote(plotNo) {
                     <tbody>
                         <tr>
                             <td contenteditable="true">East Plot Premium</td>
-                            <td style="text-align: center;" id="lblEastRate" contenteditable="true">${isEast ? '₹ 200' : '₹ 0'}</td>
-                            <td style="text-align: right;" id="lblEastTotal" contenteditable="true">${fmt(isEast ? plotAreaYds * 200 : 0)}</td>
+                            <td style="text-align: center;" id="lblEastRate" contenteditable="true">${(isEast && !waiveEast) ? '₹ 200' : '₹ 0'}</td>
+                            <td style="text-align: right;" id="lblEastTotal" contenteditable="true">${fmt((isEast && !waiveEast) ? plotAreaYds * 200 : 0)}</td>
                         </tr>
                         <tr>
                             <td contenteditable="true">Corner Plot Premium</td>
-                            <td style="text-align: center;" id="lblCornerRate" contenteditable="true">${isCorner ? '₹ 500' : '₹ 0'}</td>
-                            <td style="text-align: right;" id="lblCornerTotal" contenteditable="true">${fmt(isCorner ? plotAreaYds * 500 : 0)}</td>
+                            <td style="text-align: center;" id="lblCornerRate" contenteditable="true">${(isCorner && !waiveCorner) ? '₹ 500' : '₹ 0'}</td>
+                            <td style="text-align: right;" id="lblCornerTotal" contenteditable="true">${fmt((isCorner && !waiveCorner) ? plotAreaYds * 500 : 0)}</td>
                         </tr>
                         <tr>
                             <td contenteditable="true">Mortgage Plot Charge</td>
-                            <td style="text-align: center;" id="lblMortgageRate" contenteditable="true">${isMortgage ? '₹ 300' : '₹ 0'}</td>
-                            <td style="text-align: right;" id="lblMortgageTotal" contenteditable="true">${fmt(isMortgage ? plotAreaYds * 300 : 0)}</td>
+                            <td style="text-align: center;" id="lblMortgageRate" contenteditable="true">${(isMortgage && !waiveMortgage) ? '₹ 300' : '₹ 0'}</td>
+                            <td style="text-align: right;" id="lblMortgageTotal" contenteditable="true">${fmt((isMortgage && !waiveMortgage) ? plotAreaYds * 300 : 0)}</td>
                         </tr>
                         <tr>
                             <td contenteditable="true">Bank Loan Processing Extra</td>
@@ -2002,7 +2016,14 @@ function openDealSimulator(plotNo) {
             }
         }
 
-        return { netRate: currentRate, totalAmount: totalDealAmount };
+        return {
+            netRate: currentRate,
+            spotDiscount: spotDisc,
+            totalAmount: totalDealAmount,
+            waiveEast: isEastWaived,
+            waiveCorner: isCornerWaived,
+            waiveMortgage: isMortgageWaived
+        };
     }
 
     [rateRange, spotRange, waiveEast, waiveCorner, waiveMortgage].forEach(el => {
@@ -2012,7 +2033,7 @@ function openDealSimulator(plotNo) {
     document.getElementById('btnApplyDealToQuote').addEventListener('click', () => {
         const terms = updateSimCalculations();
         modalBackdrop.classList.remove('show');
-        exportPriceQuote(plotNo);
+        exportPriceQuote(plotNo, terms);
     });
 
     document.getElementById('btnSimGenerateCert').addEventListener('click', () => {
