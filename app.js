@@ -1700,14 +1700,22 @@ function exportPriceQuote(plotNo, customTerms) {
                         if (regTotalEl && regTotalEl !== active) regTotalEl.innerText = fmt(totalRegCharges);
                     }
 
-                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblOriginalTotalCost', 'lblDiscount', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate'].forEach(id => {
+                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblOriginalTotalCost', 'lblDiscount', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate', 'lblPct1', 'lblPct2', 'lblPct3', 'lblAmt1', 'lblAmt2', 'lblAmt3'].forEach(id => {
                         const el = document.getElementById(id);
                         if (el) {
                             el.addEventListener('input', updateCalculations);
                             el.addEventListener('keyup', updateCalculations);
                             el.addEventListener('blur', function() {
-                                const val = parseNum(el.innerText);
-                                el.innerText = fmt(val);
+                                if (id.startsWith('lblPct')) {
+                                    const raw = el.innerText.replace(/[^0-9.]/g, '');
+                                    if (raw !== '') {
+                                        const num = parseFloat(raw);
+                                        if (!isNaN(num)) el.innerText = (num % 1 === 0 ? num.toFixed(0) : num.toFixed(1)) + '%';
+                                    }
+                                } else {
+                                    const val = parseNum(el.innerText);
+                                    if (val > 0) el.innerText = fmt(val);
+                                }
                                 updateCalculations();
                             });
                         }
