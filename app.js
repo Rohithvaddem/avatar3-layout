@@ -1025,6 +1025,10 @@ function exportPriceQuote(plotNo, customTerms) {
     // Base Price per sq. yard: Avatar 1 = ₹14,499, Avatar 2 & others = ₹15,499
     const defaultBaseRate = (currentProject === 'avatar1') ? 14499 : 15499;
 
+    const stdEastRate = isEast ? 200 : 0;
+    const stdCornerRate = isCorner ? 500 : 0;
+    const stdMortgageRate = isMortgage ? 300 : 0;
+
     const waiveEast = customTerms ? !!customTerms.waiveEast : false;
     const waiveCorner = customTerms ? !!customTerms.waiveCorner : false;
     const waiveMortgage = customTerms ? !!customTerms.waiveMortgage : false;
@@ -1042,7 +1046,8 @@ function exportPriceQuote(plotNo, customTerms) {
         ? customTerms.totalAmount 
         : Math.max(0, Math.round(plotAreaYds * initialEffectiveRate) - spotDiscount);
 
-    const initialDiscountPerSqYd = Math.max(0, defaultBaseRate - closingRate) + (plotAreaYds > 0 ? Math.round(spotDiscount / plotAreaYds) : 0);
+    const waivedPremiumsRate = (stdEastRate - initialEastRate) + (stdCornerRate - initialCornerRate) + (stdMortgageRate - initialMortgageRate);
+    const initialDiscountPerSqYd = Math.max(0, defaultBaseRate - closingRate) + waivedPremiumsRate + (plotAreaYds > 0 ? Math.round(spotDiscount / plotAreaYds) : 0);
 
     const initialBankTotal = Math.round(plotAreaYds * 3000);
     const initialCashTotal = Math.max(0, initialTotalAmount - initialBankTotal);
@@ -1525,16 +1530,25 @@ function exportPriceQuote(plotNo, customTerms) {
                         let baseClosingPrice = parseNum(closingPriceEl ? closingPriceEl.innerText : '15499');
                         const bankRate = parseNum(bankRateEl ? bankRateEl.innerText : '3000');
 
+                        const stdEastRate = ${isEast ? 200 : 0};
+                        const stdCornerRate = ${isCorner ? 500 : 0};
+                        const stdMortgageRate = ${isMortgage ? 300 : 0};
+
                         const eastRate = parseNum(eastRateEl ? eastRateEl.innerText : '0');
                         const cornerRate = parseNum(cornerRateEl ? cornerRateEl.innerText : '0');
                         const mortgageRate = parseNum(mortgageRateEl ? mortgageRateEl.innerText : '0');
                         const bankLoanRate = parseNum(bankLoanRateEl ? bankLoanRateEl.innerText : '0');
                         const corpusRate = parseNum(corpusRateEl ? corpusRateEl.innerText : '200');
 
-                        // If user edits Discount directly, calculate baseClosingPrice from Per Sq.yd Rate - Discount
+                        const waivedEast = Math.max(0, stdEastRate - eastRate);
+                        const waivedCorner = Math.max(0, stdCornerRate - cornerRate);
+                        const waivedMortgage = Math.max(0, stdMortgageRate - mortgageRate);
+                        const totalWaivedPremiums = waivedEast + waivedCorner + waivedMortgage;
+
+                        // If user edits Discount directly, calculate baseClosingPrice from (Per Sq.yd Rate + Waived Premiums) - Discount
                         if (active === discountEl) {
                             const typedDiscount = parseNum(discountEl.innerText);
-                            baseClosingPrice = Math.max(0, basePerSqYdRate - typedDiscount);
+                            baseClosingPrice = Math.max(0, (basePerSqYdRate + totalWaivedPremiums) - typedDiscount);
                             if (closingPriceEl) closingPriceEl.innerText = fmt(baseClosingPrice);
                         }
 
@@ -1554,8 +1568,8 @@ function exportPriceQuote(plotNo, customTerms) {
                         // Base plot cost without add-ons
                         const baseTotalAmount = Math.round(plotArea * baseClosingPrice);
 
-                        // Calculate Discount per sq.yd (Price Per Sq.Yd - Closing Price)
-                        const discountPerSqYd = Math.max(0, basePerSqYdRate - baseClosingPrice);
+                        // Calculate Discount per sq.yd (Base Rate - Closing Price + Waived Premium Charges)
+                        const discountPerSqYd = Math.max(0, basePerSqYdRate - baseClosingPrice) + totalWaivedPremiums;
                         if (discountEl && discountEl !== active) {
                             discountEl.innerText = fmt(discountPerSqYd);
                         }
