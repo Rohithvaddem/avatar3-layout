@@ -1405,20 +1405,22 @@ function exportPriceQuote(plotNo, customTerms) {
                 </table>
 
                 <!-- Payment Schedule Table -->
-                <div class="section-header-banner" style="margin-top: 10px;" contenteditable="true">Payment Schedule</div>
-                <table class="q-table" id="tblPaymentSchedule">
+                <div class="section-header-banner" style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
+                    <span contenteditable="true">Payment Schedule</span>
+                    <button class="btn-add-schedule-row no-print" id="btnAddScheduleRow" title="Add Payment Row" style="background: #2563eb; color: #ffffff; border: none; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                        <i class="fa-solid fa-plus"></i> Add Row
+                    </button>
+                </div>
+                <table class="q-table">
                     <thead>
                         <tr>
                             <th style="width: 20%;" contenteditable="true">Date</th>
                             <th style="width: 40%;" contenteditable="true">Particulars</th>
                             <th style="width: 20%; text-align: center;" contenteditable="true">Percentage (%)</th>
-                            <th style="width: 20%; text-align: right;" contenteditable="true">
-                                Amount 
-                                <button id="btnAddScheduleRow" class="no-print" style="background:#2563eb; color:#fff; border:none; border-radius:50%; width:20px; height:20px; line-height:18px; text-align:center; font-size:14px; font-weight:800; cursor:pointer; margin-left:6px; vertical-align:middle;" title="Add Row">+</button>
-                            </th>
+                            <th style="width: 20%; text-align: right;" contenteditable="true">Amount</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tblScheduleBody">
                         <tr>
                             <td id="lblDateBooking" class="bg-blue" contenteditable="true"></td>
                             <td class="bg-blue" contenteditable="true"></td>
@@ -1651,7 +1653,7 @@ function exportPriceQuote(plotNo, customTerms) {
                         const structTotalEl = document.getElementById('lblStructTotal');
                         if (structTotalEl && structTotalEl !== active) structTotalEl.innerText = fmt(grandTotalAmount);
 
-                        // Update Payment Schedule Live Percentage & Amount Calculation
+                        // Update Payment Schedule Live Percentage & Amount Calculation across all rows
                         document.querySelectorAll('[id^="lblPct"]').forEach(pctEl => {
                             const idx = pctEl.id.replace('lblPct', '');
                             const amtEl = document.getElementById('lblAmt' + idx);
@@ -1665,6 +1667,8 @@ function exportPriceQuote(plotNo, customTerms) {
                                             const calcAmt = Math.round(grandTotalAmount * (pctVal / 100));
                                             amtEl.innerText = fmt(calcAmt);
                                         }
+                                    } else {
+                                        amtEl.innerText = '';
                                     }
                                 } else if (active === amtEl) {
                                     const rawAmtStr = amtEl.innerText.replace(/[^0-9.]/g, '');
@@ -1675,6 +1679,8 @@ function exportPriceQuote(plotNo, customTerms) {
                                             const pctFormatted = (calcPct % 1 === 0 ? calcPct.toFixed(0) : calcPct.toFixed(1)) + '%';
                                             pctEl.innerText = pctFormatted;
                                         }
+                                    } else {
+                                        pctEl.innerText = '';
                                     }
                                 } else if (pctEl.innerText.trim() !== '') {
                                     const rawPctStr = pctEl.innerText.replace(/[^0-9.]/g, '');
@@ -1726,49 +1732,27 @@ function exportPriceQuote(plotNo, customTerms) {
 
                     ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblOriginalTotalCost', 'lblDiscount', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate', 'lblPct1', 'lblPct2', 'lblPct3', 'lblAmt1', 'lblAmt2', 'lblAmt3'].forEach(bindCellEvents);
 
-                    let dynamicRowCounter = 3;
-                    const btnAddRow = document.getElementById('btnAddScheduleRow');
-                    if (btnAddRow) {
-                        btnAddRow.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            dynamicRowCounter++;
-                            const newPctId = 'lblPct' + dynamicRowCounter;
-                            const newAmtId = 'lblAmt' + dynamicRowCounter;
-                            const newDateId = 'lblDatePart' + dynamicRowCounter;
-
-                            const tableBody = document.querySelector('#tblPaymentSchedule tbody');
+                    // Handler to add new Payment Schedule rows dynamically
+                    let scheduleRowCount = 3;
+                    const addBtn = document.getElementById('btnAddScheduleRow');
+                    if (addBtn) {
+                        addBtn.addEventListener('click', function() {
+                            scheduleRowCount++;
+                            const tbody = document.getElementById('tblScheduleBody');
                             const totalRow = document.getElementById('trScheduleTotal');
-
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                                <td id="${newDateId}" class="bg-blue" contenteditable="true"></td>
-                                <td class="bg-blue" contenteditable="true"></td>
-                                <td style="text-align: center;" id="${newPctId}" class="bg-blue" contenteditable="true"></td>
-                                <td style="text-align: right; position: relative;" id="${newAmtId}" class="bg-blue" contenteditable="true">
-                                </td>
-                                <td class="no-print" style="width: 25px; text-align: center; border: none; background: transparent;">
-                                    <button class="btn-del-row no-print" style="background:#ef4444; color:#fff; border:none; border-radius:50%; width:18px; height:18px; line-height:16px; text-align:center; font-size:12px; font-weight:800; cursor:pointer;" title="Delete Row">&times;</button>
-                                </td>
-                            `;
-
-                            if (totalRow) {
-                                tableBody.insertBefore(tr, totalRow);
-                            } else {
-                                tableBody.appendChild(tr);
+                            if (tbody && totalRow) {
+                                const newTr = document.createElement('tr');
+                                newTr.innerHTML = `
+                                    <td class="bg-blue" contenteditable="true"></td>
+                                    <td class="bg-blue" contenteditable="true"></td>
+                                    <td style="text-align: center;" id="lblPct\${scheduleRowCount}" class="bg-blue" contenteditable="true"></td>
+                                    <td style="text-align: right;" id="lblAmt\${scheduleRowCount}" class="bg-blue" contenteditable="true"></td>
+                                `;
+                                tbody.insertBefore(newTr, totalRow);
+                                bindCellEvents('lblPct' + scheduleRowCount);
+                                bindCellEvents('lblAmt' + scheduleRowCount);
+                                updateCalculations();
                             }
-
-                            bindCellEvents(newPctId);
-                            bindCellEvents(newAmtId);
-
-                            const btnDel = tr.querySelector('.btn-del-row');
-                            if (btnDel) {
-                                btnDel.addEventListener('click', function() {
-                                    tr.remove();
-                                    updateCalculations();
-                                });
-                            }
-
-                            updateCalculations();
                         });
                     }
                 }
