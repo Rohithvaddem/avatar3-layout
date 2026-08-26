@@ -1405,13 +1405,13 @@ function exportPriceQuote(plotNo, customTerms) {
                 </table>
 
                 <!-- Payment Schedule Table -->
-                <div class="section-header-banner" style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
-                    <span contenteditable="true">Payment Schedule</span>
-                    <button class="btn-add-schedule-row no-print" id="btnAddScheduleRow" title="Add Payment Row" style="background: #2563eb; color: #ffffff; border: none; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-                        <i class="fa-solid fa-plus"></i> Add Row
+                <div class="section-header-banner" style="margin-top: 10px; display: flex; align-items: center; justify-content: center; position: relative;" contenteditable="true">
+                    <span>Payment Schedule</span>
+                    <button id="btnAddScheduleRow" class="no-print" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #0f172a; color: #ffffff; border: none; border-radius: 4px; padding: 3px 10px; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Add Row">
+                        <i class="fa-solid fa-plus"></i> Row
                     </button>
                 </div>
-                <table class="q-table">
+                <table class="q-table" id="tblPaymentSchedule">
                     <thead>
                         <tr>
                             <th style="width: 20%;" contenteditable="true">Date</th>
@@ -1420,7 +1420,7 @@ function exportPriceQuote(plotNo, customTerms) {
                             <th style="width: 20%; text-align: right;" contenteditable="true">Amount</th>
                         </tr>
                     </thead>
-                    <tbody id="tblScheduleBody">
+                    <tbody>
                         <tr>
                             <td id="lblDateBooking" class="bg-blue" contenteditable="true"></td>
                             <td class="bg-blue" contenteditable="true"></td>
@@ -1439,7 +1439,7 @@ function exportPriceQuote(plotNo, customTerms) {
                             <td style="text-align: center;" id="lblPct3" class="bg-blue" contenteditable="true"></td>
                             <td style="text-align: right;" id="lblAmt3" class="bg-blue" contenteditable="true"></td>
                         </tr>
-                        <tr class="bg-yellow-highlight" id="trScheduleTotal">
+                        <tr class="bg-yellow-highlight">
                             <td colspan="3" style="text-align: right; font-weight: 800;" contenteditable="true">TOTAL</td>
                             <td style="text-align: right;" id="lblScheduleTotal" contenteditable="true">${fmt(grandTotalAmount)}</td>
                         </tr>
@@ -1653,9 +1653,9 @@ function exportPriceQuote(plotNo, customTerms) {
                         const structTotalEl = document.getElementById('lblStructTotal');
                         if (structTotalEl && structTotalEl !== active) structTotalEl.innerText = fmt(grandTotalAmount);
 
-                        // Update Payment Schedule Live Percentage & Amount Calculation across all rows
-                        document.querySelectorAll('[id^="lblPct"]').forEach(pctEl => {
-                            const idx = pctEl.id.replace('lblPct', '');
+                        // Update Payment Schedule Live Percentage & Amount Calculation
+                        for (let idx = 1; idx <= scheduleRowCount; idx++) {
+                            const pctEl = document.getElementById('lblPct' + idx);
                             const amtEl = document.getElementById('lblAmt' + idx);
 
                             if (pctEl && amtEl) {
@@ -1693,7 +1693,7 @@ function exportPriceQuote(plotNo, customTerms) {
                                     }
                                 }
                             }
-                        });
+                        }
 
                         const scheduleTotalEl = document.getElementById('lblScheduleTotal');
                         if (scheduleTotalEl && scheduleTotalEl !== active) scheduleTotalEl.innerText = fmt(grandTotalAmount);
@@ -1709,50 +1709,57 @@ function exportPriceQuote(plotNo, customTerms) {
                         if (regTotalEl && regTotalEl !== active) regTotalEl.innerText = fmt(totalRegCharges);
                     }
 
+                    let scheduleRowCount = 3;
+
                     function bindCellEvents(id) {
                         const el = document.getElementById(id);
-                        if (el) {
-                            el.addEventListener('input', updateCalculations);
-                            el.addEventListener('keyup', updateCalculations);
-                            el.addEventListener('blur', function() {
-                                if (id.startsWith('lblPct')) {
-                                    const raw = el.innerText.replace(/[^0-9.]/g, '');
-                                    if (raw !== '') {
-                                        const num = parseFloat(raw);
-                                        if (!isNaN(num)) el.innerText = (num % 1 === 0 ? num.toFixed(0) : num.toFixed(1)) + '%';
-                                    }
-                                } else {
-                                    const val = parseNum(el.innerText);
-                                    if (val > 0) el.innerText = fmt(val);
+                        if (!el) return;
+                        el.addEventListener('input', updateCalculations);
+                        el.addEventListener('keyup', updateCalculations);
+                        el.addEventListener('blur', function() {
+                            if (id.startsWith('lblPct')) {
+                                const raw = el.innerText.replace(/[^0-9.]/g, '');
+                                if (raw !== '') {
+                                    const num = parseFloat(raw);
+                                    if (!isNaN(num)) el.innerText = (num % 1 === 0 ? num.toFixed(0) : num.toFixed(1)) + '%';
                                 }
-                                updateCalculations();
-                            });
-                        }
+                            } else {
+                                const val = parseNum(el.innerText);
+                                if (val > 0) el.innerText = fmt(val);
+                            }
+                            updateCalculations();
+                        });
                     }
 
                     ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblOriginalTotalCost', 'lblDiscount', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate', 'lblPct1', 'lblPct2', 'lblPct3', 'lblAmt1', 'lblAmt2', 'lblAmt3'].forEach(bindCellEvents);
 
-                    // Handler to add new Payment Schedule rows dynamically
-                    let scheduleRowCount = 3;
-                    const addBtn = document.getElementById('btnAddScheduleRow');
-                    if (addBtn) {
-                        addBtn.addEventListener('click', function() {
+                    const btnAddRow = document.getElementById('btnAddScheduleRow');
+                    if (btnAddRow) {
+                        btnAddRow.addEventListener('click', function(e) {
+                            e.preventDefault();
                             scheduleRowCount++;
-                            const tbody = document.getElementById('tblScheduleBody');
-                            const totalRow = document.getElementById('trScheduleTotal');
-                            if (tbody && totalRow) {
-                                const newTr = document.createElement('tr');
-                                newTr.innerHTML = `
-                                    <td class="bg-blue" contenteditable="true"></td>
-                                    <td class="bg-blue" contenteditable="true"></td>
-                                    <td style="text-align: center;" id="lblPct\${scheduleRowCount}" class="bg-blue" contenteditable="true"></td>
-                                    <td style="text-align: right;" id="lblAmt\${scheduleRowCount}" class="bg-blue" contenteditable="true"></td>
-                                `;
-                                tbody.insertBefore(newTr, totalRow);
-                                bindCellEvents('lblPct' + scheduleRowCount);
-                                bindCellEvents('lblAmt' + scheduleRowCount);
-                                updateCalculations();
+                            const table = document.getElementById('tblPaymentSchedule');
+                            if (!table) return;
+                            const tbody = table.querySelector('tbody');
+                            const totalRow = tbody.querySelector('.bg-yellow-highlight');
+
+                            const newRow = document.createElement('tr');
+                            newRow.innerHTML = `
+                                <td class="bg-blue" contenteditable="true"></td>
+                                <td class="bg-blue" contenteditable="true"></td>
+                                <td style="text-align: center;" id="lblPct\${scheduleRowCount}" class="bg-blue" contenteditable="true"></td>
+                                <td style="text-align: right;" id="lblAmt\${scheduleRowCount}" class="bg-blue" contenteditable="true"></td>
+                            `;
+
+                            if (totalRow) {
+                                tbody.insertBefore(newRow, totalRow);
+                            } else {
+                                tbody.appendChild(newRow);
                             }
+
+                            bindCellEvents('lblPct' + scheduleRowCount);
+                            bindCellEvents('lblAmt' + scheduleRowCount);
+                            updateCalculations();
                         });
                     }
                 }
