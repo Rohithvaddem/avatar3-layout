@@ -1406,13 +1406,16 @@ function exportPriceQuote(plotNo, customTerms) {
 
                 <!-- Payment Schedule Table -->
                 <div class="section-header-banner" style="margin-top: 10px;" contenteditable="true">Payment Schedule</div>
-                <table class="q-table">
+                <table class="q-table" id="tblPaymentSchedule">
                     <thead>
                         <tr>
                             <th style="width: 20%;" contenteditable="true">Date</th>
                             <th style="width: 40%;" contenteditable="true">Particulars</th>
                             <th style="width: 20%; text-align: center;" contenteditable="true">Percentage (%)</th>
-                            <th style="width: 20%; text-align: right;" contenteditable="true">Amount</th>
+                            <th style="width: 20%; text-align: right;" contenteditable="true">
+                                Amount 
+                                <button id="btnAddScheduleRow" class="no-print" title="Add Payment Row" style="margin-left: 6px; background: #2563eb; color: #ffffff; border: none; border-radius: 4px; padding: 2px 7px; font-size: 13px; font-weight: 800; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;">+</button>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1434,7 +1437,7 @@ function exportPriceQuote(plotNo, customTerms) {
                             <td style="text-align: center;" id="lblPct3" class="bg-blue" contenteditable="true"></td>
                             <td style="text-align: right;" id="lblAmt3" class="bg-blue" contenteditable="true"></td>
                         </tr>
-                        <tr class="bg-yellow-highlight">
+                        <tr class="bg-yellow-highlight" id="trScheduleTotal">
                             <td colspan="3" style="text-align: right; font-weight: 800;" contenteditable="true">TOTAL</td>
                             <td style="text-align: right;" id="lblScheduleTotal" contenteditable="true">${fmt(grandTotalAmount)}</td>
                         </tr>
@@ -1649,8 +1652,9 @@ function exportPriceQuote(plotNo, customTerms) {
                         if (structTotalEl && structTotalEl !== active) structTotalEl.innerText = fmt(grandTotalAmount);
 
                         // Update Payment Schedule Live Percentage & Amount Calculation
-                        [1, 2, 3].forEach(idx => {
-                            const pctEl = document.getElementById('lblPct' + idx);
+                        const allPctEls = document.querySelectorAll('[id^="lblPct"]');
+                        allPctEls.forEach(pctEl => {
+                            const idx = pctEl.id.replace('lblPct', '');
                             const amtEl = document.getElementById('lblAmt' + idx);
 
                             if (pctEl && amtEl) {
@@ -1662,6 +1666,8 @@ function exportPriceQuote(plotNo, customTerms) {
                                             const calcAmt = Math.round(grandTotalAmount * (pctVal / 100));
                                             amtEl.innerText = fmt(calcAmt);
                                         }
+                                    } else {
+                                        amtEl.innerText = '';
                                     }
                                 } else if (active === amtEl) {
                                     const rawAmtStr = amtEl.innerText.replace(/[^0-9.]/g, '');
@@ -1672,6 +1678,8 @@ function exportPriceQuote(plotNo, customTerms) {
                                             const pctFormatted = (calcPct % 1 === 0 ? calcPct.toFixed(0) : calcPct.toFixed(1)) + '%';
                                             pctEl.innerText = pctFormatted;
                                         }
+                                    } else {
+                                        pctEl.innerText = '';
                                     }
                                 } else if (pctEl.innerText.trim() !== '') {
                                     const rawPctStr = pctEl.innerText.replace(/[^0-9.]/g, '');
@@ -1700,26 +1708,65 @@ function exportPriceQuote(plotNo, customTerms) {
                         if (regTotalEl && regTotalEl !== active) regTotalEl.innerText = fmt(totalRegCharges);
                     }
 
-                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblOriginalTotalCost', 'lblDiscount', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate', 'lblPct1', 'lblPct2', 'lblPct3', 'lblAmt1', 'lblAmt2', 'lblAmt3'].forEach(id => {
-                        const el = document.getElementById(id);
-                        if (el) {
-                            el.addEventListener('input', updateCalculations);
-                            el.addEventListener('keyup', updateCalculations);
-                            el.addEventListener('blur', function() {
-                                if (id.startsWith('lblPct')) {
-                                    const raw = el.innerText.replace(/[^0-9.]/g, '');
-                                    if (raw !== '') {
-                                        const num = parseFloat(raw);
-                                        if (!isNaN(num)) el.innerText = (num % 1 === 0 ? num.toFixed(0) : num.toFixed(1)) + '%';
-                                    }
-                                } else {
-                                    const val = parseNum(el.innerText);
-                                    if (val > 0) el.innerText = fmt(val);
+                    function bindCellListeners(el) {
+                        if (!el) return;
+                        el.addEventListener('input', updateCalculations);
+                        el.addEventListener('keyup', updateCalculations);
+                        el.addEventListener('blur', function() {
+                            if (el.id.startsWith('lblPct')) {
+                                const raw = el.innerText.replace(/[^0-9.]/g, '');
+                                if (raw !== '') {
+                                    const num = parseFloat(raw);
+                                    if (!isNaN(num)) el.innerText = (num % 1 === 0 ? num.toFixed(0) : num.toFixed(1)) + '%';
                                 }
-                                updateCalculations();
-                            });
-                        }
+                            } else {
+                                const val = parseNum(el.innerText);
+                                if (val > 0) el.innerText = fmt(val);
+                            }
+                            updateCalculations();
+                        });
+                    }
+
+                    ['lblPlotArea', 'lblClosingPrice', 'lblPerSqYd', 'lblOriginalTotalCost', 'lblDiscount', 'lblBankRate', 'lblCashRate', 'lblEastRate', 'lblCornerRate', 'lblMortgageRate', 'lblBankLoanRate', 'lblCorpusRate', 'lblPct1', 'lblPct2', 'lblPct3', 'lblAmt1', 'lblAmt2', 'lblAmt3'].forEach(id => {
+                        bindCellListeners(document.getElementById(id));
                     });
+
+                    // Logic to dynamically add new rows to Payment Schedule
+                    let currentScheduleRowCount = 3;
+                    const btnAddScheduleRow = document.getElementById('btnAddScheduleRow');
+                    if (btnAddScheduleRow) {
+                        btnAddScheduleRow.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            currentScheduleRowCount++;
+                            const nextId = currentScheduleRowCount;
+
+                            const tbl = document.getElementById('tblPaymentSchedule');
+                            if (!tbl) return;
+
+                            const tbody = tbl.querySelector('tbody');
+                            const trTotal = document.getElementById('trScheduleTotal');
+
+                            const newTr = document.createElement('tr');
+                            newTr.innerHTML = `
+                                <td class="bg-blue" contenteditable="true"></td>
+                                <td class="bg-blue" contenteditable="true"></td>
+                                <td style="text-align: center;" id="lblPct\${nextId}" class="bg-blue" contenteditable="true"></td>
+                                <td style="text-align: right;" id="lblAmt\${nextId}" class="bg-blue" contenteditable="true"></td>
+                            `;
+
+                            if (trTotal) {
+                                tbody.insertBefore(newTr, trTotal);
+                            } else {
+                                tbody.appendChild(newTr);
+                            }
+
+                            bindCellListeners(document.getElementById('lblPct' + nextId));
+                            bindCellListeners(document.getElementById('lblAmt' + nextId));
+
+                            updateCalculations();
+                        });
+                    }
                 }
                 attachLiveRecalculation();
             </script>
