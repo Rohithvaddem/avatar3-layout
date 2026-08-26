@@ -2756,19 +2756,38 @@ function handleMapClick(e) {
 // ----------------------------------------------------
 
 function setupMobileSidebar() {
-    sidebarToggleBtn.addEventListener('click', () => {
-        sidebar.classList.add('show');
-    });
+    let backdrop = document.querySelector('.sidebar-backdrop');
+    if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.className = 'sidebar-backdrop';
+        document.body.appendChild(backdrop);
+    }
 
-    sidebarCloseBtn.addEventListener('click', () => {
+    function openSidebar() {
+        sidebar.classList.add('show');
+        if (backdrop) backdrop.classList.add('active');
+    }
+
+    function closeSidebar() {
         sidebar.classList.remove('show');
-    });
+        if (backdrop) backdrop.classList.remove('active');
+    }
+
+    if (sidebarToggleBtn) {
+        sidebarToggleBtn.addEventListener('click', openSidebar);
+    }
+    if (sidebarCloseBtn) {
+        sidebarCloseBtn.addEventListener('click', closeSidebar);
+    }
+    if (backdrop) {
+        backdrop.addEventListener('click', closeSidebar);
+    }
     
     // Close sidebar on suggestions select or filter select in mobile
     sidebar.addEventListener('click', (e) => {
         if (window.innerWidth <= 992) {
-            if (e.target.closest('.suggestion-item') || e.target.closest('.filter-pill') || e.target.closest('.legend-item')) {
-                sidebar.classList.remove('show');
+            if (e.target.closest('.suggestion-item') || e.target.closest('.filter-pill') || e.target.closest('.legend-item') || e.target.closest('.project-nav-btn')) {
+                closeSidebar();
             }
         }
     });

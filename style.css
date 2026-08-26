@@ -3057,6 +3057,197 @@ input[type="radio"]:checked + .custom-radio::after {
     transform: translateY(-1px);
 }
 
+/* ====================================================
+   Comprehensive Mobile & Touch Optimization Styles
+   ==================================================== */
+
+/* Global Touch & Tap Improvements */
+button,
+.plot-dot,
+.leaflet-plot-marker,
+.project-nav-btn,
+.view-switch-btn,
+.map-btn,
+.floating-recenter-btn,
+.floating-site-visit-btn,
+.filter-chip,
+.filter-pill {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile Sidebar Backdrop Overlay */
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(5, 7, 10, 0.7);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Responsive Breakpoints: Tablet & Mobile (< 768px) */
+@media (max-width: 768px) {
+    /* Header & Navigation Adjustments */
+    .dashboard-header {
+        padding: 10px 14px;
+    }
+
+    .project-name {
+        font-size: 16px;
+    }
+
+    .approved-badge {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+
+    .header-stats {
+        display: none; /* Hide top stat cards on mobile to save viewport height */
+    }
+
+    .view-switch-btn span {
+        display: none; /* Icon-only view switch buttons on mobile */
+    }
+
+    .view-switch-btn {
+        padding: 8px 12px;
+    }
+
+    /* Floating Controls Positioning on Mobile */
+    .map-controls {
+        bottom: 80px;
+        right: 14px;
+    }
+
+    .map-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+    }
+
+    .floating-recenter-btn {
+        bottom: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 8px 18px;
+        font-size: 11.5px;
+    }
+
+    .floating-recenter-btn:hover {
+        transform: translateX(-50%) translateY(-2px);
+    }
+
+    .floating-site-visit-btn {
+        bottom: 18px;
+        right: 14px;
+        padding: 9px 15px;
+        font-size: 11.5px;
+    }
+
+    .gis-layer-control {
+        top: 14px;
+        right: 14px;
+        width: 160px;
+    }
+
+    .floating-legend-card {
+        bottom: 75px;
+        left: 14px;
+        max-width: calc(100vw - 120px);
+    }
+
+    .floating-legend-body {
+        max-height: 160px;
+        overflow-y: auto;
+    }
+
+    /* Map Tip Banner */
+    .map-tip {
+        bottom: 70px;
+        font-size: 11px;
+        padding: 6px 14px;
+        max-width: 90%;
+        text-align: center;
+    }
+}
+
+/* Mobile Screens (< 640px) - App Bottom Sheet for Plot Modal */
+@media (max-width: 640px) {
+    #modalBackdrop {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background-color: rgba(5, 7, 10, 0.7) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        z-index: 2000 !important;
+    }
+
+    #plotModal {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 85vh !important;
+        border-radius: 20px 20px 0 0 !important;
+        transform: translateY(100%) !important;
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        margin: 0 !important;
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(14, 165, 233, 0.25) !important;
+    }
+
+    #modalBackdrop.show #plotModal {
+        transform: translateY(0) !important;
+    }
+
+    /* Drag Handle Indicator for Bottom Sheet */
+    #plotModal::before {
+        content: '';
+        display: block;
+        width: 36px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.25);
+        border-radius: 4px;
+        margin: 0 auto 12px auto;
+    }
+
+    /* Centered Modals Responsiveness */
+    #loginModal,
+    #dealSimulatorModal,
+    #interestModal,
+    .site-visit-modal {
+        width: 94% !important;
+        max-width: 360px !important;
+        padding: 18px !important;
+    }
+
+    .project-nav-grid {
+        gap: 6px;
+    }
+
+    .project-nav-btn {
+        padding: 8px 2px;
+        font-size: 11px;
+    }
+}
+
 
 
 
