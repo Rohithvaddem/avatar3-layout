@@ -1202,7 +1202,7 @@ function exportPriceQuote(plotNo, customTerms) {
                     background: transparent;
                 }
                 .bg-green {
-                    background: #dcfce7 !important;
+                    background: #f8fafc !important;
                     font-weight: 800;
                     font-size: 11.5px;
                     -webkit-print-color-adjust: exact !important;
@@ -1368,7 +1368,7 @@ function exportPriceQuote(plotNo, customTerms) {
                         <tr>
                             <td class="bg-blue" style="text-align: center;" id="lblPlotArea" contenteditable="true">${plotAreaYds}</td>
                             <td class="bg-blue" style="text-align: right;" id="lblClosingPrice" contenteditable="true">${fmt(closingRate)}</td>
-                            <td class="bg-blue" style="text-align: right; font-weight: 700; color: #047857;" id="lblDiscount" contenteditable="true">${fmt(initialDiscountPerSqYd)}</td>
+                            <td class="bg-blue" style="text-align: right; font-weight: 700;" id="lblDiscount" contenteditable="true">${fmt(initialDiscountPerSqYd)}</td>
                             <td class="bg-blue" style="text-align: right;" id="lblTotalAmount" contenteditable="true">${fmt(grandTotalAmount)}</td>
                         </tr>
                     </tbody>
