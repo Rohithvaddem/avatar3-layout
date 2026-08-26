@@ -1437,20 +1437,20 @@ function exportPriceQuote(plotNo, customTerms) {
                     </tbody>
                 </table>
 
-                <!-- Extra Corpus Fund Table -->
+                <!-- Corpus Fund Table -->
                 <table class="q-table" style="margin-top: 10px;">
                     <tbody>
                         <tr>
-                            <td style="width: 45%; font-weight: 700;" contenteditable="true">Extra Corpus Fund (Not Included in Plot Cost)</td>
-                            <td style="width: 25%; text-align: center;" class="bg-blue" id="lblCorpusRate" contenteditable="true">₹ 200</td>
-                            <td style="width: 30%; text-align: right;" class="bg-blue" id="lblCorpusTotal" contenteditable="true">${fmt(plotAreaYds * 200)}</td>
+                            <td style="width: 45%; font-weight: 700;" contenteditable="true">Corpus Fund (Not Included in Plot Cost)</td>
+                            <td style="width: 25%; text-align: center;" id="lblCorpusRate" contenteditable="true">₹ 200</td>
+                            <td style="width: 30%; text-align: right;" id="lblCorpusTotal" contenteditable="true">${fmt(plotAreaYds * 200)}</td>
                         </tr>
                     </tbody>
                 </table>
 
                 <!-- Standard Notes -->
                 <div class="notes-block" style="margin-top: 10px;">
-                    <div class="notes-title" contenteditable="true">NOTE 1 : EXTRA CORPUS FUND 200/- Rs Per SQ Yd ( Not Included In Plot Cost )</div>
+                    <div class="notes-title" contenteditable="true">NOTE 1 : CORPUS FUND 200/- Rs Per SQ Yd ( Not Included In Plot Cost )</div>
                     <div class="notes-title" contenteditable="true">NOTE 2 : Documentation Charges 5,000 and Registration Charges - 7.6% on Sale Deed Value, these charges are not included in the Price Quotation</div>
                     <div class="notes-title" contenteditable="true">NOTE 3: Please note that canceling your plot booking after 15 days will result in a cancellation charge of Rs. 50,000.</div>
                 </div>
