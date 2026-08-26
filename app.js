@@ -131,7 +131,13 @@ const mapperPlotList = document.getElementById('mapperPlotList');
 const mapperExportBtn = document.getElementById('mapperExportBtn');
 
 // Initial Load Setup
-window.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startAppMain);
+} else {
+    startAppMain();
+}
+
+function startAppMain() {
     // Parse URL parameters BEFORE initApp so the correct project loads
     const urlParams = new URLSearchParams(window.location.search);
     const targetProj = urlParams.get('project');
@@ -183,7 +189,7 @@ window.addEventListener('DOMContentLoaded', () => {
             document.body.insertBefore(customerBanner, document.body.firstChild);
         }
     }
-});
+}
 
 // Main App Initialization
 function initApp() {

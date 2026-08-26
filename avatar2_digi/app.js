@@ -72,7 +72,13 @@ const loginError = document.getElementById('loginError');
 const sidebarFooter = document.getElementById('sidebarFooter');
 
 // Setup Application
-window.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startAvatar2App);
+} else {
+    startAvatar2App();
+}
+
+function startAvatar2App() {
     initApp();
     setupMapControls();
     setupSearch();
@@ -80,7 +86,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setupMobileSidebar();
     setupMapper();
     setupAdmin();
-});
+}
 
 // Ensure map is fitted once all resources are loaded and on resize
 window.addEventListener('load', () => {
