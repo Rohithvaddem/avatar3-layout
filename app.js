@@ -1008,16 +1008,30 @@ function exportPriceQuote(plotNo, customTerms) {
 
     const plotAreaYds = parseFloat(String(item.plot_size || '').replace(/[^0-9.]/g, '')) || 200;
     const facingStr = item.facing || 'EAST';
-    const isEast = facingStr.toUpperCase().includes('EAST');
+    const facingUpper = facingStr.toUpperCase().trim();
+
+    // Corner plot facings: North-East, North-West, South-East, South-West, NE, NW, SE, SW, Corner
+    const isCornerFacing = facingUpper.includes('NORTH-EAST') || facingUpper.includes('NORTH-WEST') || 
+                           facingUpper.includes('SOUTH-EAST') || facingUpper.includes('SOUTH-WEST') ||
+                           facingUpper.includes('NORTHEAST') || facingUpper.includes('NORTHWEST') || 
+                           facingUpper.includes('SOUTHEAST') || facingUpper.includes('SOUTHWEST') ||
+                           facingUpper.includes('NE') || facingUpper.includes('NW') || 
+                           facingUpper.includes('SE') || facingUpper.includes('SW') ||
+                           facingUpper.includes('CORNER');
+
+    const isCorner = (item.is_corner === true) ||
+                     isCornerFacing ||
+                     (item.remarks && String(item.remarks).toUpperCase().includes('CORNER')) ||
+                     (currentProject === 'avatar2' && ['45', '53', '96'].includes(String(item.plot_no))) ||
+                     (currentProject === 'avatar1' && ['85'].includes(String(item.plot_no)));
+
+    // Pure East facing plots (ONLY for pure East plots, excluding Corner plots like North-East / South-East)
+    const isEast = (facingUpper === 'EAST' || facingUpper === 'EAST FACING' || (facingUpper.includes('EAST') && !isCorner));
+
     const isMortgage = (item.plot_status && String(item.plot_status).toUpperCase().includes('MORTGAGE')) ||
                        (item.remarks && String(item.remarks).toUpperCase().includes('MORTGAGE')) ||
                        (item.facing && String(item.facing).toUpperCase().includes('MORTGAGE')) ||
                        (item.is_mortgage === true);
-    const isCorner = (item.is_corner === true) ||
-                     (item.remarks && String(item.remarks).toUpperCase().includes('CORNER')) ||
-                     (item.facing && String(item.facing).toUpperCase().includes('CORNER')) ||
-                     (currentProject === 'avatar2' && ['45', '53', '96'].includes(String(item.plot_no))) ||
-                     (currentProject === 'avatar1' && ['85'].includes(String(item.plot_no)));
     const customerName = item.customer_name || '';
 
     const projectMeta = projectMetadata[currentProject] || { title: currentProject === 'avatar1' ? "Aspirealty AVATAR 1" : "Aspirealty AVATAR 2" };
@@ -2058,9 +2072,19 @@ function openDealSimulator(plotNo) {
 
     const plotAreaYds = parseFloat(String(item.plot_size || '').replace(/[^0-9.]/g, '')) || 200;
     const facingStr = item.facing || 'EAST';
-    const isEast = facingStr.toUpperCase().includes('EAST');
-    const isMortgage = (item.plot_status && String(item.plot_status).toUpperCase().includes('MORTGAGE')) || (item.remarks && String(item.remarks).toUpperCase().includes('MORTGAGE'));
-    const isCorner = (item.is_corner === true) || (item.remarks && String(item.remarks).toUpperCase().includes('CORNER'));
+    const facingUpper = facingStr.toUpperCase().trim();
+
+    const isCornerFacing = facingUpper.includes('NORTH-EAST') || facingUpper.includes('NORTH-WEST') || 
+                           facingUpper.includes('SOUTH-EAST') || facingUpper.includes('SOUTH-WEST') ||
+                           facingUpper.includes('NORTHEAST') || facingUpper.includes('NORTHWEST') || 
+                           facingUpper.includes('SOUTHEAST') || facingUpper.includes('SOUTHWEST') ||
+                           facingUpper.includes('NE') || facingUpper.includes('NW') || 
+                           facingUpper.includes('SE') || facingUpper.includes('SW') ||
+                           facingUpper.includes('CORNER');
+
+    const isCorner = (item.is_corner === true) || isCornerFacing || (item.remarks && String(item.remarks).toUpperCase().includes('CORNER'));
+    const isEast = (facingUpper === 'EAST' || facingUpper === 'EAST FACING' || (facingUpper.includes('EAST') && !isCorner));
+    const isMortgage = (item.plot_status && String(item.plot_status).toUpperCase().includes('MORTGAGE')) || (item.remarks && String(item.remarks).toUpperCase().includes('MORTGAGE')) || (item.is_mortgage === true);
 
     const defaultBaseRate = (currentProject === 'avatar1') ? 14499 : 15499;
     const eastRate = isEast ? 200 : 0;
