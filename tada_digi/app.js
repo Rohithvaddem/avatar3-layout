@@ -180,9 +180,9 @@ function renderPlotDots() {
         
         dot.style.setProperty('--plot-color', getStatusColor(status));
         
-        // Mapped coordinates at exactly 1024x646 display size
-        dot.style.left = `${coords.left - 12}px`;
-        dot.style.top = `${coords.top - 12}px`;
+        // Mapped coordinates at original resolution (10368x7776)
+        dot.style.left = `${coords.left - 70}px`;
+        dot.style.top = `${coords.top - 70}px`;
         
         dot.textContent = plotNo;
         
@@ -245,11 +245,8 @@ function setupMapControls() {
         
         // Calculate new scale
         const previousScale = zoomScale;
-        if (e.deltaY < 0) {
-            zoomScale = Math.min(zoomScale + zoomIntensity, 4.0);
-        } else {
-            zoomScale = Math.max(zoomScale - zoomIntensity, 0.4);
-        }
+        const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+        zoomScale = Math.max(0.02, Math.min(zoomScale * zoomFactor, 5.0));
         
         // Offset pan adjustment so mouse remains focal point
         panX -= (mouseX / previousScale) * (zoomScale - previousScale);
@@ -286,7 +283,7 @@ function setupMapControls() {
                 e.touches[0].clientY - e.touches[1].clientY
             );
             const factor = currentDist / initialTouchDist;
-            zoomScale = Math.max(0.4, Math.min(zoomScale * factor, 4.0));
+            zoomScale = Math.max(0.02, Math.min(zoomScale * factor, 5.0));
             initialTouchDist = currentDist;
             updateMapTransform();
         }
@@ -298,7 +295,7 @@ function setupMapControls() {
 
     // Double click to reset viewport
     mapViewport.addEventListener('dblclick', (e) => {
-        if (e.target.closest('.plot-dot') || e.target.closest('#plotModal')) return;
+        if (e.target.closest('.plot-dot') || e.target.closest('.map-controls') || e.target.closest('#plotModal')) return;
         fitMapToViewport();
     });
 
@@ -310,7 +307,7 @@ function setupMapControls() {
     if (zoomInBtn) {
         zoomInBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            zoomScale = Math.min(zoomScale + 0.2, 4.0);
+            zoomScale = Math.min(zoomScale * 1.25, 5.0);
             updateMapTransform();
         });
     }
@@ -318,7 +315,7 @@ function setupMapControls() {
     if (zoomOutBtn) {
         zoomOutBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            zoomScale = Math.max(zoomScale - 0.2, 0.4);
+            zoomScale = Math.max(zoomScale * 0.8, 0.02);
             updateMapTransform();
         });
     }
@@ -353,9 +350,26 @@ function updateMapTransform() {
 }
 
 function fitMapToViewport() {
-    zoomScale = 1.02051;
-    panX = -9;
-    panY = -33.124;
+    const mapW = mapImage.naturalWidth || 10368;
+    const mapH = mapImage.naturalHeight || 7776;
+    
+    mapContainer.style.width = mapW + 'px';
+    mapContainer.style.height = mapH + 'px';
+    mapImage.style.width = mapW + 'px';
+    mapImage.style.height = mapH + 'px';
+    plotsOverlay.style.width = mapW + 'px';
+    plotsOverlay.style.height = mapH + 'px';
+
+    const vpW = mapViewport.clientWidth;
+    const vpH = mapViewport.clientHeight;
+    
+    if (vpW && vpH && mapW && mapH) {
+        const scaleX = vpW / mapW;
+        const scaleY = vpH / mapH;
+        zoomScale = Math.min(scaleX, scaleY);
+        panX = Math.round((vpW - mapW * zoomScale) / 2);
+        panY = Math.round((vpH - mapH * zoomScale) / 2);
+    }
     updateMapTransform();
 }
 
