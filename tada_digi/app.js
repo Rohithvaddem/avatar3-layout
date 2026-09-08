@@ -180,9 +180,9 @@ function renderPlotDots() {
         
         dot.style.setProperty('--plot-color', getStatusColor(status));
         
-        // Full resolution coordinates (10368x7776)
-        dot.style.left = `${coords.left}px`;
-        dot.style.top = `${coords.top}px`;
+        // Mapped coordinates at exactly 1024x646 display size
+        dot.style.left = `${coords.left - 12}px`;
+        dot.style.top = `${coords.top - 12}px`;
         
         dot.textContent = plotNo;
         
@@ -353,18 +353,9 @@ function updateMapTransform() {
 }
 
 function fitMapToViewport() {
-    if (!mapViewport || !mapContainer) return;
-    const vW = mapViewport.clientWidth || window.innerWidth;
-    const vH = mapViewport.clientHeight || window.innerHeight;
-    const imgW = 10368;
-    const imgH = 7776;
-    
-    const scaleX = vW / imgW;
-    const scaleY = vH / imgH;
-    zoomScale = Math.min(scaleX, scaleY) * 0.98;
-    
-    panX = (vW - (imgW * zoomScale)) / 2;
-    panY = (vH - (imgH * zoomScale)) / 2;
+    zoomScale = 1.02051;
+    panX = -9;
+    panY = -33.124;
     updateMapTransform();
 }
 
@@ -450,7 +441,7 @@ function focusOnPlot(plotNo) {
     if (dot) dot.classList.add('highlighted');
     
     // Center viewport focusing on targets
-    zoomScale = 0.35;
+    zoomScale = 1.0;
     const vWidth = mapViewport.clientWidth;
     const vHeight = mapViewport.clientHeight;
     
@@ -1151,15 +1142,16 @@ function setupMapper() {
         }
     });
 
-    // Capture click on map container directly (10368x7776 full resolution coordinates)
+    // Capture click on map container directly (1024x646 coordinates)
     mapContainer.addEventListener('click', (e) => {
         if (!isMapperMode) return;
         
-        // Get absolute coordinates on full resolution image (10368x7776)
-        const rect = mapContainer.getBoundingClientRect();
+        // Get absolute coordinates on the 1024x646 scale
+        const rect = mapImage.getBoundingClientRect();
         const clickX = Math.round((e.clientX - rect.left) / zoomScale);
         const clickY = Math.round((e.clientY - rect.top) / zoomScale);
         
+        // Save direct coordinates without scaling (fresh project!)
         plotCoordinates[activeMapperPlot] = {
             left: clickX,
             top: clickY
