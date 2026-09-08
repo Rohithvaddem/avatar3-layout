@@ -196,7 +196,8 @@
             <div class="map-viewport" id="mapViewport">
                 <!-- Floating On-Screen Status Legend Card -->
                 <div class="floating-legend-card" id="floatingLegendCard">
-                    <div class="floating-legend-header" id="floatingLegendHeader" title="Click to collapse/expand legend">
+                    <div class="floating-legend-header" id="floatingLegendHeader"
+                        title="Click to collapse/expand legend">
                         <div class="floating-legend-title">
                             <i class="fa-solid fa-palette" style="color: #60a5fa;"></i> <span>Plot Status Legend</span>
                         </div>
@@ -360,17 +361,22 @@
             </div>
             <div class="modal-body" style="padding: 20px 24px;">
                 <!-- Role Selector Tabs -->
-                <div class="login-role-tabs" style="display: flex; gap: 6px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 10px; margin-bottom: 16px;">
-                    <button type="button" id="tabStaffLogin" class="role-tab-btn active" style="flex: 1; padding: 10px 8px; border-radius: 8px; border: none; font-weight: 800; font-size: 12px; cursor: pointer; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
+                <div class="login-role-tabs"
+                    style="display: flex; gap: 6px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 10px; margin-bottom: 16px;">
+                    <button type="button" id="tabStaffLogin" class="role-tab-btn active"
+                        style="flex: 1; padding: 10px 8px; border-radius: 8px; border: none; font-weight: 800; font-size: 12px; cursor: pointer; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
                         <i class="fa-solid fa-user-shield"></i> Staff Login
                     </button>
-                    <button type="button" id="tabDirectorLogin" class="role-tab-btn" style="flex: 1; padding: 10px 8px; border-radius: 8px; border: none; font-weight: 800; font-size: 12px; cursor: pointer; background: transparent; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
+                    <button type="button" id="tabDirectorLogin" class="role-tab-btn"
+                        style="flex: 1; padding: 10px 8px; border-radius: 8px; border: none; font-weight: 800; font-size: 12px; cursor: pointer; background: transparent; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
                         <i class="fa-solid fa-crown" style="color: #facc15;"></i> Director Login
                     </button>
                 </div>
                 <form id="loginForm" style="display: flex; flex-direction: column; gap: 16px;">
                     <div style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
-                        <label id="loginUsernameLabel" style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Username / Login ID</label>
+                        <label id="loginUsernameLabel"
+                            style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Username / Login
+                            ID</label>
                         <input type="text" id="loginUsername" required
                             style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s;"
                             placeholder="Enter staff username">
@@ -389,7 +395,8 @@
                     </div>
                     <div id="loginError"
                         style="color: var(--status-registered); font-size: 12px; text-align: left; display: none; font-weight: 600;">
-                        <i class="fa-solid fa-circle-exclamation"></i> Invalid credentials! Please verify username and password.
+                        <i class="fa-solid fa-circle-exclamation"></i> Invalid credentials! Please verify username and
+                        password.
                     </div>
                     <button type="submit" id="loginSubmitBtn" class="admin-login-btn"
                         style="background-color: var(--accent); color: #fff; border: none; font-weight: 700; padding: 12px; font-size: 14px; margin-top: 8px; cursor: pointer; border-radius: 8px;">
@@ -403,13 +410,15 @@
     <!-- Director Mode Live Deal Closer & Margin Simulator Modal -->
     <div class="modal-backdrop" id="dealSimulatorModalBackdrop">
         <div class="custom-modal deal-simulator-modal" id="dealSimulatorModal" style="max-width: 520px; width: 95%;">
-            <div class="modal-header" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.15), rgba(202, 138, 4, 0.25)); border-bottom: 1px solid rgba(250, 204, 21, 0.3);">
+            <div class="modal-header"
+                style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.15), rgba(202, 138, 4, 0.25)); border-bottom: 1px solid rgba(250, 204, 21, 0.3);">
                 <h3 class="modal-title" style="color: #facc15; display: flex; align-items: center; gap: 8px;">
                     <i class="fa-solid fa-crown" style="color: #facc15;"></i> Live Deal Closer & Margin Simulator
                 </h3>
                 <button class="modal-close" id="dealSimulatorCloseBtn"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="modal-body" id="dealSimulatorBody" style="padding: 18px 20px; max-height: 80vh; overflow-y: auto;">
+            <div class="modal-body" id="dealSimulatorBody"
+                style="padding: 18px 20px; max-height: 80vh; overflow-y: auto;">
                 <!-- Populated dynamically by app.js -->
             </div>
         </div>
