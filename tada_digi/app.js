@@ -89,19 +89,20 @@ function startTadaApp() {
 }
 
 // Ensure map is fitted once all resources are loaded and on resize
-window.addEventListener('load', () => {
+function hideLoader() {
     fitMapToViewport();
-    
-    // Smooth transition to hide the loader screen
-    setTimeout(() => {
-        const loader = document.getElementById('loadingScreen');
-        if (loader) {
-            loader.classList.add('fade-out');
-            setTimeout(() => {
-                loader.remove();
-            }, 600); // Remove element after opacity transition completes
-        }
-    }, 1200); // Keep loader visible for 1.2 seconds for a premium feel
+    const loader = document.getElementById('loadingScreen');
+    if (loader) {
+        loader.classList.add('fade-out');
+        setTimeout(() => {
+            if (loader.parentNode) loader.parentNode.removeChild(loader);
+        }, 400);
+    }
+}
+
+window.addEventListener('load', hideLoader);
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(hideLoader, 500);
 });
 window.addEventListener('resize', fitMapToViewport);
 
@@ -180,9 +181,9 @@ function renderPlotDots() {
         
         dot.style.setProperty('--plot-color', getStatusColor(status));
         
-        // Mapped coordinates at original resolution (10368x7776)
-        dot.style.left = `${coords.left - 70}px`;
-        dot.style.top = `${coords.top - 70}px`;
+        // Mapped coordinates at 3500x2625 display scale
+        dot.style.left = `${coords.left - 25}px`;
+        dot.style.top = `${coords.top - 25}px`;
         
         dot.textContent = plotNo;
         
@@ -350,8 +351,8 @@ function updateMapTransform() {
 }
 
 function fitMapToViewport() {
-    const mapW = mapImage.naturalWidth || 10368;
-    const mapH = mapImage.naturalHeight || 7776;
+    const mapW = mapImage.naturalWidth || 3500;
+    const mapH = mapImage.naturalHeight || 2625;
     
     mapContainer.style.width = mapW + 'px';
     mapContainer.style.height = mapH + 'px';
@@ -360,8 +361,8 @@ function fitMapToViewport() {
     plotsOverlay.style.width = mapW + 'px';
     plotsOverlay.style.height = mapH + 'px';
 
-    const vpW = mapViewport.clientWidth;
-    const vpH = mapViewport.clientHeight;
+    const vpW = mapViewport.clientWidth || window.innerWidth;
+    const vpH = mapViewport.clientHeight || window.innerHeight;
     
     if (vpW && vpH && mapW && mapH) {
         const scaleX = vpW / mapW;
