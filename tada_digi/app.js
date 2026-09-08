@@ -89,20 +89,19 @@ function startTadaApp() {
 }
 
 // Ensure map is fitted once all resources are loaded and on resize
-function hideLoader() {
+window.addEventListener('load', () => {
     fitMapToViewport();
-    const loader = document.getElementById('loadingScreen');
-    if (loader) {
-        loader.classList.add('fade-out');
-        setTimeout(() => {
-            if (loader.parentNode) loader.parentNode.removeChild(loader);
-        }, 400);
-    }
-}
-
-window.addEventListener('load', hideLoader);
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(hideLoader, 500);
+    
+    // Smooth transition to hide the loader screen
+    setTimeout(() => {
+        const loader = document.getElementById('loadingScreen');
+        if (loader) {
+            loader.classList.add('fade-out');
+            setTimeout(() => {
+                loader.remove();
+            }, 600); // Remove element after opacity transition completes
+        }
+    }, 1200); // Keep loader visible for 1.2 seconds for a premium feel
 });
 window.addEventListener('resize', fitMapToViewport);
 
@@ -181,9 +180,9 @@ function renderPlotDots() {
         
         dot.style.setProperty('--plot-color', getStatusColor(status));
         
-        // Mapped coordinates at 3500x2625 display scale
-        dot.style.left = `${coords.left - 25}px`;
-        dot.style.top = `${coords.top - 25}px`;
+        // Full resolution coordinates (10368x7776)
+        dot.style.left = `${coords.left}px`;
+        dot.style.top = `${coords.top}px`;
         
         dot.textContent = plotNo;
         
@@ -246,8 +245,11 @@ function setupMapControls() {
         
         // Calculate new scale
         const previousScale = zoomScale;
-        const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
-        zoomScale = Math.max(0.02, Math.min(zoomScale * zoomFactor, 5.0));
+        if (e.deltaY < 0) {
+            zoomScale = Math.min(zoomScale + zoomIntensity, 4.0);
+        } else {
+            zoomScale = Math.max(zoomScale - zoomIntensity, 0.4);
+        }
         
         // Offset pan adjustment so mouse remains focal point
         panX -= (mouseX / previousScale) * (zoomScale - previousScale);
@@ -284,7 +286,7 @@ function setupMapControls() {
                 e.touches[0].clientY - e.touches[1].clientY
             );
             const factor = currentDist / initialTouchDist;
-            zoomScale = Math.max(0.02, Math.min(zoomScale * factor, 5.0));
+            zoomScale = Math.max(0.4, Math.min(zoomScale * factor, 4.0));
             initialTouchDist = currentDist;
             updateMapTransform();
         }
@@ -296,7 +298,7 @@ function setupMapControls() {
 
     // Double click to reset viewport
     mapViewport.addEventListener('dblclick', (e) => {
-        if (e.target.closest('.plot-dot') || e.target.closest('.map-controls') || e.target.closest('#plotModal')) return;
+        if (e.target.closest('.plot-dot') || e.target.closest('#plotModal')) return;
         fitMapToViewport();
     });
 
@@ -308,7 +310,7 @@ function setupMapControls() {
     if (zoomInBtn) {
         zoomInBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            zoomScale = Math.min(zoomScale * 1.25, 5.0);
+            zoomScale = Math.min(zoomScale + 0.2, 4.0);
             updateMapTransform();
         });
     }
@@ -316,7 +318,7 @@ function setupMapControls() {
     if (zoomOutBtn) {
         zoomOutBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            zoomScale = Math.max(zoomScale * 0.8, 0.02);
+            zoomScale = Math.max(zoomScale - 0.2, 0.4);
             updateMapTransform();
         });
     }
@@ -351,26 +353,18 @@ function updateMapTransform() {
 }
 
 function fitMapToViewport() {
-    const mapW = mapImage.naturalWidth || 3500;
-    const mapH = mapImage.naturalHeight || 2625;
+    if (!mapViewport || !mapContainer) return;
+    const vW = mapViewport.clientWidth || window.innerWidth;
+    const vH = mapViewport.clientHeight || window.innerHeight;
+    const imgW = 10368;
+    const imgH = 7776;
     
-    mapContainer.style.width = mapW + 'px';
-    mapContainer.style.height = mapH + 'px';
-    mapImage.style.width = mapW + 'px';
-    mapImage.style.height = mapH + 'px';
-    plotsOverlay.style.width = mapW + 'px';
-    plotsOverlay.style.height = mapH + 'px';
-
-    const vpW = mapViewport.clientWidth || window.innerWidth;
-    const vpH = mapViewport.clientHeight || window.innerHeight;
+    const scaleX = vW / imgW;
+    const scaleY = vH / imgH;
+    zoomScale = Math.min(scaleX, scaleY) * 0.98;
     
-    if (vpW && vpH && mapW && mapH) {
-        const scaleX = vpW / mapW;
-        const scaleY = vpH / mapH;
-        zoomScale = Math.min(scaleX, scaleY);
-        panX = Math.round((vpW - mapW * zoomScale) / 2);
-        panY = Math.round((vpH - mapH * zoomScale) / 2);
-    }
+    panX = (vW - (imgW * zoomScale)) / 2;
+    panY = (vH - (imgH * zoomScale)) / 2;
     updateMapTransform();
 }
 
@@ -456,7 +450,7 @@ function focusOnPlot(plotNo) {
     if (dot) dot.classList.add('highlighted');
     
     // Center viewport focusing on targets
-    zoomScale = 1.0;
+    zoomScale = 0.35;
     const vWidth = mapViewport.clientWidth;
     const vHeight = mapViewport.clientHeight;
     
@@ -1157,16 +1151,15 @@ function setupMapper() {
         }
     });
 
-    // Capture click on map container directly (1024x646 coordinates)
+    // Capture click on map container directly (10368x7776 full resolution coordinates)
     mapContainer.addEventListener('click', (e) => {
         if (!isMapperMode) return;
         
-        // Get absolute coordinates on the 1024x646 scale
-        const rect = mapImage.getBoundingClientRect();
+        // Get absolute coordinates on full resolution image (10368x7776)
+        const rect = mapContainer.getBoundingClientRect();
         const clickX = Math.round((e.clientX - rect.left) / zoomScale);
         const clickY = Math.round((e.clientY - rect.top) / zoomScale);
         
-        // Save direct coordinates without scaling (fresh project!)
         plotCoordinates[activeMapperPlot] = {
             left: clickX,
             top: clickY
