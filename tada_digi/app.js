@@ -51,8 +51,9 @@ const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
 // Statistics DOM
 const statTotalPlots = document.getElementById('statTotalPlots');
 const statAvailablePlots = document.getElementById('statAvailablePlots');
-const statBookedPlots = document.getElementById('statBookedPlots');
-const statMortgagePlots = document.getElementById('statMortgagePlots');
+const statPremKumarPlots = document.getElementById('statPremKumarPlots');
+const statSureshPlots = document.getElementById('statSureshPlots');
+const statSoumithPlots = document.getElementById('statSoumithPlots');
 
 // Mapper DOM
 const mapperSection = document.getElementById('mapperSection');
@@ -137,7 +138,9 @@ function initApp() {
         })
         .catch(err => {
             console.warn('Network issue. Falling back to data.js:', err);
-            if (typeof plotDataRaw !== 'undefined') {
+            if (typeof plotDataRawTada !== 'undefined') {
+                plotData = plotDataRawTada;
+            } else if (typeof plotDataRaw !== 'undefined') {
                 plotData = plotDataRaw;
             } else {
                 console.error('Offline dataset not found.');
@@ -153,14 +156,19 @@ function initApp() {
 // Rendering Functions
 // ----------------------------------------------------
 
-function getStatusColor(status) {
-    const s = String(status).toUpperCase().trim();
-    if (s === 'AVAILABLE') return 'var(--status-available)';
-    if (s === 'SOLD' || s === 'BOOKED' || s === 'CLUB HOUSE') return 'var(--status-sold)';
-    if (s === 'HOLD') return 'var(--status-hold)';
-    if (s === 'MORTGAGE') return 'var(--status-mortgage)';
-    if (s === 'REGISTERED') return 'var(--status-registered)';
-    return '#6b7280'; // gray default
+function getStatusColor(status, plotNo) {
+    if (String(plotNo) === '1') return '#8b5cf6'; // Violet for Plot 1 (EVERYONES)
+    const s = String(status || '').toUpperCase().trim();
+    if (s === 'EVERYONES' || s === "EVERYONE'S" || s === 'EVERYONE') return '#8b5cf6'; // Violet
+    if (s === 'AVAILABLE') return '#10b981'; // Green
+    if (s === 'PREM KUMAR' || s === 'PREMKUMAR' || s === 'PREM') return '#f97316'; // Orange
+    if (s === 'SURESH') return '#facc15'; // Yellow
+    if (s === 'SOUMITH') return '#3b82f6'; // Blue
+    
+    if (s === 'MORTGAGE' || s === 'HOLD') return '#f97316'; // Orange
+    if (s === 'REGISTERED') return '#facc15'; // Yellow
+    if (s === 'SOLD' || s === 'BOOKED' || s === 'CLUB HOUSE') return '#3b82f6'; // Blue
+    return '#10b981'; // Green default
 }
 
 function renderPlotDots() {
@@ -169,7 +177,7 @@ function renderPlotDots() {
     Object.keys(plotCoordinates).forEach(plotNo => {
         const coords = plotCoordinates[plotNo];
         const detail = plotData.find(p => String(p.plot_no) === String(plotNo));
-        const status = detail ? detail.plot_status : 'AVAILABLE';
+        const status = detail ? detail.plot_status : (String(plotNo) === '1' ? 'EVERYONES' : 'AVAILABLE');
         
         const dot = document.createElement('button');
         dot.className = 'plot-dot';
@@ -178,11 +186,12 @@ function renderPlotDots() {
         dot.dataset.facing = detail && detail.facing ? detail.facing : 'Unknown';
         dot.dataset.status = status;
         
-        dot.style.setProperty('--plot-color', getStatusColor(status));
+        dot.style.setProperty('--plot-color', getStatusColor(status, plotNo));
+        dot.title = `Plot #${plotNo} | Status: ${status} | Size: ${detail && detail.plot_size ? detail.plot_size + ' Sq.Yds' : 'N/A'} | Facing: ${detail && detail.facing ? detail.facing : 'N/A'}`;
         
-        // Mapped coordinates at exactly 1024x646 display size
-        dot.style.left = `${coords.left - 12}px`;
-        dot.style.top = `${coords.top - 12}px`;
+        // Mapped coordinates centered for 20px dot size
+        dot.style.left = `${coords.left - 10}px`;
+        dot.style.top = `${coords.top - 10}px`;
         
         dot.textContent = plotNo;
         
@@ -482,7 +491,18 @@ function applyFilters() {
     document.querySelectorAll('.plot-dot').forEach(dot => {
         const plotNo = dot.dataset.plotNo;
         const facing = dot.dataset.facing;
-        const status = dot.dataset.status;
+        const rawStatus = String(dot.dataset.status || '').toUpperCase().trim();
+        
+        let normalizedStatus = 'AVAILABLE';
+        if (String(plotNo) === '1' || rawStatus === 'EVERYONES' || rawStatus === "EVERYONE'S" || rawStatus === 'EVERYONE') {
+            normalizedStatus = 'EVERYONES';
+        } else if (rawStatus === 'PREM KUMAR' || rawStatus === 'PREMKUMAR' || rawStatus === 'PREM' || rawStatus === 'MORTGAGE' || rawStatus === 'HOLD') {
+            normalizedStatus = 'PREM KUMAR';
+        } else if (rawStatus === 'SURESH' || rawStatus === 'REGISTERED') {
+            normalizedStatus = 'SURESH';
+        } else if (rawStatus === 'SOUMITH' || rawStatus === 'SOLD' || rawStatus === 'BOOKED' || rawStatus === 'CLUB HOUSE') {
+            normalizedStatus = 'SOUMITH';
+        }
         
         let show = true;
         
@@ -492,7 +512,7 @@ function applyFilters() {
         }
         
         // Apply Status constraint
-        if (activeStatusFilters.size > 0 && !activeStatusFilters.has(status)) {
+        if (activeStatusFilters.size > 0 && !activeStatusFilters.has(normalizedStatus) && !activeStatusFilters.has(rawStatus)) {
             show = false;
         }
         
@@ -977,62 +997,74 @@ function openDealSimulator(plotNo) {
 }
 
 function updateStatistics() {
-    const totalCount = plotData.length;
-    statTotalPlots.textContent = totalCount;
+    const totalCount = plotData.length || 131;
+    if (statTotalPlots) statTotalPlots.textContent = totalCount;
     
-    let counts = { AVAILABLE: 0, SOLD: 0, HOLD: 0, MORTGAGE: 0, REGISTERED: 0 };
+    let counts = {
+        'EVERYONES': 0,
+        'AVAILABLE': 0,
+        'PREM KUMAR': 0,
+        'SURESH': 0,
+        'SOUMITH': 0
+    };
+
     plotData.forEach(p => {
-        const s = String(p.plot_status).toUpperCase().trim();
-        if (counts[s] !== undefined) {
-            counts[s]++;
-        } else if (s === 'BOOKED' || s === 'CLUB HOUSE') {
-            counts.SOLD++;
+        const s = String(p.plot_status || '').toUpperCase().trim();
+        if (String(p.plot_no) === '1' || s === 'EVERYONES' || s === "EVERYONE'S" || s === 'EVERYONE') {
+            counts['EVERYONES']++;
+        } else if (s === 'PREM KUMAR' || s === 'PREMKUMAR' || s === 'PREM' || s === 'MORTGAGE' || s === 'HOLD') {
+            counts['PREM KUMAR']++;
+        } else if (s === 'SURESH' || s === 'REGISTERED') {
+            counts['SURESH']++;
+        } else if (s === 'SOUMITH' || s === 'SOLD' || s === 'BOOKED' || s === 'CLUB HOUSE') {
+            counts['SOUMITH']++;
+        } else {
+            counts['AVAILABLE']++;
         }
     });
 
-    statAvailablePlots.textContent = counts.AVAILABLE;
-    statBookedPlots.textContent = counts.SOLD + counts.REGISTERED;
-    if (statMortgagePlots) {
-        statMortgagePlots.textContent = counts.MORTGAGE || 0;
-    }
+    if (statAvailablePlots) statAvailablePlots.textContent = counts['AVAILABLE'];
+    if (statPremKumarPlots) statPremKumarPlots.textContent = counts['PREM KUMAR'];
+    if (statSureshPlots) statSureshPlots.textContent = counts['SURESH'];
+    if (statSoumithPlots) statSoumithPlots.textContent = counts['SOUMITH'];
     
     // Render Sidebar Legend items
     if (statusLegendList) {
         statusLegendList.innerHTML = `
-            <div class="legend-item" id="legend-AVAILABLE" style="--legend-color: var(--status-available);">
+            <div class="legend-item ${activeStatusFilters.has('EVERYONES') ? 'active' : ''}" id="legend-EVERYONES" style="--legend-color: #8b5cf6;">
                 <div class="legend-label-group">
-                    <div class="legend-color-dot"></div>
-                    <span class="legend-name">Available</span>
+                    <div class="legend-color-dot" style="background-color: #8b5cf6;"></div>
+                    <span class="legend-name">EVERYONES</span>
                 </div>
-                <span class="legend-count">${counts.AVAILABLE}</span>
+                <span class="legend-count">${counts['EVERYONES']}</span>
             </div>
-            <div class="legend-item" id="legend-SOLD" style="--legend-color: var(--status-sold);">
+            <div class="legend-item ${activeStatusFilters.has('AVAILABLE') ? 'active' : ''}" id="legend-AVAILABLE" style="--legend-color: #10b981;">
                 <div class="legend-label-group">
-                    <div class="legend-color-dot"></div>
-                    <span class="legend-name">Sold / Booked</span>
+                    <div class="legend-color-dot" style="background-color: #10b981;"></div>
+                    <span class="legend-name">AVAILABLE</span>
                 </div>
-                <span class="legend-count">${counts.SOLD}</span>
+                <span class="legend-count">${counts['AVAILABLE']}</span>
             </div>
-            <div class="legend-item" id="legend-MORTGAGE" style="--legend-color: var(--status-mortgage);">
+            <div class="legend-item ${activeStatusFilters.has('PREM KUMAR') ? 'active' : ''}" id="legend-PREM_KUMAR" style="--legend-color: #f97316;">
                 <div class="legend-label-group">
-                    <div class="legend-color-dot"></div>
-                    <span class="legend-name">Mortgage</span>
+                    <div class="legend-color-dot" style="background-color: #f97316;"></div>
+                    <span class="legend-name">PREM KUMAR</span>
                 </div>
-                <span class="legend-count">${counts.MORTGAGE}</span>
+                <span class="legend-count">${counts['PREM KUMAR']}</span>
             </div>
-            <div class="legend-item" id="legend-HOLD" style="--legend-color: var(--status-hold);">
+            <div class="legend-item ${activeStatusFilters.has('SURESH') ? 'active' : ''}" id="legend-SURESH" style="--legend-color: #facc15;">
                 <div class="legend-label-group">
-                    <div class="legend-color-dot"></div>
-                    <span class="legend-name">Hold</span>
+                    <div class="legend-color-dot" style="background-color: #facc15;"></div>
+                    <span class="legend-name">SURESH</span>
                 </div>
-                <span class="legend-count">${counts.HOLD}</span>
+                <span class="legend-count">${counts['SURESH']}</span>
             </div>
-            <div class="legend-item" id="legend-REGISTERED" style="--legend-color: var(--status-registered);">
+            <div class="legend-item ${activeStatusFilters.has('SOUMITH') ? 'active' : ''}" id="legend-SOUMITH" style="--legend-color: #3b82f6;">
                 <div class="legend-label-group">
-                    <div class="legend-color-dot"></div>
-                    <span class="legend-name">Registered</span>
+                    <div class="legend-color-dot" style="background-color: #3b82f6;"></div>
+                    <span class="legend-name">SOUMITH</span>
                 </div>
-                <span class="legend-count">${counts.REGISTERED}</span>
+                <span class="legend-count">${counts['SOUMITH']}</span>
             </div>
         `;
     }
@@ -1041,25 +1073,25 @@ function updateStatistics() {
     const floatingLegendBody = document.getElementById('floatingLegendBody');
     if (floatingLegendBody) {
         floatingLegendBody.innerHTML = `
-            <div class="floating-legend-item ${activeStatusFilters.has('AVAILABLE') ? 'active' : ''}" data-status="AVAILABLE" style="--status-color: var(--status-available);">
-                <div class="label-group"><span class="color-dot"></span><span>AVAILABLE</span></div>
-                <span class="count-badge">${counts.AVAILABLE}</span>
+            <div class="floating-legend-item ${activeStatusFilters.has('EVERYONES') ? 'active' : ''}" data-status="EVERYONES" style="--status-color: #8b5cf6;">
+                <div class="label-group"><span class="color-dot" style="background-color: #8b5cf6;"></span><span>EVERYONES</span></div>
+                <span class="count-badge">${counts['EVERYONES']}</span>
             </div>
-            <div class="floating-legend-item ${activeStatusFilters.has('SOLD') ? 'active' : ''}" data-status="SOLD" style="--status-color: var(--status-sold);">
-                <div class="label-group"><span class="color-dot"></span><span>SOLD / BOOKED</span></div>
-                <span class="count-badge">${counts.SOLD}</span>
+            <div class="floating-legend-item ${activeStatusFilters.has('AVAILABLE') ? 'active' : ''}" data-status="AVAILABLE" style="--status-color: #10b981;">
+                <div class="label-group"><span class="color-dot" style="background-color: #10b981;"></span><span>AVAILABLE</span></div>
+                <span class="count-badge">${counts['AVAILABLE']}</span>
             </div>
-            <div class="floating-legend-item ${activeStatusFilters.has('MORTGAGE') ? 'active' : ''}" data-status="MORTGAGE" style="--status-color: var(--status-mortgage);">
-                <div class="label-group"><span class="color-dot"></span><span>MORTGAGE</span></div>
-                <span class="count-badge">${counts.MORTGAGE}</span>
+            <div class="floating-legend-item ${activeStatusFilters.has('PREM KUMAR') ? 'active' : ''}" data-status="PREM KUMAR" style="--status-color: #f97316;">
+                <div class="label-group"><span class="color-dot" style="background-color: #f97316;"></span><span>PREM KUMAR</span></div>
+                <span class="count-badge">${counts['PREM KUMAR']}</span>
             </div>
-            <div class="floating-legend-item ${activeStatusFilters.has('HOLD') ? 'active' : ''}" data-status="HOLD" style="--status-color: var(--status-hold);">
-                <div class="label-group"><span class="color-dot"></span><span>HOLD</span></div>
-                <span class="count-badge">${counts.HOLD}</span>
+            <div class="floating-legend-item ${activeStatusFilters.has('SURESH') ? 'active' : ''}" data-status="SURESH" style="--status-color: #facc15;">
+                <div class="label-group"><span class="color-dot" style="background-color: #facc15;"></span><span>SURESH</span></div>
+                <span class="count-badge">${counts['SURESH']}</span>
             </div>
-            <div class="floating-legend-item ${activeStatusFilters.has('REGISTERED') ? 'active' : ''}" data-status="REGISTERED" style="--status-color: var(--status-registered);">
-                <div class="label-group"><span class="color-dot"></span><span>REGISTERED</span></div>
-                <span class="count-badge">${counts.REGISTERED}</span>
+            <div class="floating-legend-item ${activeStatusFilters.has('SOUMITH') ? 'active' : ''}" data-status="SOUMITH" style="--status-color: #3b82f6;">
+                <div class="label-group"><span class="color-dot" style="background-color: #3b82f6;"></span><span>SOUMITH</span></div>
+                <span class="count-badge">${counts['SOUMITH']}</span>
             </div>
         `;
 
@@ -1092,8 +1124,9 @@ function updateStatistics() {
     }
 
     // Attach form listeners for Sidebar Legend selections
-    Object.keys(counts).forEach(status => {
-        const item = document.getElementById(`legend-${status}`);
+    ['EVERYONES', 'AVAILABLE', 'PREM KUMAR', 'SURESH', 'SOUMITH'].forEach(status => {
+        const itemKey = status.replace(' ', '_');
+        const item = document.getElementById(`legend-${itemKey}`);
         if (item) {
             item.addEventListener('click', () => {
                 if (activeStatusFilters.has(status)) {
@@ -1502,11 +1535,11 @@ function openPlotEditForm(plotNo) {
             <div style="display: flex; flex-direction: column; gap: 4px;">
                 <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Plot Status</label>
                 <select id="editStatus" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none; width: 100%;">
-                    <option value="AVAILABLE" ${item.plot_status === 'AVAILABLE' ? 'selected' : ''}>AVAILABLE</option>
-                    <option value="SOLD" ${item.plot_status === 'SOLD' ? 'selected' : ''}>SOLD</option>
-                    <option value="MORTGAGE" ${item.plot_status === 'MORTGAGE' ? 'selected' : ''}>MORTGAGE</option>
-                    <option value="HOLD" ${item.plot_status === 'HOLD' ? 'selected' : ''}>HOLD</option>
-                    <option value="REGISTERED" ${item.plot_status === 'REGISTERED' ? 'selected' : ''}>REGISTERED</option>
+                    <option value="EVERYONES" ${item.plot_status === 'EVERYONES' ? 'selected' : ''}>EVERYONES (Violet)</option>
+                    <option value="AVAILABLE" ${item.plot_status === 'AVAILABLE' ? 'selected' : ''}>AVAILABLE (Green)</option>
+                    <option value="PREM KUMAR" ${item.plot_status === 'PREM KUMAR' ? 'selected' : ''}>PREM KUMAR (Orange)</option>
+                    <option value="SURESH" ${item.plot_status === 'SURESH' ? 'selected' : ''}>SURESH (Yellow)</option>
+                    <option value="SOUMITH" ${item.plot_status === 'SOUMITH' ? 'selected' : ''}>SOUMITH (Blue)</option>
                 </select>
             </div>
             
