@@ -1411,3 +1411,11 @@ button,
     }
 }
 
+/* Leaflet Plot Marker Styling */
+.leaflet-plot-marker-container {
+    background: transparent !important;
+    border: none !important;
+    overflow: visible !important;
+}
+
+
