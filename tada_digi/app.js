@@ -156,10 +156,13 @@ function initApp() {
 // Rendering Functions
 // ----------------------------------------------------
 
-function getStatusColor(status, plotNo) {
+function getStatusColor(status, plotNo, detail) {
+    if (detail && String(detail.reference_name || '').toUpperCase().trim() === 'ASPIREALTY') {
+        return '#3b82f6'; // Light Blue for Aspirealty share plots
+    }
     const s = String(status || '').toUpperCase().trim();
     if (s === 'EVERYONES' || s === "EVERYONE'S" || s === 'EVERYONE') return '#8b5cf6'; // Violet
-    if (s === 'AVAILABLE') return '#3b82f6'; // Light Blue
+    if (s === 'AVAILABLE') return '#10b981'; // Green
     if (s === 'PREM KUMAR' || s === 'PREMKUMAR' || s === 'PREM') return '#f97316'; // Orange
     if (s === 'SURESH') return '#facc15'; // Yellow
     if (s === 'SOUMITH') return '#3b82f6'; // Blue
@@ -167,7 +170,7 @@ function getStatusColor(status, plotNo) {
     if (s === 'MORTGAGE' || s === 'HOLD') return '#f97316'; // Orange
     if (s === 'REGISTERED') return '#facc15'; // Yellow
     if (s === 'SOLD' || s === 'BOOKED' || s === 'CLUB HOUSE') return '#3b82f6'; // Blue
-    return '#3b82f6'; // Light Blue default
+    return '#10b981'; // Green default
 }
 
 function renderPlotDots() {
@@ -185,9 +188,8 @@ function renderPlotDots() {
         dot.dataset.facing = detail && detail.facing ? detail.facing : 'Unknown';
         dot.dataset.status = status;
         
-        dot.style.setProperty('--plot-color', getStatusColor(status, plotNo));
-        const isAvailablePlotDot = String(status || '').toUpperCase().trim() === 'AVAILABLE';
-        const displaySizeTooltip = (isAvailablePlotDot || !detail || !detail.plot_size || detail.plot_size === 'N/A') ? 'N/A' : (detail.plot_size + ' Sq.Yds');
+        dot.style.setProperty('--plot-color', getStatusColor(status, plotNo, detail));
+        const displaySizeTooltip = (!detail || !detail.plot_size || detail.plot_size === 'N/A') ? 'N/A' : (detail.plot_size + ' Sq.Yds');
         dot.title = `Plot #${plotNo} | Status: ${status} | Size: ${displaySizeTooltip} | Facing: ${detail && detail.facing ? detail.facing : 'N/A'}`;
         
         // Mapped coordinates centered for 20px dot size
@@ -543,7 +545,7 @@ function openPlotModal(plotNo) {
         reference_name: 'N/A'
     };
     
-    const color = getStatusColor(item.plot_status);
+    const color = getStatusColor(item.plot_status, item.plot_no, item);
     
     let editButtonHtml = '';
     if (isAdminLoggedIn) {
@@ -569,11 +571,11 @@ function openPlotModal(plotNo) {
             </div>
             <div class="detail-row">
                 <span class="detail-label">Plot Area</span>
-                <span class="detail-val">${(String(item.plot_status || '').toUpperCase().trim() === 'AVAILABLE' || !item.plot_size || item.plot_size === 'N/A') ? 'N/A' : item.plot_size + ' Sq. Yards'}</span>
+                <span class="detail-val">${(!item.plot_size || item.plot_size === 'N/A') ? 'N/A' : item.plot_size + ' Sq. Yards'}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Facing Direction</span>
-                <span class="detail-val">${String(item.plot_status || '').toUpperCase().trim() === 'AVAILABLE' ? 'N/A' : (item.facing || 'N/A')}</span>
+                <span class="detail-val">${item.facing || 'N/A'}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Customer Name</span>
